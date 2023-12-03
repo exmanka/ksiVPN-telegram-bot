@@ -77,9 +77,8 @@ def show_subscription_info(client_id: int):
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
 def show_configurations_info(client_id: int):
     cur.execute('''
-                SELECT c.file_type, TO_CHAR(c.date_of_receipt, 'FMDD TMMonth YYYY в HH24:MI'), co.os, co.is_using_chatgpt, cp.name, cl.country, cl.city, cl.bandwidth, cl.ping, c.telegram_file_id
+                SELECT c.file_type, TO_CHAR(c.date_of_receipt, 'FMDD TMMonth YYYY в HH24:MI'), c.os, cl.is_chatgpt_available, cp.name, cl.country, cl.city, cl.bandwidth, cl.ping, c.telegram_file_id
                 FROM configurations AS c
-                JOIN configurations_os AS co ON c.conf_os_id = co.id
                 JOIN configurations_protocols AS cp ON c.protocol_id = cp.id
                 JOIN configurations_locations AS cl ON c.location_id = cl.id
                 WHERE c.client_id = %s
