@@ -61,6 +61,33 @@ async def account_subscription_info(message: types.Message):
     await message.answer(f'<b>{subscription_info[0]}</b>\n\n{subscription_info[1]}\n\nСтоимость: {subscription_info[2]}₽ в месяц.', parse_mode='HTML')
 
 @user_mw.authorized_only()
+async def account_configurations(message: types.Message, state: FSMContext):
+    await state.set_state(user_authorized_fsm.AccountMenu.account_configs)
+    await message.answer('Меню конфигураций', reply_markup=user_authorized_kb.config_kb)
+
+@user_mw.authorized_only()
+async def account_ref_program(message: types.Message, state:FSMContext):
+    await state.set_state(user_authorized_fsm.AccountMenu.account_ref_program)
+    await message.answer(messages_dict['ref_program']['text'], reply_markup=user_authorized_kb.ref_program_kb, parse_mode='HTML')
+
+@user_mw.authorized_only()
+async def account_promo(message: types.Message, state: FSMContext):
+    await state.set_state(user_authorized_fsm.AccountMenu.account_promo)
+    await message.answer('Отлично, теперь введите промокод!', reply_markup=user_authorized_kb.promo_kb)
+
+@user_mw.authorized_only()
+async def account_submenu_cm_cancel(message: types.Message, state: FSMContext):
+    '''
+    Return to account menu from promocode FSM and referal program FSM
+    '''
+    
+    current_state = await state.get_state()
+    if current_state is not None:
+        await state.set_state(user_authorized_fsm.AccountMenu.account_menu)
+
+    await message.answer('Возврат в личный кабинет', reply_markup=user_authorized_kb.account_kb)
+
+@user_mw.authorized_only()
 async def account_configurations_info(message: types.Message):
     configurations_info = postgesql_db.show_configurations_info(postgesql_db.find_clientID_by_telegramID(message.from_user.id)[0])
     await message.answer(f'Информация о всех ваших конфигурациях, теперь не нужно искать их по диалогу с ботом!\n\nВсего конфигураций <b>{len(configurations_info)}</b>.',
@@ -97,21 +124,8 @@ async def account_configurations_info(message: types.Message):
     await message.answer('Напоминаю правила (/rules):\n1. Одно устройство - одна конфигурация.\n2. Конфигурациями делиться с другими людьми запрещено!')
 
 @user_mw.authorized_only()
-async def account_promo_enter(message: types.Message, state: FSMContext):
-    await state.set_state(user_authorized_fsm.AccountMenu.account_promo)
-    await message.answer('Отлично, теперь введите промокод!', reply_markup=user_authorized_kb.promo_kb)
-
-@user_mw.authorized_only()
-async def account_submenu_cm_cancel(message: types.Message, state: FSMContext):
-    '''
-    Return to account menu from promocode FSM and referal program FSM
-    '''
-    
-    current_state = await state.get_state()
-    if current_state is not None:
-        await state.set_state(user_authorized_fsm.AccountMenu.account_menu)
-
-    await message.answer('Возврат в личный кабинет', reply_markup=user_authorized_kb.account_kb)
+async def account_configurations_request(message: types.Message):
+    pass
 
 @user_mw.authorized_only()
 async def account_ref_program_info(message: types.Message):
@@ -243,11 +257,6 @@ async def account_promo_info(message: types.Message, state: FSMContext):
         await message.answer(tmp_string, parse_mode='HTML')
     
 @user_mw.authorized_only()
-async def account_ref_program(message: types.Message, state:FSMContext):
-    await state.set_state(user_authorized_fsm.AccountMenu.account_ref_program)
-    await message.answer(messages_dict['ref_program']['text'], reply_markup=user_authorized_kb.ref_program_kb, parse_mode='HTML')
-    
-@user_mw.authorized_only()
 async def show_project_rules(message: types.Message):
     await message.answer(messages_dict['project_rules']['text'], parse_mode='HTML')
 
@@ -258,13 +267,16 @@ def register_handlers_authorized_client(dp: Dispatcher):
     dp.register_message_handler(account_cm_start, Text(equals='Личный кабинет'))
     dp.register_message_handler(account_user_info, Text(equals='Информация о пользователе'), state=user_authorized_fsm.AccountMenu.account_menu)
     dp.register_message_handler(account_subscription_info, Text(equals='Информация о подписке'), state=user_authorized_fsm.AccountMenu.account_menu)
-    dp.register_message_handler(account_configurations_info, Text(equals='Конфигурации'), state=user_authorized_fsm.AccountMenu.account_menu)
+    dp.register_message_handler(account_configurations, Text(equals='Конфигурации'), state=user_authorized_fsm.AccountMenu.account_menu)
     dp.register_message_handler(account_ref_program, Text(equals='Реферальная программа'), state=user_authorized_fsm.AccountMenu.account_menu)
-    dp.register_message_handler(account_promo_enter, Text(equals='Ввести промокод'), state=user_authorized_fsm.AccountMenu.account_menu)
-    dp.register_message_handler(account_submenu_cm_cancel, Text(equals='Отмена ввода'), state=user_authorized_fsm.AccountMenu.account_promo)
-    dp.register_message_handler(account_submenu_cm_cancel, Text(equals='Отмена ввода'))
+    dp.register_message_handler(account_promo, Text(equals='Ввести промокод'), state=user_authorized_fsm.AccountMenu.account_menu)
+    dp.register_message_handler(account_submenu_cm_cancel, Text(equals='Вернуться'), state=user_authorized_fsm.AccountMenu.account_configs)
     dp.register_message_handler(account_submenu_cm_cancel, Text(equals='Вернуться'), state=user_authorized_fsm.AccountMenu.account_ref_program)
     dp.register_message_handler(account_submenu_cm_cancel, Text(equals='Вернуться'))
+    dp.register_message_handler(account_submenu_cm_cancel, Text(equals='Отмена ввода'), state=user_authorized_fsm.AccountMenu.account_promo)
+    dp.register_message_handler(account_submenu_cm_cancel, Text(equals='Отмена ввода'))
+    dp.register_message_handler(account_configurations_info, Text(equals='Текущие конфигурации'), state=user_authorized_fsm.AccountMenu.account_configs)
+    dp.register_message_handler(account_configurations_request, Text(equals='Запросить новую конфигурацию'), state=user_authorized_fsm.AccountMenu.account_configs)
     dp.register_message_handler(account_ref_program_info, Text(equals='Участие в реферальной программе'), state=user_authorized_fsm.AccountMenu.account_ref_program)
     dp.register_message_handler(account_ref_program_invite, Text(equals='Сгенерировать приглашение *'), state=user_authorized_fsm.AccountMenu.account_ref_program)
     dp.register_message_handler(account_ref_program_promocode, Text(equals='Показать реферальный промокод'), state=user_authorized_fsm.AccountMenu.account_ref_program)

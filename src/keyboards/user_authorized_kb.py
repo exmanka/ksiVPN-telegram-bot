@@ -12,6 +12,9 @@ account_kb.add(KeyboardButton('Реферальная программа')).\
     add(KeyboardButton('Конфигурации')).insert(KeyboardButton('Ввести промокод')).\
     add(KeyboardButton('Возврат в главное меню'))
 
+config_kb = ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton('Текущие конфигурации')).insert(KeyboardButton('Запросить новую конфигурацию')).\
+    add(KeyboardButton('Вернуться'))
+
 promo_kb = ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton('Использованные промокоды')).add(KeyboardButton('Отмена ввода'))
 
 ref_program_kb = ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton('Участие в реферальной программе')).\
