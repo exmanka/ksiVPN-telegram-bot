@@ -1,0 +1,339 @@
+SET TIMEZONE = ‘Europe/Moscow’;
+SHOW TIMEZONE;
+SELECT TIMEOFDAY();
+
+DROP TABLE IF EXISTS clients_subscriptions;
+DROP TABLE IF EXISTS promocodes_ref;
+DROP TABLE IF EXISTS clients;
+DROP TABLE IF EXISTS subscriptions;
+
+CREATE TABLE clients (
+	id SERIAL PRIMARY KEY,
+	name VARCHAR(64) NOT NULL,
+	surname VARCHAR(64),
+	username VARCHAR(33),
+	telegram_id BIGINT NOT NULL UNIQUE,
+	register_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	used_ref_promo_id INT
+);
+
+INSERT INTO clients (name, surname, username, telegram_id, register_date) VALUES('Михаил', 'Ким', '@exmanka', 824515558, 'EPOCH');
+INSERT INTO clients (name, username, telegram_id, register_date) VALUES('Anastasiya', '@CassiopeiaW', 371145065, TIMESTAMP '2023-01-01 00:00');
+INSERT INTO clients (name, surname, username, telegram_id, register_date) VALUES('Ульяна', 'Крылова', '@ulianak138', 988996691, TIMESTAMP '2023-01-01 00:00');
+INSERT INTO clients (name, username, telegram_id, register_date) VALUES('марьям :)', '@khatuevamariam', 633834276, TIMESTAMP '2023-01-01 00:00');
+INSERT INTO clients (name, username, telegram_id, register_date) VALUES('lebedinkaaa', '@lebedinkaaa', 313830898, TIMESTAMP '2023-01-01 00:00');
+INSERT INTO clients (name, surname, username, telegram_id, register_date) VALUES('Sophie', '🍓', '@Limeghost', 955511233, TIMESTAMP '2023-01-01 00:00');
+INSERT INTO clients (name, username, telegram_id, register_date) VALUES('Дима 🇷🇺😎🇷🇺', '@d_dobychin', 384219901, TIMESTAMP '2023-01-01 00:00');
+INSERT INTO clients (name, username, telegram_id, register_date) VALUES('KiraYoshikage_33', '@KiraYoshikage_33', 753741654, TIMESTAMP '2023-03-11 12:22');
+INSERT INTO clients (name, surname, username, telegram_id, register_date, used_ref_promo_id) VALUES('Егор', 'Логинов', '@Y0gu4t', 5823573148, TIMESTAMP '2023-04-01 12:59', 1);
+INSERT INTO clients (name, surname, username, telegram_id, register_date, used_ref_promo_id) VALUES('𝕰𝖌𝖔𝖗𝖔𝖛𝖆', '𝕯𝖎𝖆𝖓𝖆', '@myaufi', 1132563690, TIMESTAMP '2023-04-01 12:55', 1);
+INSERT INTO clients (name, username, telegram_id, register_date, used_ref_promo_id) VALUES('mmarla', '@mmarlamarisha', 630685819, TIMESTAMP '2023-04-01 15:29', 1);
+INSERT INTO clients (name, surname, username, telegram_id, register_date, used_ref_promo_id) VALUES('Даня', 'Абрамов', '@aabramovvv', 454449418, TIMESTAMP '2023-04-01 14:31', 5);
+INSERT INTO clients (name, surname, username, telegram_id, register_date, used_ref_promo_id) VALUES('Настя', 'Соболева', '@nastyaso1', 967286690, TIMESTAMP '2023-04-01 12:14', 4);
+INSERT INTO clients (name, username, telegram_id, register_date, used_ref_promo_id) VALUES('Arina.m', '@Arina_206', 774142730, TIMESTAMP '2023-04-06 23:37', 1);
+INSERT INTO clients (name, surname, username, telegram_id, register_date, used_ref_promo_id) VALUES('Helen', 'Uvarova', '@mystredesyeux', 872468822, TIMESTAMP '2023-04-06 22:28', 11);
+INSERT INTO clients (name, surname, username, telegram_id, register_date, used_ref_promo_id) VALUES('Васильева', 'Анна', '@annavasilevaV', 698663956, TIMESTAMP '2023-04-08 14:49', 14);
+INSERT INTO clients (name, telegram_id, register_date, used_ref_promo_id) VALUES('Lion', 1849207148, TIMESTAMP '2023-04-10 11:37', 9);
+INSERT INTO clients (name, username, telegram_id, register_date, used_ref_promo_id) VALUES('Варвара', '@vrrvng', 278851867, TIMESTAMP '2023-04-14 18:51', 11);
+INSERT INTO clients (name, surname, username, telegram_id, register_date, used_ref_promo_id) VALUES('Денис', 'Серегин', '@seregin_denis', 317505753, TIMESTAMP '2023-04-20 18:47', 1);
+INSERT INTO clients (name, username, telegram_id, register_date, used_ref_promo_id) VALUES('Маша', '@nyzaaaii', 5423579142, TIMESTAMP '2023-04-27 00:13', 4);
+INSERT INTO clients (name, username, telegram_id, register_date, used_ref_promo_id) VALUES('гг', '@sdohnj', 789383522, TIMESTAMP '2023-05-11 14:49', 1);
+INSERT INTO clients (name, surname, username, telegram_id, register_date, used_ref_promo_id) VALUES('Настя', 'Кирьян', '@n_kirian', 5034868843, TIMESTAMP '2023-05-23 23:34', 1);
+INSERT INTO clients (name, username, telegram_id, register_date, used_ref_promo_id) VALUES('Ира М.', '@Mastyunina', 700566117, TIMESTAMP '2023-05-22 18:33', 9);
+INSERT INTO clients (name, surname, username, telegram_id, register_date, used_ref_promo_id) VALUES('Alex Luter /', 'Web,Graphic Designer', '@AlexLuter91', 517342614, TIMESTAMP '2023-05-23 20:44', 23);
+INSERT INTO clients (name, username, telegram_id, register_date, used_ref_promo_id) VALUES('Аббас', '@vbbvs1', 862158706, TIMESTAMP '2023-06-11 23:28', 1);
+INSERT INTO clients (name, surname, username, telegram_id, register_date, used_ref_promo_id) VALUES('Sasha', 'Pushkin', '@Lambrulam', 519421242, TIMESTAMP '2023-07-12 15:01', 11);
+INSERT INTO clients (name, username, telegram_id, register_date) VALUES('Lera', '@chizzzhova', 578333943, TIMESTAMP '2023-07-12 14:56');
+INSERT INTO clients (name, username, telegram_id, register_date, used_ref_promo_id) VALUES('Alyona', '@aalyolya', 758624931, TIMESTAMP '2023-08-04 15:23', 11);
+INSERT INTO clients (name, username, telegram_id, register_date, used_ref_promo_id) VALUES('В', '@dimedr8l', 224758679, TIMESTAMP '2023-08-07 17:54', 4);
+INSERT INTO clients (name, surname, telegram_id, register_date, used_ref_promo_id) VALUES('Антон', 'Жданов', 487025174, TIMESTAMP '2023-07-27 02:47', 26);
+INSERT INTO clients (name, username, telegram_id, register_date, used_ref_promo_id) VALUES('vvryya', '@vvryya', 1237539463, TIMESTAMP '2023-08-06 14:32', 11);
+INSERT INTO clients (name, username, telegram_id, register_date, used_ref_promo_id) VALUES('Ольга', '@olgusha1185', 510549132, TIMESTAMP '2023-08-14 15:26', 7);
+INSERT INTO clients (name, username, telegram_id, register_date, used_ref_promo_id) VALUES('WAFFLES', '@WAFFLES123', 532920568, TIMESTAMP '2023-09-13 13:00', 4);
+INSERT INTO clients (name, username, telegram_id, register_date, used_ref_promo_id) VALUES('Татьяна', '@Fivecentandtwonew_grivennik', 1130909143, TIMESTAMP '2023-09-12 16:25', 1);
+INSERT INTO clients (name, username, telegram_id, register_date, used_ref_promo_id) VALUES('CCompromaTT', '@gngstreet', 2145397388, TIMESTAMP '2023-09-20 18:16', 34);
+INSERT INTO clients (name, surname, username, telegram_id, register_date, used_ref_promo_id) VALUES('Tema', 'Unique', '@unique_tema', 306549308, TIMESTAMP '2023-10-13 13:28', 1);
+INSERT INTO clients (name, username, telegram_id, register_date, used_ref_promo_id) VALUES('Карина', '@Howtofindmee', 686034012, TIMESTAMP '2023-09-04 23:45', 1);
+INSERT INTO clients (name, surname, username, telegram_id, register_date, used_ref_promo_id) VALUES('Гиг', 'Иги', '@Ghostick', 1059568338, TIMESTAMP '2023-04-14 23:07', 1);
+INSERT INTO clients (name, surname, username, telegram_id, register_date, used_ref_promo_id) VALUES('Плутовка', 'Тимофеевна', '@ekaterina_dasova', 1071058935, TIMESTAMP '2023-04-05 20:31', 1);
+INSERT INTO clients (name, surname, telegram_id, register_date, used_ref_promo_id) VALUES('Жанна', 'К', 1064675696, TIMESTAMP '2023-04-04 02:47', 1);
+INSERT INTO clients (name, username, telegram_id, register_date, used_ref_promo_id) VALUES('Ольга', '@KoberO', 342340351, TIMESTAMP '2023-08-11 15:11', 1);
+INSERT INTO clients (name, surname, username, telegram_id, register_date, used_ref_promo_id) VALUES('Maria', 'Lubina', '@marialubina', 646018462, TIMESTAMP '2023-01-01 00:00', 1);
+INSERT INTO clients (name, telegram_id, register_date, used_ref_promo_id) VALUES('Алексей', 976655245, TIMESTAMP '2023-01-01 00:00', 1);
+
+
+CREATE TABLE subscriptions (
+	id SMALLSERIAL PRIMARY KEY,
+	price INT NOT NULL,
+	title VARCHAR(32) NOT NULL,
+	description VARCHAR(128)
+);
+
+INSERT INTO subscriptions (price, title, description) VALUES(75, 'Олдскулл подписка', 'Для ребят, которые с сервисом с самого начала!');
+INSERT INTO subscriptions (price, title, description) VALUES(200, 'Стандартная подписка', 'Основная подписка, предоставляющая все возможности сервиса.');
+INSERT INTO subscriptions (price, title, description) VALUES(0, 'Подписка для любимых', 'Только для избранных!');
+INSERT INTO subscriptions (price, title, description) VALUES(150, 'Олдскулл подписка на двоих', 'Для ребят, которые с сервисом с самого начала!');
+
+
+CREATE TABLE clients_subscriptions (
+	client_id INT UNIQUE NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+	sub_id SMALLINT NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
+	paid_months_counter INT NOT NULL DEFAULT 0,
+	expiration_date TIMESTAMP NOT NULL
+);
+
+-- вставка сформирована 2023-11-17
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(1, 1, 10, TIMESTAMP '2023-11-18 16:00');								-- '@exmanka'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(2, 1, 8, TIMESTAMP '2023-01-01 00:00:00' + INTERVAL '8 months');		-- '@Cassiopeiaw'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(3, 1, 8, TIMESTAMP '2023-01-01 00:00:00' + INTERVAL '8 months');		-- '@ulianak138'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(4, 1, 4, TIMESTAMP '2023-01-01 00:00:00' + INTERVAL '10 months');		-- '@khatuevamariam'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(5, 4, 9, TIMESTAMP '2023-01-01 00:00:00' + INTERVAL '10 months');		-- '@lebedinkaaa'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(6, 1, 8, TIMESTAMP '2023-01-01 00:00:00' + INTERVAL '8 months');		-- '@Limeghost'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(7, 4, 9, TIMESTAMP '2023-01-01 00:00:00' + INTERVAL '10 months');		-- '@d_dobyshin'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(8, 1, 6, TIMESTAMP '2023-03-11 12:22:00' + INTERVAL '6 months');		-- '@KiraYoshikage_33'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(9, 3, 23, TIMESTAMP '2023-04-01 12:59:00' + INTERVAL '2 years');		-- '@Y0gu4t'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(10, 1, 8, TIMESTAMP '2023-04-01 12:55:00' + INTERVAL '9 months');		-- '@myaufi'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(11, 1, 0, TIMESTAMP '2023-04-01 15:29:00' + INTERVAL '6 months');		-- '@mmarlamarisha'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(12, 4, 4, TIMESTAMP '2023-04-01 14:31:00' + INTERVAL '6 months');		-- '@aabramovvv'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(13, 1, 3, TIMESTAMP '2023-04-01 12:14:00' + INTERVAL '4 months');		-- '@nastyaso1'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(14, 1, 3, TIMESTAMP '2023-04-06 23:37:00' + INTERVAL '5 months');		-- '@Arina_206'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(15, 1, 3, TIMESTAMP '2023-04-06 22:28:00' + INTERVAL '4 months');		-- '@mystredesyeux'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(16, 1, 3, TIMESTAMP '2023-04-08 14:49:00' + INTERVAL '4 months');		-- '@annavasilevaV'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(17, 1, 4, TIMESTAMP '2023-04-10 11:37:00' + INTERVAL '5 months');		-- 'Lion'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(18, 1, 4, TIMESTAMP '2023-04-14 18:51:00' + INTERVAL '5 months');		-- '@vrrvng'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(19, 1, 3, TIMESTAMP '2023-04-20 18:47:00' + INTERVAL '4 months');		-- '@seregin_denis'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(20, 1, 4, TIMESTAMP '2023-04-27 00:13:00' + INTERVAL '5 months');		-- '@nyzaaaii'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(21, 4, 6, TIMESTAMP '2023-05-11 14:49:00' + INTERVAL '8 months');		-- '@sdohnj'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(22, 1, 4, TIMESTAMP '2023-05-23 23:34:00' + INTERVAL '5 months');		-- '@n_kirian'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(23, 1, 2, TIMESTAMP '2023-05-22 18:33:00' + INTERVAL '4 months');		-- '@Mastyunina'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(24, 1, 3, TIMESTAMP '2023-05-23 20:44:00' + INTERVAL '4 months');		-- '@AlexLuter91'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(25, 1, 2, TIMESTAMP '2023-06-11 23:28:00' + INTERVAL '3 months');		-- '@vbbvs1'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(26, 1, 0, TIMESTAMP '2023-07-12 15:01:00' + INTERVAL '2 months');		-- '@Lambrulam'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(27, 1, 2, TIMESTAMP '2023-07-12 14:56:00' + INTERVAL '2 months');		-- '@chizzzhova'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(28, 1, 0, TIMESTAMP '2023-08-04 15:23:00' + INTERVAL '1 months');		-- '@aalyolya'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(29, 1, 0, TIMESTAMP '2023-08-07 17:54:00' + INTERVAL '1 months');		-- '@dimedr8l'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(30, 1, 0, TIMESTAMP '2023-07-27 02:47:00' + INTERVAL '1 months');		-- 'Ant_Zhd'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(31, 1, 0, TIMESTAMP '2023-08-06 14:32:00' + INTERVAL '1 months');		-- '@vvryya'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(32, 2, 1, TIMESTAMP '2023-08-14 15:26:00' + INTERVAL '2 months');		-- '@olgusha1185'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(33, 1, 0, TIMESTAMP '2023-09-13 13:00:00' + INTERVAL '1 months');		-- '@WAFFLES123'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(34, 1, 0, TIMESTAMP '2023-09-12 16:25:00' + INTERVAL '1 months');		-- '@Fivecentandtwonew_grivennik'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(35, 1, 0, TIMESTAMP '2023-09-20 18:16:00' + INTERVAL '1 months');		-- '@gngstreet'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(36, 1, 0, TIMESTAMP '2023-10-13 13:28:00' + INTERVAL '1 months');		-- '@unique_tema'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(37, 2, 3, TIMESTAMP '2023-09-04 23:45:00' + INTERVAL '3 months');		-- '@Howtofindmee'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(38, 3, 0, TIMESTAMP '2023-04-14 23:07:00' + INTERVAL '0 months');		-- '@Ghostick'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(39, 3, 0, TIMESTAMP '2023-04-05 20:31:00' + INTERVAL '0 months');		-- '@ekaterina_dasova'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(40, 3, 0, TIMESTAMP '2023-04-04 02:47:00' + INTERVAL '0 months');		-- 'Mother'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(41, 4, 0, TIMESTAMP '2023-08-11 15:11:00' + INTERVAL '0 months');		-- '@KoberO'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(42, 3, 0, TIMESTAMP '2023-01-01 00:00:00' + INTERVAL '0 months');		-- '@marialubina'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(43, 3, 0, TIMESTAMP '2023-01-01 00:00:00' + INTERVAL '0 months');		-- 'Father'
+
+
+CREATE TABLE promocodes_ref (
+	id SERIAL PRIMARY KEY,
+	phrase VARCHAR(10) UNIQUE,
+	client_creator_id INT UNIQUE NOT NULL REFERENCES clients(id) ON DELETE CASCADE
+);
+
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFGL0VL17', 1);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFHXN9JE6', 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REF45TCQVQ', 3);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REF5IIM9YA', 4);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REF0ANOZGP', 5);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFIMPUUSK', 6);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFLDIRB3F', 7);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFZ6M727S', 8);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFYYEZ87O', 9);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFPLZ86P8', 10);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFIR5AS4H', 11);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFBNZKOEL', 12);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFGO4X40E', 13);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFWCBKWQX', 14);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REF38LYZ6K', 15);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFI7GN5XA', 16);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REF6V2K6WY', 17);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFK8JMM5C', 18);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFOB8IULI', 19);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFOCQZN36', 20);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFTUGLUSA', 21);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFFACPCLS', 22);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFCRN0K5A', 23);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFSU4AK3K', 24);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REF38YUC1M', 25);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFKJ8UWBL', 26);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REF0FMGMR7', 27);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFFA6INWE', 28);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFJPB3FEA', 29);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REF7I7CQQP', 30);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFNBUDLDT', 31);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFYBZSW3M', 32);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFC33T0F1', 33);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFCFCV3HG', 34);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REF3A0ABQ1', 35);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REF3KLBZ0E', 36);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REF3FSL2QK', 37);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFR0UUY2L', 38);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFN5RJMGJ', 39);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFO55AUAP', 40);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFKI78HOH', 41);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFYFYIIG3', 42);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFHW30C3F', 43);
+
+
+CREATE TABLE promocodes_global (
+	id SMALLSERIAL PRIMARY KEY,
+	phrase VARCHAR(32) UNIQUE NOT NULL,
+	expiration_date TIMESTAMP NOT NULL,
+	bonus_time INTERVAL NOT NULL
+);
+
+INSERT INTO promocodes_global(phrase, expiration_date, bonus_time) VALUES('TEST_PROMO_ON_1', TIMESTAMP '2023-12-20', INTERVAL '1 months');
+INSERT INTO promocodes_global(phrase, expiration_date, bonus_time) VALUES('TEST_PROMO_ON_3', TIMESTAMP '2023-12-10', INTERVAL '3 months');
+INSERT INTO promocodes_global(phrase, expiration_date, bonus_time) VALUES('TEST_PROMO_OFF', TIMESTAMP '2023-11-10', INTERVAL '3 months');
+INSERT INTO promocodes_global(phrase, expiration_date, bonus_time) VALUES('TEST_PROMO_ON_24', TIMESTAMP '2023-12-10', INTERVAL '24 months');
+
+
+CREATE TABLE clients_promo_global (
+	client_id INT NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+	promocode_id SMALLINT NOT NULL REFERENCES promocodes_global(id) ON DELETE CASCADE,
+	date_of_entry TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+)
+
+
+CREATE TABLE promocodes_local (
+	id SMALLSERIAL PRIMARY KEY,
+	phrase VARCHAR(32) UNIQUE NOT NULL,
+	expiration_date TIMESTAMP NOT NULL,
+	bonus_time INTERVAL NOT NULL
+);
+
+INSERT INTO promocodes_local(phrase, expiration_date, bonus_time) VALUES('LOCAL_PROMO_OFF', TIMESTAMP '2023-11-01', INTERVAL '2 months');
+INSERT INTO promocodes_local(phrase, expiration_date, bonus_time) VALUES('LOCAL_PROMO_ON1W', TIMESTAMP '2023-12-01', INTERVAL '1 weeks');
+INSERT INTO promocodes_local(phrase, expiration_date, bonus_time) VALUES('LOCAL_PROMO_ON2W', TIMESTAMP '2023-12-01', INTERVAL '2 weeks');
+INSERT INTO promocodes_local(phrase, expiration_date, bonus_time) VALUES('LOCAL_PROMO_ON2D', TIMESTAMP '2023-12-01', INTERVAL '2 days');
+
+
+CREATE TABLE clients_promo_local (
+	accessible_client_id INT NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+	promocode_id SMALLINT NOT NULL REFERENCES promocodes_local(id) ON DELETE CASCADE,
+	date_of_entry TIMESTAMP DEFAULT NULL
+);
+
+INSERT INTO clients_promo_local(accessible_client_id, promocode_id) VALUES(1, 1);
+INSERT INTO clients_promo_local(accessible_client_id, promocode_id) VALUES(1, 2);
+INSERT INTO clients_promo_local(accessible_client_id, promocode_id) VALUES(1, 4);
+INSERT INTO clients_promo_local(accessible_client_id, promocode_id) VALUES(9, 4);
+INSERT INTO clients_promo_local(accessible_client_id, promocode_id) VALUES(37, 4);
+INSERT INTO clients_promo_local(accessible_client_id, promocode_id) VALUES(42, 3);
+
+
+CREATE TYPE osEnum AS ENUM ('Android', 'IOS', 'Windows', 'Linux');
+CREATE TABLE configurations_os (
+	id SMALLSERIAL PRIMARY KEY,
+	os osEnum NOT NULL,
+	is_using_chatgpt BOOLEAN NOT NULL
+);
+INSERT INTO configurations_os(os, is_using_chatgpt) VALUES('Android', TRUE);	-- 1
+INSERT INTO configurations_os(os, is_using_chatgpt) VALUES('Android', FALSE);	-- 2
+INSERT INTO configurations_os(os, is_using_chatgpt) VALUES('IOS', TRUE);		-- 3
+INSERT INTO configurations_os(os, is_using_chatgpt) VALUES('IOS', FALSE);		-- 4
+INSERT INTO configurations_os(os, is_using_chatgpt) VALUES('Windows', TRUE);	-- 5
+INSERT INTO configurations_os(os, is_using_chatgpt) VALUES('Windows', FALSE);	-- 6
+INSERT INTO configurations_os(os, is_using_chatgpt) VALUES('Linux', TRUE);		-- 7
+INSERT INTO configurations_os(os, is_using_chatgpt) VALUES('Linux', FALSE);		-- 8
+
+
+CREATE TABLE configurations_protocols (
+	id SMALLSERIAL PRIMARY KEY,
+	name VARCHAR(32) NOT NULL UNIQUE,
+	description VARCHAR(64) NOT NULL
+);
+INSERT INTO configurations_protocols(name, description) VALUES('WireGuard', 'Самый быстрый VPN-протокол!');
+INSERT INTO configurations_protocols(name, description) VALUES('XRray VLESS XTLS-Reality', 'Самый защищенный VPN-протокол!');
+INSERT INTO configurations_protocols(name, description) VALUES('Shadowsocks-2022', 'Самый китайский VPN-протокол!');
+
+
+CREATE TABLE configurations_locations (
+	id SMALLSERIAL PRIMARY KEY,
+	country VARCHAR(32) NOT NULL,
+	city VARCHAR(32) NOT NULL,
+	description VARCHAR(256) NOT NULL,
+	bandwidth SMALLINT NOT NULL,
+	ping SMALLINT NOT NULL
+);
+INSERT INTO configurations_locations(country, city, description, bandwidth, ping) VALUES('Нидерланды', 'Амстердам', 'Основной сервер с наибольшей скоростью и небольшой задержкой (для использования Instagram и других медиплатформ)', 1000, 30);
+INSERT INTO configurations_locations(country, city, description, bandwidth, ping) VALUES('Латвия', 'Рига', 'Дополнительный сервер с минимальной задержкой и доступом к наиболее закрытым площадкам (для использования ChatGPT и приложений с минимальным пингом)', 100, 20);
+INSERT INTO configurations_locations(country, city, description, bandwidth, ping) VALUES('Германия', 'Нюрнберг', 'Крутой сервер без описания', 500, 40);
+INSERT INTO configurations_locations(country, city, description, bandwidth, ping) VALUES('США', 'Силиконовая долина', 'Тестовый сервер, где проверяются новые функции, доступные в будущем на остальных серверах (для работы прямиком из Силиконовой долины и тестировать бета-версий 😎)', 50, 150);
+
+
+CREATE TYPE fileTypeEnum AS ENUM('photo', 'document', 'link');
+CREATE TABLE configurations (
+	id SERIAL PRIMARY KEY,
+	client_id INT NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+	conf_os_id SMALLINT NOT NULL REFERENCES configurations_os(id) ON DELETE CASCADE,
+	protocol_id SMALLINT NOT NULL REFERENCES configurations_protocols(id) ON DELETE CASCADE,
+	location_id SMALLINT NOT NULL REFERENCES configurations_locations(id) ON DELETE CASCADE,
+	file_type fileTypeEnum NOT NULL,
+	telegram_file_id VARCHAR(256) UNIQUE NOT NULL,
+	date_of_receipt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- exmanka
+-- Нидерланды Wireguard
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(1, 2, 1, 1, 'photo', 'AgACAgIAAxkBAAIOYGVaT_kFZXDLuxsk6F8NNAXTo9XIAAKt0DEbqdTQSlexi7pC136fAQADAgADcwADMwQ', 'EPOCH');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(1, 6, 1, 1, 'document', 'BQACAgIAAxkBAAIOaWVaWjsKy-ZU_rCKVl4wwd7bR3zfAAJFOAACqdTQShfZDlnChFGzMwQ', 'EPOCH');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(1, 8, 1, 1, 'document', 'BQACAgIAAxkBAAIOa2VaWsujhvEkhDoLVLfA8CaIOn7cAAJQOAACqdTQSgiZgMcoO0kfMwQ', 'EPOCH');
+-- Латвия Wireguard
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(1, 1, 1, 2, 'photo', 'AgACAgIAAxkBAAIPNWVqDFqU-KnJHpzO_oV8wlEoZ1INAAKX1TEblrxRSzvRr8ePvwI0AQADAgADcwADMwQ', 'EPOCH');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(1, 5, 1, 2, 'document', 'BQACAgIAAxkBAAIPh2VqFKPpBQwyQtPTXlpglMS8wM2lAAJyQgAClrxRS4WxWpS-vzDaMwQ', 'EPOCH');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(1, 7, 1, 2, 'document', 'BQACAgIAAxkBAAIPiWVqFQnOx24xgxOC861CH7aFJ8TgAAJ8QgAClrxRS6l9MCcdCqgtMwQ', 'EPOCH');
+-- Германия Wireguard
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(1, 1, 1, 3, 'photo', 'AgACAgIAAxkBAAIPjWVqFc2-9lrDu2luDh8UdLIE_C5vAAK31TEblrxRS5zckU_9KaAKAQADAgADcwADMwQ', 'EPOCH');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(1, 5, 1, 3, 'document', 'BQACAgIAAxkBAAIPj2VqFjLq9ghvF3pny0lquqk6jTslAAKUQgAClrxRS8JARq_PNJ4-MwQ', 'EPOCH');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(1, 7, 1, 3, 'document', 'BQACAgIAAxkBAAIPkWVqFlgg7vlOBpZbdoP291Ij8PjpAAKYQgAClrxRS3j7frv6gRjtMwQ', 'EPOCH');
+-- США Wireguard
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id) VALUES(1, 2, 1, 4, 'photo', 'AgACAgIAAxkBAAIPk2VqFt-ETp1_plfZEIp14HWyXNJnAAK-1TEblrxRS_88PkDlBPMzAQADAgADcwADMwQ');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id) VALUES(1, 6, 1, 4, 'document', 'BQACAgIAAxkBAAIPlWVqFyDn6J_0f1n-euKfIqPoZOTwAAKwQgAClrxRSw5KRzAfzh2lMwQ');
+-- Латвия XTLS-Reality
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id) VALUES(1, 1, 2, 2, 'photo', 'AgACAgIAAxkBAAIPp2VqGyEJYKkOnQ7Kj2DoPvplzVpJAALe1TEblrxRS2mCX57NfZdHAQADAgADcwADMwQ');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id) VALUES(1, 5, 2, 2, 'link', 'vless://9a199f69-62d0-40d2-962f-a9d0b4e4f4f0@185.237.219.250:443?type=tcp&security=reality&fp=chrome&pbk=k3m2xA-FqJ5KN4QJ1vQCRFTyvxSPNijy67dR8MQP_z0&sni=amd.com&flow=xtls-rprx-vision&sid=3df1dd41&spx=%2F#Latvia-XTLS_Reality-sp_KSIVA');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id) VALUES(1, 7, 2, 2, 'link', 'vless://6ba8816f-e1d1-45ff-8955-cb75e5307182@185.237.219.250:443?type=tcp&security=reality&fp=chrome&pbk=k3m2xA-FqJ5KN4QJ1vQCRFTyvxSPNijy67dR8MQP_z0&sni=amd.com&flow=xtls-rprx-vision&sid=3df1dd41&spx=%2F#Latvia-XTLS_Reality-pc_KSIVA_linux');
+-- Германия XTLS-Reality
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id) VALUES(1, 1, 2, 3, 'photo', 'AgACAgIAAxkBAAIP02VqHzEQybDAOcifsIJa2gGXmCW8AALy1TEblrxRS0TdPGtT_dsKAQADAgADcwADMwQ');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id) VALUES(1, 7, 2, 3, 'link', 'vless://54fd2e73-c457-4fb9-8f75-887d9e395199@190.211.254.240:443?type=tcp&security=reality&fp=chrome&pbk=aZzccHwPY9s9IzBagHTAku6JAM3IoJFbkTzx-S7eYlM&sni=amd.com&flow=xtls-rprx-vision&sid=bbe3fd5f&spx=%2F#Germany-XTLS_Reality-pc_KSIVA_linux');
+-- США XTLS-Reality
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id) VALUES(1, 2, 2, 4, 'photo', 'AgACAgIAAxkBAAIP1WVqH8Oi7UgYRBGUsHt0uehLM3w7AAL21TEblrxRSwgKTjvjp3wuAQADAgADcwADMwQ');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id) VALUES(1, 6, 2, 4, 'link', 'vless://01bee4a0-18e7-4d4a-9078-1ce752f9bec3@45.152.84.13:443?type=tcp&security=reality&fp=chrome&pbk=GhTDNJFBU-SOvmw1jtG2IoXyj3A0vpYAilyjk91XSgQ&sni=amd.com&flow=xtls-rprx-vision&sid=c012578d&spx=%2F#XTLS_Reality-pc_KSIVA');
+-- Латвия ShadowSocks
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id) VALUES(1, 1, 3, 2, 'photo', 'AgACAgIAAxkBAAIP12VqIF4Q3-7vQw0QywJkcsxyq6YIAAL61TEblrxRS15oKfHQhlPXAQADAgADcwADMwQ');
+-- США ShadowSocks
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id) VALUES(1, 2, 3, 4, 'photo', 'AgACAgIAAxkBAAIP2WVqIHFXv8qOOxnm-UmMIYVoD5tOAAL71TEblrxRS1NLgnJr3UQzAQADAgADcwADMwQ');
+
+
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(2, 2, 1, 1, 'photo', 'AgACAgIAAxkBAAIQN2VqUvGO25wk1ihddSaW2hdtyTiOAAIb1zEblrxRS7tFOHJmcbufAQADAgADcwADMwQ', TIMESTAMP '2023-04-06 22:12');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(3, 2, 1, 1, 'photo', 'AgACAgIAAxkBAAIQOWVqU69dMlVEbTddKjv7XdJQziDIAAIl1zEblrxRS7s4ruGX3FZTAQADAgADcwADMwQ', TIMESTAMP '2023-04-01 20:54');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(4, 4, 1, 1, 'photo', 'AgACAgIAAxkBAAIQQWVrnfyenbd8djxyXIZq_r7BktB8AAJ90jEb16ZhSxMSAhhwCl0OAQADAgADcwADMwQ', TIMESTAMP '2023-04-02 01:06');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(5, 2, 1, 1, 'photo', 'AgACAgIAAxkBAAIQRWVroFMjHUXschzdYPR_yjMjTgNRAAKJ0jEb16ZhSzbqoCpUaiq5AQADAgADcwADMwQ', TIMESTAMP '2023-04-01 20:55');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(5, 2, 1, 1, 'photo', 'AgACAgIAAxkBAAIQS2VroVBVt-NVAAHf6l1S7pT6Bp2GQwACitIxG9emYUtnNXub_OIYmQEAAwIAA3MAAzME', TIMESTAMP '2023-04-03 18:51');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(5, 1, 1, 2, 'photo', 'AgACAgIAAxkBAAIQTWVroe8jj61NVo92wO_7naLVR0YZAAKP0jEb16ZhS4tTVUdcEt4XAQADAgADcwADMwQ', TIMESTAMP 'EPOCH');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(6, 4, 1, 1, 'photo', 'AgACAgIAAxkBAAIQT2Vrozfc5iOzWs29xG1NSkq9x02kAAKQ0jEb16ZhS2wnptbkaNGRAQADAgADcwADMwQ', TIMESTAMP '2023-04-01 14:53');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(6, 3, 2, 2, 'photo', 'AgACAgIAAxkBAAIQVGVrpCtq2OCxQyoqM8Sh9Gc8KQ9zAAKU0jEb16ZhS2XlaNCj8Po1AQADAgADcwADMwQ', TIMESTAMP '2023-09-02 20:49');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(7, 2, 1, 1, 'photo', 'AgACAgIAAxkBAAIQVmVrpaRGWubW3_DkG4hl6aHZXX7pAAKV0jEb16ZhS5beJmEPbRVBAQADAgADcwADMwQ', TIMESTAMP '2023-04-02 01:07');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(7, 2, 1, 1, 'photo', 'AgACAgIAAxkBAAIQWGVrpeuVQn4aayBUKM6i_-6A8nIgAAKW0jEb16ZhS9HJVHyDLYWEAQADAgADcwADMwQ', TIMESTAMP '2023-04-02 01:08');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(7, 5, 1, 2, 'document', 'BQACAgIAAxkBAAIQWmVrpnET563pjO8KWG4EWsvgzSdtAAIcPQAC16ZhS6kpVdo_cnW1MwQ', TIMESTAMP '2023-04-02 01:09');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(7, 5, 2, 2, 'link', 'vless://03e7bbd9-9c47-4a5a-9405-2f156da71638@185.237.219.250:443?type=tcp&security=reality&fp=chrome&pbk=k3m2xA-FqJ5KN4QJ1vQCRFTyvxSPNijy67dR8MQP_z0&sni=amd.com&flow=xtls-rprx-vision&sid=3df1dd41&spx=%2F#Latvia-XTLS_Reality-pc_%40d_dobychin', TIMESTAMP '2023-09-20 17:36');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(8, 5, 1, 2, 'document', 'BQACAgIAAxkBAAIQeWVrqwlmYvit8ffIqouKtyDX2lMwAAJSPQAC16ZhS7viUJarbPs-MwQ', TIMESTAMP '2023-04-01 20:49');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(9, 4, 1, 1, 'photo', 'AgACAgIAAxkBAAIQhWVrrO6GSchSulvyM-MzmXA9L56AAAKr0jEb16ZhSyqUF67BnlHXAQADAgADcwADMwQ', TIMESTAMP '2023-04-01 12:59');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(9, 8, 1, 1, 'document', 'BQACAgIAAxkBAAIQh2VrrXTQ19tK6epGQUlEcyTP2LR6AAJhPQAC16ZhS_CKEm3xPt3TMwQ', TIMESTAMP '2023-04-01 13:00');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(9, 3, 1, 2, 'photo', 'AgACAgIAAxkBAAIQiWVrrnN1arYYcOk2da_HGsRZPoZ8AAKv0jEb16ZhS7HgOH7-Z8nYAQADAgADcwADMwQ', TIMESTAMP '2023-04-06 14:56');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(9, 3, 1, 3, 'photo', 'AgACAgIAAxkBAAIQi2Vrr3rpUGo8HMYwEyTP5mooi-nOAAKx0jEb16ZhSxGwCgM_3zKaAQADAgADcwADMwQ', TIMESTAMP '2023-08-08 14:59');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(9, 7, 1, 3, 'document', 'BQACAgIAAxkBAAIQjWVrsCF17Mx2bHZrVqaI5rVgF0RUAAJvPQAC16ZhS40gemwHRKNlMwQ', TIMESTAMP '2023-10-05 15:36');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(9, 3, 2, 3, 'photo', 'AgACAgIAAxkBAAIQj2VrsOiTnvrqhlJLTrjsJQsfEoF8AAK00jEb16ZhS83znksB0AtgAQADAgADcwADMwQ', TIMESTAMP '2023-10-13 13:38');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(10, 2, 1, 1, 'photo', 'AgACAgIAAxkBAAIQo2VrsuAgh2-zJxEcFcNLlwQhxJcXAAK30jEb16ZhS650Wwxpsw3oAQADAgADcwADMwQ', TIMESTAMP '2023-04-01 12:55');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(10, 1, 1, 2, 'photo', 'AgACAgIAAxkBAAIQpWVrs1kVHMVqiJtx8BVLFV4DtTicAAK40jEb16ZhS42wY0cs8CgOAQADAgADcwADMwQ', TIMESTAMP '2023-04-01 13:00');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(10, 5, 1, 2, 'document', 'BQACAgIAAxkBAAIQp2Vrs9oCa2d9BOJRT3lxPH8DrtF9AAKFPQAC16ZhS6mPaByYLpbYMwQ', TIMESTAMP '2023-04-01 13:10');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(10, 1, 2, 3, 'photo', 'AgACAgIAAxkBAAIQqWVrtFyqLTG7in4hVdSIFZkfMzBiAAK60jEb16ZhS20z68oetlupAQADAgADcwADMwQ', TIMESTAMP '2023-10-13 16:38');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(11, 2, 1, 1, 'photo', 'AgACAgIAAxkBAAIQsmVrtZ03nwT_zta0sXXEYmYPO-AGAAK_0jEb16ZhS-_ClPc5ah5AAQADAgADcwADMwQ', TIMESTAMP '2023-04-01 16:38');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(11, 6, 1, 1, 'document', 'BQACAgIAAxkBAAIQtGVrtnmjOMyTS4kDQ65plF_Gx8OvAAKTPQAC16ZhS2StiuTZM52yMwQ', TIMESTAMP '2023-04-01 15:29');
+INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(11, 5, 1, 2, 'document', 'BQACAgIAAxkBAAIQtmVrtuEUit-iUlSuW3Sdm4SliqySAAKWPQAC16ZhS-Nktaf0MY45MwQ', TIMESTAMP '2023-04-02 23:30');
+

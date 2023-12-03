@@ -1,0 +1,344 @@
+import psycopg2 as ps
+from aiogram import types
+from bot_init import bot, postgres_PW
+
+def sql_start():
+    global conn, cur
+    conn = ps.connect(host="localhost", database="tgbot_postgres_db", user="postgres", password=postgres_PW)
+    cur = conn.cursor()
+    
+    if conn:
+        print('DB is successfully connected!')
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ 
+def find_clientID_by_telegramID(telegram_id: int):
+    cur.execute('''
+                SELECT id FROM clients
+                WHERE telegram_id = %s;
+                ''',
+                (telegram_id,))
+    
+    conn.commit()
+    
+    return cur.fetchone()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ 
+def find_clientID_by_username(username: str):
+    cur.execute('''
+                SELECT id FROM clients
+                WHERE username = %s;
+                ''',
+                (username,))
+    
+    conn.commit()
+    
+    return cur.fetchone()
+
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ  
+def show_user_info(user_id: int):
+    cur.execute('''
+                SELECT name, surname, username, telegram_id, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI') FROM clients
+                WHERE telegram_id = %s;
+                ''',
+                (user_id,))
+    
+    conn.commit()
+
+    return cur.fetchall()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def is_user_registered(user_id: int):
+    cur.execute('''
+                SELECT * FROM clients
+                WHERE telegram_id = %s;
+                ''',
+                (user_id,))
+    
+    conn.commit()
+    
+    return True if cur.fetchall() else False
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def show_subscription_info(client_id: int):
+    cur.execute('''
+                SELECT sub.title, sub.description, sub.price
+                FROM clients_subscriptions AS clients_sub
+                JOIN subscriptions AS sub
+                ON sub.id = clients_sub.sub_id
+                WHERE clients_sub.client_id = %s;
+                ''',
+                (client_id,))
+    
+    conn.commit()
+    
+    return cur.fetchall()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def show_configurations_info(client_id: int):
+    cur.execute('''
+                SELECT c.file_type, TO_CHAR(c.date_of_receipt, 'FMDD TMMonth YYYY в HH24:MI'), co.os, co.is_using_chatgpt, cp.name, cl.country, cl.city, cl.bandwidth, cl.ping, c.telegram_file_id
+                FROM configurations AS c
+                JOIN configurations_os AS co ON c.conf_os_id = co.id
+                JOIN configurations_protocols AS cp ON c.protocol_id = cp.id
+                JOIN configurations_locations AS cl ON c.location_id = cl.id
+                WHERE c.client_id = %s
+                ORDER BY c.date_of_receipt
+                ''',
+                (client_id,))
+    
+    conn.commit()
+
+    return cur.fetchall()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def is_subscription_active(user_id: int):
+    cur.execute('''
+                SELECT * FROM clients_subscriptions AS cs
+                JOIN clients AS c
+                ON cs.client_id = c.id
+                WHERE c.telegram_id = %s
+                AND cs.expiration_date > NOW();
+                ''',
+                (user_id,))
+    
+    conn.commit()
+    
+    return True if cur.fetchall() else False
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def show_subscription_expiration_date(user_id: int):
+    cur.execute('''
+                SELECT TO_CHAR(cs.expiration_date, 'FMDD TMMonth YYYY в HH24:MI') FROM clients_subscriptions AS cs
+                JOIN clients AS c
+                ON cs.client_id = c.id
+                WHERE c.telegram_id = %s;
+                ''',
+                (user_id,))
+    
+    conn.commit()
+    
+    return cur.fetchone()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def show_referral_promocode(user_id: int):
+    cur.execute('''
+                SELECT pf.phrase
+                FROM clients AS c
+                JOIN promocodes_ref AS pf
+                ON c.id = pf.client_creator_id
+                WHERE c.telegram_id = %s;
+                ''',
+                (user_id,))
+    
+    conn.commit()
+    
+    return cur.fetchone()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def show_invited_by_user_info(user_id: int):
+    cur.execute('''
+                SELECT cc.name, cc.username
+                FROM clients AS c
+                JOIN promocodes_ref AS pr
+                ON c.used_ref_promo_id = pr.id
+                JOIN clients AS cc
+                ON pr.client_creator_id = cc.id
+                WHERE c.telegram_id = %s;
+                ''',
+                (user_id,))
+    
+    conn.commit()
+    
+    return cur.fetchone()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def show_invited_users_list(user_id: int):
+    cur.execute('''
+                SELECT c.name, c.username
+                FROM clients AS c
+                JOIN promocodes_ref AS pr
+                ON c.used_ref_promo_id = pr.id
+                JOIN clients AS cc
+                ON pr.client_creator_id = cc.id
+                WHERE cc.telegram_id = %s;
+                ''',
+                (user_id,))
+    
+    conn.commit()
+    
+    return cur.fetchall()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def check_referral_promo(phrase):
+    cur.execute('''
+                SELECT client_creator_id
+                FROM promocodes_ref
+                WHERE phrase = %s;
+                ''',
+                (phrase,))
+    
+    conn.commit()
+
+    return cur.fetchone()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def check_local_promo_exists(phrase):
+    cur.execute('''
+                SELECT id
+                FROM promocodes_local
+                WHERE phrase = %s;
+                ''',
+                (phrase,))
+    
+    conn.commit()
+
+    return cur.fetchone()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def check_global_promo_exists(phrase):
+    cur.execute('''
+                SELECT id
+                FROM promocodes_global
+                WHERE phrase = %s;
+                ''',
+                (phrase,))
+    
+    conn.commit()
+    
+    return cur.fetchone()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def check_local_promo_accessible(client_id: int, local_promo_id: int):
+    cur.execute('''
+                SELECT date_of_entry
+                FROM clients_promo_local
+                WHERE promocode_id = %s
+                AND accessible_client_id = %s;
+                ''',
+                (local_promo_id, client_id))
+    
+    conn.commit()
+    
+    return cur.fetchone()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def is_global_promo_already_entered(client_id: int, global_promo_id: int):
+    cur.execute('''
+                SELECT *
+                FROM clients_promo_global
+                WHERE client_id = %s
+                AND promocode_id = %s;
+                ''',
+                (client_id, global_promo_id))
+    
+    conn.commit()
+    
+    return True if cur.fetchall() else False
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def check_local_promo_valid(local_promo_id: int):
+    cur.execute('''
+                SELECT bonus_time, TO_CHAR(bonus_time, 'FMDDD')
+                FROM promocodes_local
+                WHERE id = %s
+                AND expiration_date > NOW();
+                ''',
+                (local_promo_id,))
+    
+    conn.commit()
+    
+    return cur.fetchone()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def check_global_promo_valid(global_promo_id: int):
+    cur.execute('''
+                SELECT bonus_time, TO_CHAR(bonus_time, 'FMDDD')
+                FROM promocodes_global
+                WHERE id = %s
+                AND expiration_date > NOW();
+                ''',
+                (global_promo_id,))
+    
+    conn.commit()
+    
+    return cur.fetchone()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def insert_user_entered_local_promo(client_id: int, local_promo_id: int, local_promo_bonus_time):
+    cur.execute('''
+                UPDATE clients_promo_local
+                SET date_of_entry = NOW()
+                WHERE promocode_id = %s
+                AND accessible_client_id = %s;
+                ''',
+                (local_promo_id, client_id))
+    
+    cur.execute('''
+                UPDATE clients_subscriptions
+                SET expiration_date = expiration_date + %s
+                WHERE client_id = %s;
+                ''',
+                (local_promo_bonus_time, client_id))
+    
+    conn.commit()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def insert_user_entered_global_promo(client_id: int, global_promo_id: int, global_promo_bonus_time):
+    cur.execute('''
+                INSERT INTO clients_promo_global (client_id, promocode_id)
+                VALUES(%s, %s);
+                ''',
+                (client_id, global_promo_id))
+    
+    cur.execute('''
+                UPDATE clients_subscriptions
+                SET expiration_date = expiration_date + %s
+                WHERE client_id = %s;
+                ''',
+                (global_promo_bonus_time, client_id))
+    
+    conn.commit()
+
+def show_entered_promos(client_id: int):
+    promos_dict = {}
+    
+    # referral promocodes
+    cur.execute('''
+                SELECT pf.phrase, cc.name
+                FROM clients AS c
+                JOIN promocodes_ref AS pf
+                ON c.used_ref_promo_id = pf.id
+                JOIN clients AS cc
+                ON pf.client_creator_id = cc.id
+                WHERE c.id = %s;
+                ''',
+                (client_id,))
+    promos_dict['ref'] = cur.fetchone()
+
+    # global promocodes
+    cur.execute('''
+                SELECT pg.phrase, TO_CHAR(pg.bonus_time, 'FMDDD'), TO_CHAR(cpg.date_of_entry, 'FMDD TMMonth YYYY в HH24:MI')
+                FROM clients_promo_global AS cpg
+                JOIN promocodes_global AS pg
+                ON cpg.promocode_id = pg.id
+                WHERE cpg.client_id = %s;
+                ''',
+                (client_id,))
+    promos_dict['global'] = cur.fetchall()
+
+    # local promocodes
+    cur.execute('''
+            SELECT pl.phrase, TO_CHAR(pl.bonus_time, 'FMDDD'), TO_CHAR(cpl.date_of_entry, 'FMDD TMMonth YYYY в HH24:MI')
+            FROM clients_promo_local AS cpl
+            JOIN promocodes_local AS pl
+            ON cpl.promocode_id = pl.id
+            WHERE cpl.accessible_client_id = %s
+            AND cpl.date_of_entry IS NOT NULL;
+            ''',
+            (client_id,))
+    promos_dict['local'] = cur.fetchall()
+
+    conn.commit()
+
+    return promos_dict
