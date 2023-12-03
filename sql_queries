@@ -60,6 +60,8 @@ INSERT INTO clients (name, surname, telegram_id, register_date, used_ref_promo_i
 INSERT INTO clients (name, username, telegram_id, register_date, used_ref_promo_id) VALUES('Ольга', '@KoberO', 342340351, TIMESTAMP '2023-08-11 15:11', 1);
 INSERT INTO clients (name, surname, username, telegram_id, register_date, used_ref_promo_id) VALUES('Maria', 'Lubina', '@marialubina', 646018462, TIMESTAMP '2023-01-01 00:00', 1);
 INSERT INTO clients (name, telegram_id, register_date, used_ref_promo_id) VALUES('Алексей', 976655245, TIMESTAMP '2023-01-01 00:00', 1);
+INSERT INTO clients (name, username, telegram_id, register_date, used_ref_promo_id) VALUES('Rada Arakcheeva', '@radulichh', 745282011, TIMESTAMP '2023-11-03 23:53', 13);
+INSERT INTO clients (name, username, telegram_id, register_date, used_ref_promo_id) VALUES('эллина messenger', '@e11ino4ka', 900996031, TIMESTAMP '2023-11-29 21:05', 4);
 
 
 CREATE TABLE subscriptions (
@@ -126,6 +128,8 @@ INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expira
 INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(41, 4, 0, TIMESTAMP '2023-08-11 15:11:00' + INTERVAL '0 months');		-- '@KoberO'
 INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(42, 3, 0, TIMESTAMP '2023-01-01 00:00:00' + INTERVAL '0 months');		-- '@marialubina'
 INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(43, 3, 0, TIMESTAMP '2023-01-01 00:00:00' + INTERVAL '0 months');		-- 'Father'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(44, 1, 0, TIMESTAMP '2023-11-03 22:53:00' + INTERVAL '1 months');		-- '@radulichh'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(45, 1, 0, TIMESTAMP '2023-11-29 21:07:00' + INTERVAL '1 months');		-- '@e11ino4ka'
 
 
 CREATE TABLE promocodes_ref (
@@ -177,6 +181,8 @@ INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFO55AUAP', 40);
 INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFKI78HOH', 41);
 INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFYFYIIG3', 42);
 INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFHW30C3F', 43);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFGW38C3F', 44);
+INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFYFYIZG3', 45);
 
 
 CREATE TABLE promocodes_global (
@@ -379,3 +385,5 @@ INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, t
 INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(42, 1, 1, 'IOS', 'photo', 'AgACAgIAAxkBAAISGGVs7FOx9wQBGcoBh4b7ugFewaw0AAKR2DEbG19oS6-L65b627J7AQADAgADcwADMwQ', TIMESTAMP 'EPOCH');
 INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(42, 2, 3, 'IOS', 'photo', 'AgACAgIAAxkBAAISGmVs7I4rHDqK9YbLBaV334ySpxrmAAKT2DEbG19oS_9pyU--bZVlAQADAgADcwADMwQ', TIMESTAMP 'EPOCH');
 INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(43, 1, 1, 'Android', 'photo', 'AgACAgIAAxkBAAISHGVs7R26GEY8dXROStfoQpnrkHnDAAKV2DEbG19oS3CI_PmuTfxGAQADAgADcwADMwQ', TIMESTAMP '2023-04-01 12:36');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(44, 2, 3, 'IOS', 'photo', 'AgACAgIAAxkBAAISNGVs8wOYMzJ8vMBdnsxMZNepDTIpAAK32DEbG19oS4pLxD6iyqKDAQADAgADcwADMwQ', TIMESTAMP '2023-11-03 23:53');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(45, 2, 3, 'IOS', 'photo', 'AgACAgIAAxkBAAISNmVs83MihX95fWqcx610g7WgPKGTAAK62DEbG19oSxNjqwVk0gH3AQADAgADcwADMwQ', TIMESTAMP '2023-11-29 21:05');
