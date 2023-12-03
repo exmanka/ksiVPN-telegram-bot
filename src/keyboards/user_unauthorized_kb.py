@@ -12,7 +12,7 @@ reg_mobile_os_kb = ReplyKeyboardMarkup(resize_keyboard=True)
 reg_mobile_os_kb.add(KeyboardButton('Android')).insert(KeyboardButton('IOS (IPhone)')).add(KeyboardButton('Отмена'))
 
 reg_desktop_os_kb = ReplyKeyboardMarkup(resize_keyboard=True)    
-reg_desktop_os_kb.add(KeyboardButton('Windows')).insert(KeyboardButton('Linux')).add(KeyboardButton('Отмена'))
+reg_desktop_os_kb.add(KeyboardButton('Windows')).insert(KeyboardButton('macOS')).insert(KeyboardButton('Linux')).add(KeyboardButton('Отмена'))
 
 reg_chatgpt_kb = ReplyKeyboardMarkup(resize_keyboard=True)
 reg_chatgpt_kb.add(KeyboardButton('Использую')).insert(KeyboardButton('Не использую')).insert(KeyboardButton('Что это?')).\
