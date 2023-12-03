@@ -53,10 +53,9 @@ async def show_user_config_sql_cm_start(message: types.Message):
     await admin_fsm.FSMConfigInfo.ready_to_answer.set()
     guide_text = 'Активировано состояние для получения SQL-запроса на вставку конфигурации! Пришлите мне сообщение в формате (вместо переноса строк используются пробелы):\n\n'
     guide_text += '<b>client_id</b> - client_username | client_telegram_id\n'
-    guide_text += '<b>configurations_os_id</b> - <code>at</code> (Android True) | <code>af</code> (Android False) | <code>it</code> (IOS True) | <code>if</code> (IOS False) | '
-    guide_text += '<code>wt</code> (Windows True) | <code>wf</code> (Windows False) | <code>lt</code> (Linux True) | <code>lf</code> (Linux False)\n'
     guide_text += '<b>protocol_id</b> - <code>w</code> (WireGuard) | <code>x</code> (XTLS-Reality) | <code>s</code> (ShadowSocks)\n'
     guide_text += '<b>location_id</b> - <code>n</code> (Netherlands) | <code>l</code> (Latvia) | <code>g</code> (Germany) | <code>u</code> (USA)\n'
+    guide_text += '<b>os</b> - <code>Android</code> | <code>IOS</code> | <code>Windows</code> | <code>Linux</code>\n'
     guide_text += '<b>date_of_receipt</b> - дата получения конфигурации в формате <code>YYYY-MM-DD HH-MI</code>\n'
     guide_text += '<b>link</b> - если вместо фото или файла *.conf нужна ссылка для XTLS/SS для ПК\n\n'
     guide_text += '<b>Не забываем прикрепить файл, если требуется!</b>'
@@ -84,30 +83,10 @@ async def show_user_config_sql(message: types.Message):
     # if 1st argument is telegram_id
     else:
         client_id = postgesql_db.find_clientID_by_telegramID(int(arguments[0]))[0]
-    
-    configurations_os_id = -1
-    # check 2nd argument as configurations_os
-    match arguments[1]:
-        case 'at':
-            configurations_os_id = 1
-        case 'af':
-            configurations_os_id = 2
-        case 'it':
-            configurations_os_id = 3
-        case 'if':
-            configurations_os_id = 4
-        case 'wt':
-            configurations_os_id = 5
-        case 'wf':
-            configurations_os_id = 6
-        case 'lt':
-            configurations_os_id = 7
-        case 'lf':
-            configurations_os_id = 8
 
     protocol_id = -1
     # check 3rd argument as protocol_id
-    match arguments[2]:
+    match arguments[1]:
         case 'w':
             protocol_id = 1
         case 'x':
@@ -117,7 +96,7 @@ async def show_user_config_sql(message: types.Message):
 
     location_id = -1
     # check 4th argument as location_id
-    match arguments[3]:
+    match arguments[2]:
         case 'n':
             location_id = 1
         case 'l':
@@ -145,8 +124,8 @@ async def show_user_config_sql(message: types.Message):
         file_type = 'document'
         link = message.document.file_id
 
-    answer_text = '<code>INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) '
-    answer_text += f"VALUES({client_id}, {configurations_os_id}, {protocol_id}, {location_id}, '{file_type}', '{link}', TIMESTAMP '{arguments[4]} {arguments[5]}');</code>"
+    answer_text = '<code>INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) '
+    answer_text += f"VALUES({client_id}, {protocol_id}, {location_id}, '{arguments[3]}', '{file_type}', '{link}', TIMESTAMP '{arguments[4]} {arguments[5]}');</code>"
 
     await message.answer(answer_text, parse_mode='HTML') 
 
