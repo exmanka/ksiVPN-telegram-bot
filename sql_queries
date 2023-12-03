@@ -226,22 +226,6 @@ INSERT INTO clients_promo_local(accessible_client_id, promocode_id) VALUES(37, 4
 INSERT INTO clients_promo_local(accessible_client_id, promocode_id) VALUES(42, 3);
 
 
-CREATE TYPE osEnum AS ENUM ('Android', 'IOS', 'Windows', 'Linux');
-CREATE TABLE configurations_os (
-	id SMALLSERIAL PRIMARY KEY,
-	os osEnum NOT NULL,
-	is_using_chatgpt BOOLEAN NOT NULL
-);
-INSERT INTO configurations_os(os, is_using_chatgpt) VALUES('Android', TRUE);	-- 1
-INSERT INTO configurations_os(os, is_using_chatgpt) VALUES('Android', FALSE);	-- 2
-INSERT INTO configurations_os(os, is_using_chatgpt) VALUES('IOS', TRUE);		-- 3
-INSERT INTO configurations_os(os, is_using_chatgpt) VALUES('IOS', FALSE);		-- 4
-INSERT INTO configurations_os(os, is_using_chatgpt) VALUES('Windows', TRUE);	-- 5
-INSERT INTO configurations_os(os, is_using_chatgpt) VALUES('Windows', FALSE);	-- 6
-INSERT INTO configurations_os(os, is_using_chatgpt) VALUES('Linux', TRUE);		-- 7
-INSERT INTO configurations_os(os, is_using_chatgpt) VALUES('Linux', FALSE);		-- 8
-
-
 CREATE TABLE configurations_protocols (
 	id SMALLSERIAL PRIMARY KEY,
 	name VARCHAR(32) NOT NULL UNIQUE,
@@ -258,82 +242,83 @@ CREATE TABLE configurations_locations (
 	city VARCHAR(32) NOT NULL,
 	description VARCHAR(256) NOT NULL,
 	bandwidth SMALLINT NOT NULL,
-	ping SMALLINT NOT NULL
+	ping SMALLINT NOT NULL,
+	is_chatgpt_available BOOLEAN NOT NULL
 );
-INSERT INTO configurations_locations(country, city, description, bandwidth, ping) VALUES('Нидерланды', 'Амстердам', 'Основной сервер с наибольшей скоростью и небольшой задержкой (для использования Instagram и других медиплатформ)', 1000, 30);
-INSERT INTO configurations_locations(country, city, description, bandwidth, ping) VALUES('Латвия', 'Рига', 'Дополнительный сервер с минимальной задержкой и доступом к наиболее закрытым площадкам (для использования ChatGPT и приложений с минимальным пингом)', 100, 20);
-INSERT INTO configurations_locations(country, city, description, bandwidth, ping) VALUES('Германия', 'Нюрнберг', 'Крутой сервер без описания', 500, 40);
-INSERT INTO configurations_locations(country, city, description, bandwidth, ping) VALUES('США', 'Силиконовая долина', 'Тестовый сервер, где проверяются новые функции, доступные в будущем на остальных серверах (для работы прямиком из Силиконовой долины и тестировать бета-версий 😎)', 50, 150);
+INSERT INTO configurations_locations(country, city, description, bandwidth, ping, is_chatgpt_available) VALUES('Нидерланды', 'Амстердам', 'Основной сервер с наибольшей скоростью и небольшой задержкой (для использования Instagram и других медиплатформ)', 1000, 30, FALSE);
+INSERT INTO configurations_locations(country, city, description, bandwidth, ping, is_chatgpt_available) VALUES('Латвия', 'Рига', 'Дополнительный сервер с минимальной задержкой и доступом к наиболее закрытым площадкам (для использования ChatGPT и приложений с минимальным пингом)', 100, 20, TRUE);
+INSERT INTO configurations_locations(country, city, description, bandwidth, ping, is_chatgpt_available) VALUES('Германия', 'Нюрнберг', 'Крутой сервер без описания', 500, 40, TRUE);
+INSERT INTO configurations_locations(country, city, description, bandwidth, ping, is_chatgpt_available) VALUES('США', 'Силиконовая долина', 'Тестовый сервер, где проверяются новые функции, доступные в будущем на остальных серверах (для работы прямиком из Силиконовой долины и тестировать бета-версий 😎)', 50, 150, FALSE);
 
 
+CREATE TYPE osEnum AS ENUM ('Android', 'IOS', 'Windows', 'Linux');
 CREATE TYPE fileTypeEnum AS ENUM('photo', 'document', 'link');
 CREATE TABLE configurations (
 	id SERIAL PRIMARY KEY,
 	client_id INT NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
-	conf_os_id SMALLINT NOT NULL REFERENCES configurations_os(id) ON DELETE CASCADE,
 	protocol_id SMALLINT NOT NULL REFERENCES configurations_protocols(id) ON DELETE CASCADE,
 	location_id SMALLINT NOT NULL REFERENCES configurations_locations(id) ON DELETE CASCADE,
+	os osEnum NOT NULL,
 	file_type fileTypeEnum NOT NULL,
 	telegram_file_id VARCHAR(256) UNIQUE NOT NULL,
 	date_of_receipt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-
 -- exmanka
 -- Нидерланды Wireguard
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(1, 2, 1, 1, 'photo', 'AgACAgIAAxkBAAIOYGVaT_kFZXDLuxsk6F8NNAXTo9XIAAKt0DEbqdTQSlexi7pC136fAQADAgADcwADMwQ', 'EPOCH');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(1, 6, 1, 1, 'document', 'BQACAgIAAxkBAAIOaWVaWjsKy-ZU_rCKVl4wwd7bR3zfAAJFOAACqdTQShfZDlnChFGzMwQ', 'EPOCH');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(1, 8, 1, 1, 'document', 'BQACAgIAAxkBAAIOa2VaWsujhvEkhDoLVLfA8CaIOn7cAAJQOAACqdTQSgiZgMcoO0kfMwQ', 'EPOCH');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(1, 1, 1, 'Android', 'photo', 'AgACAgIAAxkBAAIOYGVaT_kFZXDLuxsk6F8NNAXTo9XIAAKt0DEbqdTQSlexi7pC136fAQADAgADcwADMwQ', 'EPOCH');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(1, 1, 1, 'Windows', 'document', 'BQACAgIAAxkBAAIOaWVaWjsKy-ZU_rCKVl4wwd7bR3zfAAJFOAACqdTQShfZDlnChFGzMwQ', 'EPOCH');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(1, 1, 1, 'Linux', 'document', 'BQACAgIAAxkBAAIOa2VaWsujhvEkhDoLVLfA8CaIOn7cAAJQOAACqdTQSgiZgMcoO0kfMwQ', 'EPOCH');
 -- Латвия Wireguard
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(1, 1, 1, 2, 'photo', 'AgACAgIAAxkBAAIPNWVqDFqU-KnJHpzO_oV8wlEoZ1INAAKX1TEblrxRSzvRr8ePvwI0AQADAgADcwADMwQ', 'EPOCH');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(1, 5, 1, 2, 'document', 'BQACAgIAAxkBAAIPh2VqFKPpBQwyQtPTXlpglMS8wM2lAAJyQgAClrxRS4WxWpS-vzDaMwQ', 'EPOCH');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(1, 7, 1, 2, 'document', 'BQACAgIAAxkBAAIPiWVqFQnOx24xgxOC861CH7aFJ8TgAAJ8QgAClrxRS6l9MCcdCqgtMwQ', 'EPOCH');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(1, 1, 2, 'Android', 'photo', 'AgACAgIAAxkBAAIPNWVqDFqU-KnJHpzO_oV8wlEoZ1INAAKX1TEblrxRSzvRr8ePvwI0AQADAgADcwADMwQ', 'EPOCH');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(1, 1, 2, 'Windows', 'document', 'BQACAgIAAxkBAAIPh2VqFKPpBQwyQtPTXlpglMS8wM2lAAJyQgAClrxRS4WxWpS-vzDaMwQ', 'EPOCH');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(1, 1, 2, 'Linux', 'document', 'BQACAgIAAxkBAAIPiWVqFQnOx24xgxOC861CH7aFJ8TgAAJ8QgAClrxRS6l9MCcdCqgtMwQ', 'EPOCH');
 -- Германия Wireguard
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(1, 1, 1, 3, 'photo', 'AgACAgIAAxkBAAIPjWVqFc2-9lrDu2luDh8UdLIE_C5vAAK31TEblrxRS5zckU_9KaAKAQADAgADcwADMwQ', 'EPOCH');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(1, 5, 1, 3, 'document', 'BQACAgIAAxkBAAIPj2VqFjLq9ghvF3pny0lquqk6jTslAAKUQgAClrxRS8JARq_PNJ4-MwQ', 'EPOCH');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(1, 7, 1, 3, 'document', 'BQACAgIAAxkBAAIPkWVqFlgg7vlOBpZbdoP291Ij8PjpAAKYQgAClrxRS3j7frv6gRjtMwQ', 'EPOCH');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(1, 1, 3, 'Android', 'photo', 'AgACAgIAAxkBAAIPjWVqFc2-9lrDu2luDh8UdLIE_C5vAAK31TEblrxRS5zckU_9KaAKAQADAgADcwADMwQ', 'EPOCH');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(1, 1, 3, 'Windows', 'document', 'BQACAgIAAxkBAAIPj2VqFjLq9ghvF3pny0lquqk6jTslAAKUQgAClrxRS8JARq_PNJ4-MwQ', 'EPOCH');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(1, 1, 3, 'Linux', 'document', 'BQACAgIAAxkBAAIPkWVqFlgg7vlOBpZbdoP291Ij8PjpAAKYQgAClrxRS3j7frv6gRjtMwQ', 'EPOCH');
 -- США Wireguard
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id) VALUES(1, 2, 1, 4, 'photo', 'AgACAgIAAxkBAAIPk2VqFt-ETp1_plfZEIp14HWyXNJnAAK-1TEblrxRS_88PkDlBPMzAQADAgADcwADMwQ');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id) VALUES(1, 6, 1, 4, 'document', 'BQACAgIAAxkBAAIPlWVqFyDn6J_0f1n-euKfIqPoZOTwAAKwQgAClrxRSw5KRzAfzh2lMwQ');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id) VALUES(1, 1, 4, 'Android', 'photo', 'AgACAgIAAxkBAAIPk2VqFt-ETp1_plfZEIp14HWyXNJnAAK-1TEblrxRS_88PkDlBPMzAQADAgADcwADMwQ');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id) VALUES(1, 1, 4, 'Windows', 'document', 'BQACAgIAAxkBAAIPlWVqFyDn6J_0f1n-euKfIqPoZOTwAAKwQgAClrxRSw5KRzAfzh2lMwQ');
 -- Латвия XTLS-Reality
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id) VALUES(1, 1, 2, 2, 'photo', 'AgACAgIAAxkBAAIPp2VqGyEJYKkOnQ7Kj2DoPvplzVpJAALe1TEblrxRS2mCX57NfZdHAQADAgADcwADMwQ');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id) VALUES(1, 5, 2, 2, 'link', 'vless://9a199f69-62d0-40d2-962f-a9d0b4e4f4f0@185.237.219.250:443?type=tcp&security=reality&fp=chrome&pbk=k3m2xA-FqJ5KN4QJ1vQCRFTyvxSPNijy67dR8MQP_z0&sni=amd.com&flow=xtls-rprx-vision&sid=3df1dd41&spx=%2F#Latvia-XTLS_Reality-sp_KSIVA');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id) VALUES(1, 7, 2, 2, 'link', 'vless://6ba8816f-e1d1-45ff-8955-cb75e5307182@185.237.219.250:443?type=tcp&security=reality&fp=chrome&pbk=k3m2xA-FqJ5KN4QJ1vQCRFTyvxSPNijy67dR8MQP_z0&sni=amd.com&flow=xtls-rprx-vision&sid=3df1dd41&spx=%2F#Latvia-XTLS_Reality-pc_KSIVA_linux');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id) VALUES(1, 2, 2, 'Android', 'photo', 'AgACAgIAAxkBAAIPp2VqGyEJYKkOnQ7Kj2DoPvplzVpJAALe1TEblrxRS2mCX57NfZdHAQADAgADcwADMwQ');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id) VALUES(1, 2, 2, 'Windows', 'link', 'vless://9a199f69-62d0-40d2-962f-a9d0b4e4f4f0@185.237.219.250:443?type=tcp&security=reality&fp=chrome&pbk=k3m2xA-FqJ5KN4QJ1vQCRFTyvxSPNijy67dR8MQP_z0&sni=amd.com&flow=xtls-rprx-vision&sid=3df1dd41&spx=%2F#Latvia-XTLS_Reality-sp_KSIVA');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id) VALUES(1, 2, 2, 'Linux', 'link', 'vless://6ba8816f-e1d1-45ff-8955-cb75e5307182@185.237.219.250:443?type=tcp&security=reality&fp=chrome&pbk=k3m2xA-FqJ5KN4QJ1vQCRFTyvxSPNijy67dR8MQP_z0&sni=amd.com&flow=xtls-rprx-vision&sid=3df1dd41&spx=%2F#Latvia-XTLS_Reality-pc_KSIVA_linux');
 -- Германия XTLS-Reality
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id) VALUES(1, 1, 2, 3, 'photo', 'AgACAgIAAxkBAAIP02VqHzEQybDAOcifsIJa2gGXmCW8AALy1TEblrxRS0TdPGtT_dsKAQADAgADcwADMwQ');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id) VALUES(1, 7, 2, 3, 'link', 'vless://54fd2e73-c457-4fb9-8f75-887d9e395199@190.211.254.240:443?type=tcp&security=reality&fp=chrome&pbk=aZzccHwPY9s9IzBagHTAku6JAM3IoJFbkTzx-S7eYlM&sni=amd.com&flow=xtls-rprx-vision&sid=bbe3fd5f&spx=%2F#Germany-XTLS_Reality-pc_KSIVA_linux');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id) VALUES(1, 2, 3, 'Android', 'photo', 'AgACAgIAAxkBAAIP02VqHzEQybDAOcifsIJa2gGXmCW8AALy1TEblrxRS0TdPGtT_dsKAQADAgADcwADMwQ');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id) VALUES(1, 2, 3, 'Linux', 'link', 'vless://54fd2e73-c457-4fb9-8f75-887d9e395199@190.211.254.240:443?type=tcp&security=reality&fp=chrome&pbk=aZzccHwPY9s9IzBagHTAku6JAM3IoJFbkTzx-S7eYlM&sni=amd.com&flow=xtls-rprx-vision&sid=bbe3fd5f&spx=%2F#Germany-XTLS_Reality-pc_KSIVA_linux');
 -- США XTLS-Reality
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id) VALUES(1, 2, 2, 4, 'photo', 'AgACAgIAAxkBAAIP1WVqH8Oi7UgYRBGUsHt0uehLM3w7AAL21TEblrxRSwgKTjvjp3wuAQADAgADcwADMwQ');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id) VALUES(1, 6, 2, 4, 'link', 'vless://01bee4a0-18e7-4d4a-9078-1ce752f9bec3@45.152.84.13:443?type=tcp&security=reality&fp=chrome&pbk=GhTDNJFBU-SOvmw1jtG2IoXyj3A0vpYAilyjk91XSgQ&sni=amd.com&flow=xtls-rprx-vision&sid=c012578d&spx=%2F#XTLS_Reality-pc_KSIVA');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id) VALUES(1, 2, 4, 'Android', 'photo', 'AgACAgIAAxkBAAIP1WVqH8Oi7UgYRBGUsHt0uehLM3w7AAL21TEblrxRSwgKTjvjp3wuAQADAgADcwADMwQ');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id) VALUES(1, 2, 4, 'Windows', 'link', 'vless://01bee4a0-18e7-4d4a-9078-1ce752f9bec3@45.152.84.13:443?type=tcp&security=reality&fp=chrome&pbk=GhTDNJFBU-SOvmw1jtG2IoXyj3A0vpYAilyjk91XSgQ&sni=amd.com&flow=xtls-rprx-vision&sid=c012578d&spx=%2F#XTLS_Reality-pc_KSIVA');
 -- Латвия ShadowSocks
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id) VALUES(1, 1, 3, 2, 'photo', 'AgACAgIAAxkBAAIP12VqIF4Q3-7vQw0QywJkcsxyq6YIAAL61TEblrxRS15oKfHQhlPXAQADAgADcwADMwQ');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id) VALUES(1, 3, 2, 'Android', 'photo', 'AgACAgIAAxkBAAIP12VqIF4Q3-7vQw0QywJkcsxyq6YIAAL61TEblrxRS15oKfHQhlPXAQADAgADcwADMwQ');
 -- США ShadowSocks
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id) VALUES(1, 2, 3, 4, 'photo', 'AgACAgIAAxkBAAIP2WVqIHFXv8qOOxnm-UmMIYVoD5tOAAL71TEblrxRS1NLgnJr3UQzAQADAgADcwADMwQ');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id) VALUES(1, 3, 4, 'Android', 'photo', 'AgACAgIAAxkBAAIP2WVqIHFXv8qOOxnm-UmMIYVoD5tOAAL71TEblrxRS1NLgnJr3UQzAQADAgADcwADMwQ');
 
 
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(2, 2, 1, 1, 'photo', 'AgACAgIAAxkBAAIQN2VqUvGO25wk1ihddSaW2hdtyTiOAAIb1zEblrxRS7tFOHJmcbufAQADAgADcwADMwQ', TIMESTAMP '2023-04-06 22:12');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(3, 2, 1, 1, 'photo', 'AgACAgIAAxkBAAIQOWVqU69dMlVEbTddKjv7XdJQziDIAAIl1zEblrxRS7s4ruGX3FZTAQADAgADcwADMwQ', TIMESTAMP '2023-04-01 20:54');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(4, 4, 1, 1, 'photo', 'AgACAgIAAxkBAAIQQWVrnfyenbd8djxyXIZq_r7BktB8AAJ90jEb16ZhSxMSAhhwCl0OAQADAgADcwADMwQ', TIMESTAMP '2023-04-02 01:06');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(5, 2, 1, 1, 'photo', 'AgACAgIAAxkBAAIQRWVroFMjHUXschzdYPR_yjMjTgNRAAKJ0jEb16ZhSzbqoCpUaiq5AQADAgADcwADMwQ', TIMESTAMP '2023-04-01 20:55');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(5, 2, 1, 1, 'photo', 'AgACAgIAAxkBAAIQS2VroVBVt-NVAAHf6l1S7pT6Bp2GQwACitIxG9emYUtnNXub_OIYmQEAAwIAA3MAAzME', TIMESTAMP '2023-04-03 18:51');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(5, 1, 1, 2, 'photo', 'AgACAgIAAxkBAAIQTWVroe8jj61NVo92wO_7naLVR0YZAAKP0jEb16ZhS4tTVUdcEt4XAQADAgADcwADMwQ', TIMESTAMP 'EPOCH');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(6, 4, 1, 1, 'photo', 'AgACAgIAAxkBAAIQT2Vrozfc5iOzWs29xG1NSkq9x02kAAKQ0jEb16ZhS2wnptbkaNGRAQADAgADcwADMwQ', TIMESTAMP '2023-04-01 14:53');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(6, 3, 2, 2, 'photo', 'AgACAgIAAxkBAAIQVGVrpCtq2OCxQyoqM8Sh9Gc8KQ9zAAKU0jEb16ZhS2XlaNCj8Po1AQADAgADcwADMwQ', TIMESTAMP '2023-09-02 20:49');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(7, 2, 1, 1, 'photo', 'AgACAgIAAxkBAAIQVmVrpaRGWubW3_DkG4hl6aHZXX7pAAKV0jEb16ZhS5beJmEPbRVBAQADAgADcwADMwQ', TIMESTAMP '2023-04-02 01:07');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(7, 2, 1, 1, 'photo', 'AgACAgIAAxkBAAIQWGVrpeuVQn4aayBUKM6i_-6A8nIgAAKW0jEb16ZhS9HJVHyDLYWEAQADAgADcwADMwQ', TIMESTAMP '2023-04-02 01:08');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(7, 5, 1, 2, 'document', 'BQACAgIAAxkBAAIQWmVrpnET563pjO8KWG4EWsvgzSdtAAIcPQAC16ZhS6kpVdo_cnW1MwQ', TIMESTAMP '2023-04-02 01:09');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(7, 5, 2, 2, 'link', 'vless://03e7bbd9-9c47-4a5a-9405-2f156da71638@185.237.219.250:443?type=tcp&security=reality&fp=chrome&pbk=k3m2xA-FqJ5KN4QJ1vQCRFTyvxSPNijy67dR8MQP_z0&sni=amd.com&flow=xtls-rprx-vision&sid=3df1dd41&spx=%2F#Latvia-XTLS_Reality-pc_%40d_dobychin', TIMESTAMP '2023-09-20 17:36');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(8, 5, 1, 2, 'document', 'BQACAgIAAxkBAAIQeWVrqwlmYvit8ffIqouKtyDX2lMwAAJSPQAC16ZhS7viUJarbPs-MwQ', TIMESTAMP '2023-04-01 20:49');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(9, 4, 1, 1, 'photo', 'AgACAgIAAxkBAAIQhWVrrO6GSchSulvyM-MzmXA9L56AAAKr0jEb16ZhSyqUF67BnlHXAQADAgADcwADMwQ', TIMESTAMP '2023-04-01 12:59');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(9, 8, 1, 1, 'document', 'BQACAgIAAxkBAAIQh2VrrXTQ19tK6epGQUlEcyTP2LR6AAJhPQAC16ZhS_CKEm3xPt3TMwQ', TIMESTAMP '2023-04-01 13:00');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(9, 3, 1, 2, 'photo', 'AgACAgIAAxkBAAIQiWVrrnN1arYYcOk2da_HGsRZPoZ8AAKv0jEb16ZhS7HgOH7-Z8nYAQADAgADcwADMwQ', TIMESTAMP '2023-04-06 14:56');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(9, 3, 1, 3, 'photo', 'AgACAgIAAxkBAAIQi2Vrr3rpUGo8HMYwEyTP5mooi-nOAAKx0jEb16ZhSxGwCgM_3zKaAQADAgADcwADMwQ', TIMESTAMP '2023-08-08 14:59');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(9, 7, 1, 3, 'document', 'BQACAgIAAxkBAAIQjWVrsCF17Mx2bHZrVqaI5rVgF0RUAAJvPQAC16ZhS40gemwHRKNlMwQ', TIMESTAMP '2023-10-05 15:36');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(9, 3, 2, 3, 'photo', 'AgACAgIAAxkBAAIQj2VrsOiTnvrqhlJLTrjsJQsfEoF8AAK00jEb16ZhS83znksB0AtgAQADAgADcwADMwQ', TIMESTAMP '2023-10-13 13:38');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(10, 2, 1, 1, 'photo', 'AgACAgIAAxkBAAIQo2VrsuAgh2-zJxEcFcNLlwQhxJcXAAK30jEb16ZhS650Wwxpsw3oAQADAgADcwADMwQ', TIMESTAMP '2023-04-01 12:55');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(10, 1, 1, 2, 'photo', 'AgACAgIAAxkBAAIQpWVrs1kVHMVqiJtx8BVLFV4DtTicAAK40jEb16ZhS42wY0cs8CgOAQADAgADcwADMwQ', TIMESTAMP '2023-04-01 13:00');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(10, 5, 1, 2, 'document', 'BQACAgIAAxkBAAIQp2Vrs9oCa2d9BOJRT3lxPH8DrtF9AAKFPQAC16ZhS6mPaByYLpbYMwQ', TIMESTAMP '2023-04-01 13:10');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(10, 1, 2, 3, 'photo', 'AgACAgIAAxkBAAIQqWVrtFyqLTG7in4hVdSIFZkfMzBiAAK60jEb16ZhS20z68oetlupAQADAgADcwADMwQ', TIMESTAMP '2023-10-13 16:38');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(11, 2, 1, 1, 'photo', 'AgACAgIAAxkBAAIQsmVrtZ03nwT_zta0sXXEYmYPO-AGAAK_0jEb16ZhS-_ClPc5ah5AAQADAgADcwADMwQ', TIMESTAMP '2023-04-01 16:38');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(11, 6, 1, 1, 'document', 'BQACAgIAAxkBAAIQtGVrtnmjOMyTS4kDQ65plF_Gx8OvAAKTPQAC16ZhS2StiuTZM52yMwQ', TIMESTAMP '2023-04-01 15:29');
-INSERT INTO configurations(client_id, conf_os_id, protocol_id, location_id, file_type, telegram_file_id, date_of_receipt) VALUES(11, 5, 1, 2, 'document', 'BQACAgIAAxkBAAIQtmVrtuEUit-iUlSuW3Sdm4SliqySAAKWPQAC16ZhS-Nktaf0MY45MwQ', TIMESTAMP '2023-04-02 23:30');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(2, 1, 1, 'Android', 'photo', 'AgACAgIAAxkBAAIQN2VqUvGO25wk1ihddSaW2hdtyTiOAAIb1zEblrxRS7tFOHJmcbufAQADAgADcwADMwQ', TIMESTAMP '2023-04-06 22:12');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(3, 1, 1, 'Android', 'photo', 'AgACAgIAAxkBAAIQOWVqU69dMlVEbTddKjv7XdJQziDIAAIl1zEblrxRS7s4ruGX3FZTAQADAgADcwADMwQ', TIMESTAMP '2023-04-01 20:54');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(4, 1, 1, 'IOS', 'photo', 'AgACAgIAAxkBAAIQQWVrnfyenbd8djxyXIZq_r7BktB8AAJ90jEb16ZhSxMSAhhwCl0OAQADAgADcwADMwQ', TIMESTAMP '2023-04-02 01:06');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(5, 1, 1, 'Android', 'photo', 'AgACAgIAAxkBAAIQRWVroFMjHUXschzdYPR_yjMjTgNRAAKJ0jEb16ZhSzbqoCpUaiq5AQADAgADcwADMwQ', TIMESTAMP '2023-04-01 20:55');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(5, 1, 1, 'Windows', 'photo', 'AgACAgIAAxkBAAIQS2VroVBVt-NVAAHf6l1S7pT6Bp2GQwACitIxG9emYUtnNXub_OIYmQEAAwIAA3MAAzME', TIMESTAMP '2023-04-03 18:51');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(5, 1, 2, 'Android', 'photo', 'AgACAgIAAxkBAAIQTWVroe8jj61NVo92wO_7naLVR0YZAAKP0jEb16ZhS4tTVUdcEt4XAQADAgADcwADMwQ', TIMESTAMP 'EPOCH');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(6, 1, 1, 'IOS', 'photo', 'AgACAgIAAxkBAAIQT2Vrozfc5iOzWs29xG1NSkq9x02kAAKQ0jEb16ZhS2wnptbkaNGRAQADAgADcwADMwQ', TIMESTAMP '2023-04-01 14:53');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(6, 2, 2, 'IOS', 'photo', 'AgACAgIAAxkBAAIQVGVrpCtq2OCxQyoqM8Sh9Gc8KQ9zAAKU0jEb16ZhS2XlaNCj8Po1AQADAgADcwADMwQ', TIMESTAMP '2023-09-02 20:49');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(7, 1, 1, 'Android', 'photo', 'AgACAgIAAxkBAAIQVmVrpaRGWubW3_DkG4hl6aHZXX7pAAKV0jEb16ZhS5beJmEPbRVBAQADAgADcwADMwQ', TIMESTAMP '2023-04-02 01:07');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(7, 1, 1, 'Android', 'photo', 'AgACAgIAAxkBAAIQWGVrpeuVQn4aayBUKM6i_-6A8nIgAAKW0jEb16ZhS9HJVHyDLYWEAQADAgADcwADMwQ', TIMESTAMP '2023-04-02 01:08');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(7, 1, 2, 'Windows', 'document', 'BQACAgIAAxkBAAIQWmVrpnET563pjO8KWG4EWsvgzSdtAAIcPQAC16ZhS6kpVdo_cnW1MwQ', TIMESTAMP '2023-04-02 01:09');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(7, 2, 2, 'Windows', 'link', 'vless://03e7bbd9-9c47-4a5a-9405-2f156da71638@185.237.219.250:443?type=tcp&security=reality&fp=chrome&pbk=k3m2xA-FqJ5KN4QJ1vQCRFTyvxSPNijy67dR8MQP_z0&sni=amd.com&flow=xtls-rprx-vision&sid=3df1dd41&spx=%2F#Latvia-XTLS_Reality-pc_%40d_dobychin', TIMESTAMP '2023-09-20 17:36');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(8, 1, 2, 'Windows', 'document', 'BQACAgIAAxkBAAIQeWVrqwlmYvit8ffIqouKtyDX2lMwAAJSPQAC16ZhS7viUJarbPs-MwQ', TIMESTAMP '2023-04-01 20:49');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(9, 1, 1, 'IOS', 'photo', 'AgACAgIAAxkBAAIQhWVrrO6GSchSulvyM-MzmXA9L56AAAKr0jEb16ZhSyqUF67BnlHXAQADAgADcwADMwQ', TIMESTAMP '2023-04-01 12:59');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(9, 1, 1, 'Linux', 'document', 'BQACAgIAAxkBAAIQh2VrrXTQ19tK6epGQUlEcyTP2LR6AAJhPQAC16ZhS_CKEm3xPt3TMwQ', TIMESTAMP '2023-04-01 13:00');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(9, 1, 2, 'IOS', 'photo', 'AgACAgIAAxkBAAIQiWVrrnN1arYYcOk2da_HGsRZPoZ8AAKv0jEb16ZhS7HgOH7-Z8nYAQADAgADcwADMwQ', TIMESTAMP '2023-04-06 14:56');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(9, 1, 3, 'IOS', 'photo', 'AgACAgIAAxkBAAIQi2Vrr3rpUGo8HMYwEyTP5mooi-nOAAKx0jEb16ZhSxGwCgM_3zKaAQADAgADcwADMwQ', TIMESTAMP '2023-08-08 14:59');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(9, 1, 3, 'Linux', 'document', 'BQACAgIAAxkBAAIQjWVrsCF17Mx2bHZrVqaI5rVgF0RUAAJvPQAC16ZhS40gemwHRKNlMwQ', TIMESTAMP '2023-10-05 15:36');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(9, 2, 3, 'IOS', 'photo', 'AgACAgIAAxkBAAIQj2VrsOiTnvrqhlJLTrjsJQsfEoF8AAK00jEb16ZhS83znksB0AtgAQADAgADcwADMwQ', TIMESTAMP '2023-10-13 13:38');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(10, 1, 1, 'Android', 'photo', 'AgACAgIAAxkBAAIQo2VrsuAgh2-zJxEcFcNLlwQhxJcXAAK30jEb16ZhS650Wwxpsw3oAQADAgADcwADMwQ', TIMESTAMP '2023-04-01 12:55');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(10, 1, 2, 'Android', 'photo', 'AgACAgIAAxkBAAIQpWVrs1kVHMVqiJtx8BVLFV4DtTicAAK40jEb16ZhS42wY0cs8CgOAQADAgADcwADMwQ', TIMESTAMP '2023-04-01 13:00');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(10, 1, 2, 'Windows', 'document', 'BQACAgIAAxkBAAIQp2Vrs9oCa2d9BOJRT3lxPH8DrtF9AAKFPQAC16ZhS6mPaByYLpbYMwQ', TIMESTAMP '2023-04-01 13:10');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(10, 2, 3, 'Android', 'photo', 'AgACAgIAAxkBAAIQqWVrtFyqLTG7in4hVdSIFZkfMzBiAAK60jEb16ZhS20z68oetlupAQADAgADcwADMwQ', TIMESTAMP '2023-10-13 16:38');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(11, 1, 1, 'Android', 'photo', 'AgACAgIAAxkBAAIQsmVrtZ03nwT_zta0sXXEYmYPO-AGAAK_0jEb16ZhS-_ClPc5ah5AAQADAgADcwADMwQ', TIMESTAMP '2023-04-01 16:38');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(11, 1, 1, 'Windows', 'document', 'BQACAgIAAxkBAAIQtGVrtnmjOMyTS4kDQ65plF_Gx8OvAAKTPQAC16ZhS2StiuTZM52yMwQ', TIMESTAMP '2023-04-01 15:29');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(11, 1, 2, 'Windows', 'document', 'BQACAgIAAxkBAAIQtmVrtuEUit-iUlSuW3Sdm4SliqySAAKWPQAC16ZhS-Nktaf0MY45MwQ', TIMESTAMP '2023-04-02 23:30');
 
