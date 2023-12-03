@@ -111,7 +111,7 @@ def register_handlers_unauthorized_client(dp : Dispatcher):
     dp.register_message_handler(cm_cancel, Text(equals='Отмена', ignore_case=True), state="*")
     dp.register_message_handler(authorization_cm_start, Text(equals='\U0001f525 Подключиться!', ignore_case=True))
     dp.register_message_handler(authorization_take_platform, Text(equals=['\U0001F4F1 Смартфон', '\U0001F4BB ПК'], ignore_case=True), state=user_unauthorized_fsm.RegistrationFSM.platform)
-    dp.register_message_handler(authorization_take_os, Text(equals=['Android', 'IOS (IPhone)', 'Windows', 'Linux'], ignore_case=True), state=user_unauthorized_fsm.RegistrationFSM.os)
+    dp.register_message_handler(authorization_take_os, Text(equals=['Android', 'IOS (IPhone)', 'Windows', 'macOS', 'Linux'], ignore_case=True), state=user_unauthorized_fsm.RegistrationFSM.os)
     dp.register_message_handler(authorization_show_info_chatgpt, Text(equals='Что это?', ignore_case=True), state=user_unauthorized_fsm.RegistrationFSM.chatgpt)
     dp.register_message_handler(authorization_take_chatgpt, Text(equals=['Использую', 'Не использую'], ignore_case=True), state=user_unauthorized_fsm.RegistrationFSM.chatgpt)
     dp.register_message_handler(authorization_promo_no, Text(equals='Нет промокода', ignore_case=True), state=user_unauthorized_fsm.RegistrationFSM.promo)
