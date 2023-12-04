@@ -6,15 +6,25 @@ from src.middlewares import admin_mw
 from src.database import postgesql_db
 
 
-async def send_user_info(user_info, choice_info):
-    await bot.send_message(admin_ID,\
-                           f"Имя: <code>{user_info['fullname']}</code>\n"
-                           f"Тэг: @{user_info['username']}\n"
-                           f"ID: <code>{user_info['id']}</code>\n"
-                           f"Промокод: <code>{choice_info['promo']}</code>\n"
-                           f"Конфигурация: {choice_info['platform'][2:]}, {choice_info['os_name']}, {choice_info['chatgpt']} ChatGPT\n\n"
-                           f"<b>Запрос на подключение от пользователя!</b>",
-                           parse_mode='HTML')
+async def send_user_info(user_info, choice_info, is_new_user: bool):
+    if is_new_user:
+        await bot.send_message(admin_ID,\
+                                f"Имя: <code>{user_info['fullname']}</code>\n"
+                                f"Тэг: @{user_info['username']}\n"
+                                f"ID: <code>{user_info['id']}</code>\n"
+                                f"Промокод: <code>{choice_info['promo']}</code>\n"
+                                f"Конфигурация: {choice_info['platform'][2:]}, {choice_info['os_name']}, {choice_info['chatgpt']} ChatGPT\n\n"
+                                f"<b>Запрос на подключение от нового пользователя!</b>",
+                                parse_mode='HTML')
+    
+    else:
+        await bot.send_message(admin_ID,\
+                                f"Имя: <code>{user_info['fullname']}</code>\n"
+                                f"Тэг: @{user_info['username']}\n"
+                                f"ID: <code>{user_info['id']}</code>\n"
+                                f"Конфигурация: {choice_info['platform'][2:]}, {choice_info['os_name']}, {choice_info['chatgpt']} ChatGPT\n\n"
+                                f"<b>Запрос дополнительной конфигурации от пользователя!</b>",
+                                parse_mode='HTML')
 
 @admin_mw.admin_only()
 async def show_user_info_sql_cm_start(message: types.Message):

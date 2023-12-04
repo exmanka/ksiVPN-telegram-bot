@@ -17,20 +17,17 @@ config_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('Вернуться'))
 
 config_platform_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton('\U0001F4F1 Смартфон')).insert(KeyboardButton('\U0001F4BB ПК')).add(KeyboardButton('Отмена'))
+    add(KeyboardButton('\U0001F4F1 Смартфон')).insert(KeyboardButton('\U0001F4BB ПК')).add(KeyboardButton('Отмена выбора'))
 
 config_mobile_os_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton('Android')).insert(KeyboardButton('IOS (IPhone)')).add(KeyboardButton('Отмена'))
+    add(KeyboardButton('Android')).insert(KeyboardButton('IOS (IPhone)')).add(KeyboardButton('Отмена выбора'))
 
 config_desktop_os_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton('Windows')).insert(KeyboardButton('macOS')).insert(KeyboardButton('Linux')).add(KeyboardButton('Отмена'))
+    add(KeyboardButton('Windows')).insert(KeyboardButton('macOS')).insert(KeyboardButton('Linux')).add(KeyboardButton('Отмена выбора'))
 
-reg_chatgpt_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
+config_chatgpt_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('Использую')).insert(KeyboardButton('Не использую')).insert(KeyboardButton('Что это?')).\
-    add(KeyboardButton('Отмена'))
-
-promo_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton('Использованные промокоды')).add(KeyboardButton('Отмена ввода'))
+    add(KeyboardButton('Отмена выбора'))
 
 ref_program_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('Участие в реферальной программе')).\

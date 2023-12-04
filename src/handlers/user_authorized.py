@@ -124,9 +124,17 @@ async def account_configurations_info(message: types.Message):
     await message.answer('Напоминаю правила (/rules):\n1. Одно устройство - одна конфигурация.\n2. Конфигурациями делиться с другими людьми запрещено!')
 
 @user_mw.authorized_only()
-async def account_configurations_request(message: types.Message):
+async def account_configurations_submenu_cm_cancel(message: types.Message, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state is not None:
+        await state.set_state(user_authorized_fsm.AccountMenu.account_configs)
+
+    await message.answer('Возврат в меню конфигураций', reply_markup=user_authorized_kb.config_kb)
+
+@user_mw.authorized_only()
+async def account_configurations_request_cm_start(message: types.Message):
     answer_text = 'Понадобиться ответить на 3 вопроса, чтобы запросить новую конфигурацию у администратора!\n\n'
-    answer_text += f'В данный момент у Вас <b>{postgesql_db.show_configurations_number(postgesql_db.find_clientID_by_telegramID(message.from_user.id)[0])[0]}</b>'
+    answer_text += f'В данный момент у Вас <b>{postgesql_db.show_configurations_number(postgesql_db.find_clientID_by_telegramID(message.from_user.id)[0])[0]}</b> конфигураций.'
     await message.answer(answer_text, parse_mode='HTML')
     
     await user_authorized_fsm.ConfigFSM.platform.set()
@@ -134,7 +142,42 @@ async def account_configurations_request(message: types.Message):
 
 @user_mw.authorized_only()
 async def account_configurations_request_platform(message: types.Message, state: FSMContext):
-    pass
+    async with state.proxy() as data:
+        data['platform'] = message.text
+
+    if message.text == '\U0001F4F1 Смартфон':
+        await message.answer('Укажите операционную систему', reply_markup=user_authorized_kb.config_mobile_os_kb)
+    else:
+        await message.answer('Укажите операционную систему', reply_markup=user_authorized_kb.config_desktop_os_kb)
+
+    await state.set_state(user_authorized_fsm.ConfigFSM.os)
+
+@user_mw.authorized_only()
+async def account_configurations_request_os(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['os_name'] = message.text
+
+    await state.set_state(user_authorized_fsm.ConfigFSM.chatgpt)
+    await message.answer('Используете ли Вы ChatGPT?', reply_markup=user_authorized_kb.config_chatgpt_kb)
+
+@user_mw.authorized_only()
+async def account_configurations_request_chatgpt_info(message: types.Message):
+    await message.answer('<b>ChatGPT</b> — нейронная сеть в виде чат-бота, способная отвечать на сложные вопросы и вести осмысленный диалог!',
+                            parse_mode='HTML')
+    
+@user_mw.authorized_only()
+async def account_configurations_request_chatgpt(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['chatgpt'] = message.text
+        await send_user_info({'fullname': message.from_user.full_name, 'username': message.from_user.username,\
+                            'id': message.from_user.id}, data._data, is_new_user=False)
+
+    
+    await message.answer(f'Отлично! Теперь ждем ответа от разработчика: в скором времени он проверит Вашу регистрацию и вышлет конфигурацию!',
+                            reply_markup=user_authorized_kb.config_kb)
+    await message.answer(f'Пожалуйста, не забывайте, что он тоже человек, и периодически спит (хотя на самом деле крайне редко)')
+
+    await state.set_state(user_authorized_fsm.AccountMenu.account_configs)
 
 @user_mw.authorized_only()
 async def account_ref_program_info(message: types.Message):
@@ -284,13 +327,20 @@ def register_handlers_authorized_client(dp: Dispatcher):
     dp.register_message_handler(account_submenu_cm_cancel, Text(equals='Вернуться'))
     dp.register_message_handler(account_submenu_cm_cancel, Text(equals='Отмена ввода'), state=user_authorized_fsm.AccountMenu.account_promo)
     dp.register_message_handler(account_submenu_cm_cancel, Text(equals='Отмена ввода'))
-    dp.register_message_handler(account_configurations_info, Text(equals='Текущие конфигурации'), state=user_authorized_fsm.AccountMenu.account_configs)
-    dp.register_message_handler(account_configurations_request, Text(equals='Запросить новую конфигурацию'), state=user_authorized_fsm.AccountMenu.account_configs)
-    dp.register_message_handler(account_configurations_request_platform, Text(equals=['\U0001F4F1 Смартфон', '\U0001F4BB ПК']), state=user_authorized_fsm.ConfigFSM.platform)
     dp.register_message_handler(account_ref_program_info, Text(equals='Участие в реферальной программе'), state=user_authorized_fsm.AccountMenu.account_ref_program)
     dp.register_message_handler(account_ref_program_invite, Text(equals='Сгенерировать приглашение *'), state=user_authorized_fsm.AccountMenu.account_ref_program)
     dp.register_message_handler(account_ref_program_promocode, Text(equals='Показать реферальный промокод'), state=user_authorized_fsm.AccountMenu.account_ref_program)
     dp.register_message_handler(account_promo_info, Text(equals='Использованные промокоды'), state=user_authorized_fsm.AccountMenu.account_promo)
     dp.register_message_handler(account_promo_check, state=user_authorized_fsm.AccountMenu.account_promo)
+    dp.register_message_handler(account_configurations_info, Text(equals='Текущие конфигурации'), state=user_authorized_fsm.AccountMenu.account_configs)
+    dp.register_message_handler(account_configurations_submenu_cm_cancel, Text(equals='Отмена выбора'), state=user_authorized_fsm.ConfigFSM.platform)
+    dp.register_message_handler(account_configurations_submenu_cm_cancel, Text(equals='Отмена выбора'), state=user_authorized_fsm.ConfigFSM.os)
+    dp.register_message_handler(account_configurations_submenu_cm_cancel, Text(equals='Отмена выбора'), state=user_authorized_fsm.ConfigFSM.chatgpt)
+    dp.register_message_handler(account_configurations_submenu_cm_cancel, Text(equals='Отмена выбора'))
+    dp.register_message_handler(account_configurations_request_cm_start, Text(equals='Запросить новую конфигурацию'), state=user_authorized_fsm.AccountMenu.account_configs)
+    dp.register_message_handler(account_configurations_request_platform, Text(equals=['\U0001F4F1 Смартфон', '\U0001F4BB ПК']), state=user_authorized_fsm.ConfigFSM.platform)
+    dp.register_message_handler(account_configurations_request_os, Text(equals=['Android', 'IOS (IPhone)', 'Windows', 'macOS', 'Linux']), state=user_authorized_fsm.ConfigFSM.os)
+    dp.register_message_handler(account_configurations_request_chatgpt_info, Text(equals='Что это?', ignore_case=True), state=user_authorized_fsm.ConfigFSM.chatgpt)
+    dp.register_message_handler(account_configurations_request_chatgpt, Text(equals=['Использую', 'Не использую']), state=user_authorized_fsm.ConfigFSM.chatgpt)
     dp.register_message_handler(show_project_rules, Text(equals='Правила'))
     dp.register_message_handler(show_project_rules, commands=['rules'], state='*')

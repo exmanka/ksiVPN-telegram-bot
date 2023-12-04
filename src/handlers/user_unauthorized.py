@@ -89,7 +89,7 @@ async def authorization_promo_no(message: types.Message, state: FSMContext):
 
     async with state.proxy() as data:
         await send_user_info({'fullname': message.from_user.full_name, 'username': message.from_user.username,\
-                                'id': message.from_user.id}, data._data)
+                                'id': message.from_user.id}, data._data, is_new_user=True)
 
     await message.answer(f'Отлично! Теперь ждем ответа от разработчика: в скором времени он проверит Вашу регистрацию и вышлет конфигурацию!',
                             reply_markup=ReplyKeyboardRemove())
