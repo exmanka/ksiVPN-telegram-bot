@@ -125,6 +125,15 @@ async def account_configurations_info(message: types.Message):
 
 @user_mw.authorized_only()
 async def account_configurations_request(message: types.Message):
+    answer_text = 'Понадобиться ответить на 3 вопроса, чтобы запросить новую конфигурацию у администратора!\n\n'
+    answer_text += f'В данный момент у Вас <b>{postgesql_db.show_configurations_number(postgesql_db.find_clientID_by_telegramID(message.from_user.id)[0])[0]}</b>'
+    await message.answer(answer_text, parse_mode='HTML')
+    
+    await user_authorized_fsm.ConfigFSM.platform.set()
+    await message.answer('Выберите свою платформу', reply_markup=user_authorized_kb.config_platform_kb)
+
+@user_mw.authorized_only()
+async def account_configurations_request_platform(message: types.Message, state: FSMContext):
     pass
 
 @user_mw.authorized_only()
@@ -277,6 +286,7 @@ def register_handlers_authorized_client(dp: Dispatcher):
     dp.register_message_handler(account_submenu_cm_cancel, Text(equals='Отмена ввода'))
     dp.register_message_handler(account_configurations_info, Text(equals='Текущие конфигурации'), state=user_authorized_fsm.AccountMenu.account_configs)
     dp.register_message_handler(account_configurations_request, Text(equals='Запросить новую конфигурацию'), state=user_authorized_fsm.AccountMenu.account_configs)
+    dp.register_message_handler(account_configurations_request_platform, Text(equals=['\U0001F4F1 Смартфон', '\U0001F4BB ПК']), state=user_authorized_fsm.ConfigFSM.platform)
     dp.register_message_handler(account_ref_program_info, Text(equals='Участие в реферальной программе'), state=user_authorized_fsm.AccountMenu.account_ref_program)
     dp.register_message_handler(account_ref_program_invite, Text(equals='Сгенерировать приглашение *'), state=user_authorized_fsm.AccountMenu.account_ref_program)
     dp.register_message_handler(account_ref_program_promocode, Text(equals='Показать реферальный промокод'), state=user_authorized_fsm.AccountMenu.account_ref_program)

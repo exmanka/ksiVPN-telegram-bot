@@ -6,3 +6,9 @@ class AccountMenu(StatesGroup):
     account_promo = State()
     account_ref_program = State()
     account_configs = State()
+
+
+class ConfigFSM(StatesGroup):
+    platform = State()
+    os = State()
+    chatgpt = State()

@@ -82,13 +82,24 @@ def show_configurations_info(client_id: int):
                 JOIN configurations_protocols AS cp ON c.protocol_id = cp.id
                 JOIN configurations_locations AS cl ON c.location_id = cl.id
                 WHERE c.client_id = %s
-                ORDER BY c.date_of_receipt
+                ORDER BY c.date_of_receipt;
                 ''',
                 (client_id,))
     
     conn.commit()
 
     return cur.fetchall()
+
+def show_configurations_number(client_id: int):
+    cur.execute('''
+                SELECT COUNT(*) FROM configurations
+                WHERE client_id = %s;
+                ''',
+                (client_id,))
+    
+    conn.commit()
+
+    return cur.fetchone()
 
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
 def is_subscription_active(user_id: int):
