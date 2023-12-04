@@ -25,7 +25,7 @@ async def subscription_status(message: types.Message):
     await message.answer(f'Срок окончания действия подписки: {postgesql_db.show_subscription_expiration_date(message.from_user.id)[0]}.')
 
 @user_mw.authorized_only()
-async def account_cm_cancel(message: types.Message, state: FSMContext = None):
+async def submenu_cm_cancel(message: types.Message, state: FSMContext = None):
     '''
     Return to the menu regardless of whether there is a machine state
     '''
@@ -35,8 +35,13 @@ async def account_cm_cancel(message: types.Message, state: FSMContext = None):
     await message.answer('Возврат в главное меню', reply_markup=user_authorized_kb.menu_kb)
 
 @user_mw.authorized_only()
+async def sub_renewal_cm_start(message: types.Message):
+    await user_authorized_fsm.PaymentMenu.menu.set()
+    await message.answer('Переход в меню продления подписки!', reply_markup=user_authorized_kb.sub_renewal_kb)
+
+@user_mw.authorized_only()
 async def account_cm_start(message: types.Message):
-    await user_authorized_fsm.AccountMenu.account_menu.set()
+    await user_authorized_fsm.AccountMenu.menu.set()
     await message.answer('Переход в личный кабинет!', reply_markup=user_authorized_kb.account_kb)
 
 @user_mw.authorized_only()
@@ -62,17 +67,17 @@ async def account_subscription_info(message: types.Message):
 
 @user_mw.authorized_only()
 async def account_configurations(message: types.Message, state: FSMContext):
-    await state.set_state(user_authorized_fsm.AccountMenu.account_configs)
+    await state.set_state(user_authorized_fsm.AccountMenu.configs)
     await message.answer('Меню конфигураций', reply_markup=user_authorized_kb.config_kb)
 
 @user_mw.authorized_only()
 async def account_ref_program(message: types.Message, state:FSMContext):
-    await state.set_state(user_authorized_fsm.AccountMenu.account_ref_program)
+    await state.set_state(user_authorized_fsm.AccountMenu.ref_program)
     await message.answer(messages_dict['ref_program']['text'], reply_markup=user_authorized_kb.ref_program_kb, parse_mode='HTML')
 
 @user_mw.authorized_only()
 async def account_promo(message: types.Message, state: FSMContext):
-    await state.set_state(user_authorized_fsm.AccountMenu.account_promo)
+    await state.set_state(user_authorized_fsm.AccountMenu.promo)
     await message.answer('Отлично, теперь введите промокод!', reply_markup=user_authorized_kb.promo_kb)
 
 @user_mw.authorized_only()
@@ -81,7 +86,7 @@ async def account_submenu_cm_cancel(message: types.Message, state: FSMContext):
     Return to account menu from promocode FSM and referal program FSM
     '''
     
-    await state.set_state(user_authorized_fsm.AccountMenu.account_menu)
+    await state.set_state(user_authorized_fsm.AccountMenu.menu)
     await message.answer('Возврат в личный кабинет', reply_markup=user_authorized_kb.account_kb)
 
 @user_mw.authorized_only()
@@ -122,7 +127,7 @@ async def account_configurations_info(message: types.Message):
 
 @user_mw.authorized_only()
 async def account_configurations_submenu_cm_cancel(message: types.Message, state: FSMContext):
-    await state.set_state(user_authorized_fsm.AccountMenu.account_configs)
+    await state.set_state(user_authorized_fsm.AccountMenu.configs)
     await message.answer('Возврат в меню конфигураций', reply_markup=user_authorized_kb.config_kb)
 
 @user_mw.authorized_only()
@@ -131,7 +136,7 @@ async def account_configurations_request_cm_start(message: types.Message):
     answer_text += f'В данный момент у Вас <b>{postgesql_db.show_configurations_number(postgesql_db.find_clientID_by_telegramID(message.from_user.id)[0])[0]}</b> конфигураций.'
     await message.answer(answer_text, parse_mode='HTML')
     
-    await user_authorized_fsm.ConfigFSM.platform.set()
+    await user_authorized_fsm.ConfigMenu.platform.set()
     await message.answer('Выберите свою платформу', reply_markup=user_authorized_kb.config_platform_kb)
 
 @user_mw.authorized_only()
@@ -144,14 +149,14 @@ async def account_configurations_request_platform(message: types.Message, state:
     else:
         await message.answer('Укажите операционную систему', reply_markup=user_authorized_kb.config_desktop_os_kb)
 
-    await state.set_state(user_authorized_fsm.ConfigFSM.os)
+    await state.set_state(user_authorized_fsm.ConfigMenu.os)
 
 @user_mw.authorized_only()
 async def account_configurations_request_os(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['os_name'] = message.text
 
-    await state.set_state(user_authorized_fsm.ConfigFSM.chatgpt)
+    await state.set_state(user_authorized_fsm.ConfigMenu.chatgpt)
     await message.answer('Используете ли Вы ChatGPT?', reply_markup=user_authorized_kb.config_chatgpt_kb)
 
 @user_mw.authorized_only()
@@ -171,7 +176,7 @@ async def account_configurations_request_chatgpt(message: types.Message, state: 
                             reply_markup=user_authorized_kb.config_kb)
     await message.answer(f'Пожалуйста, не забывайте, что он тоже человек, и периодически спит (хотя на самом деле крайне редко)')
 
-    await state.set_state(user_authorized_fsm.AccountMenu.account_configs)
+    await state.set_state(user_authorized_fsm.AccountMenu.configs)
 
 @user_mw.authorized_only()
 async def account_ref_program_info(message: types.Message):
@@ -232,7 +237,7 @@ async def account_promo_check(message: types.Message, state: FSMContext):
             if promo_bonus_time:
                 postgesql_db.insert_user_entered_global_promo(client_id, promo_global_id[0], promo_bonus_time[0])
                 await message.answer(f'Ура! Промокод на {promo_bonus_time[1]} дней бесплатной подписки принят!', reply_markup=user_authorized_kb.account_kb)
-                await state.set_state(user_authorized_fsm.AccountMenu.account_menu)
+                await state.set_state(user_authorized_fsm.AccountMenu.menu)
 
             else:
                 await message.answer('К сожалению, срок действия промокода истек :(')
@@ -256,7 +261,7 @@ async def account_promo_check(message: types.Message, state: FSMContext):
                 if promo_local_bonus_time:
                     postgesql_db.insert_user_entered_local_promo(client_id, promo_local_id[0], promo_local_bonus_time[0])
                     await message.answer(f'Ура! Специальный промокод на {promo_local_bonus_time[1]} дней бесплатной подписки принят!', reply_markup=user_authorized_kb.account_kb)
-                    await state.set_state(user_authorized_fsm.AccountMenu.account_menu)
+                    await state.set_state(user_authorized_fsm.AccountMenu.menu)
                 
                 else:
                     await message.answer('К сожалению, срок действия специального промокода истек :(')
@@ -308,33 +313,35 @@ async def show_project_rules(message: types.Message):
 
 def register_handlers_authorized_client(dp: Dispatcher):
     dp.register_message_handler(subscription_status, Text(equals='Статус подписки'))
-    dp.register_message_handler(account_cm_cancel, Text(equals='Возврат в главное меню'), state=[None,
-                                                                                                 user_authorized_fsm.AccountMenu.account_menu])
+    dp.register_message_handler(submenu_cm_cancel, Text(equals='Возврат в главное меню'), state=[None,
+                                                                                                 user_authorized_fsm.AccountMenu.menu,
+                                                                                                 user_authorized_fsm.PaymentMenu.menu])
+    dp.register_message_handler(sub_renewal_cm_start, Text(equals='\u2764\uFE0F\u200D\U0001F525 Продлить подписку!'))
     dp.register_message_handler(account_cm_start, Text(equals='Личный кабинет'))
-    dp.register_message_handler(account_user_info, Text(equals='Информация о пользователе'), state=user_authorized_fsm.AccountMenu.account_menu)
-    dp.register_message_handler(account_subscription_info, Text(equals='Информация о подписке'), state=user_authorized_fsm.AccountMenu.account_menu)
-    dp.register_message_handler(account_configurations, Text(equals='Конфигурации'), state=user_authorized_fsm.AccountMenu.account_menu)
-    dp.register_message_handler(account_ref_program, Text(equals='Реферальная программа'), state=user_authorized_fsm.AccountMenu.account_menu)
-    dp.register_message_handler(account_promo, Text(equals='Ввести промокод'), state=user_authorized_fsm.AccountMenu.account_menu)
+    dp.register_message_handler(account_user_info, Text(equals='Информация о пользователе'), state=user_authorized_fsm.AccountMenu.menu)
+    dp.register_message_handler(account_subscription_info, Text(equals='Информация о подписке'), state=user_authorized_fsm.AccountMenu.menu)
+    dp.register_message_handler(account_configurations, Text(equals='Конфигурации'), state=user_authorized_fsm.AccountMenu.menu)
+    dp.register_message_handler(account_ref_program, Text(equals='Реферальная программа'), state=user_authorized_fsm.AccountMenu.menu)
+    dp.register_message_handler(account_promo, Text(equals='Ввести промокод'), state=user_authorized_fsm.AccountMenu.menu)
     dp.register_message_handler(account_submenu_cm_cancel, Text(equals='Вернуться'), state=[None,
-                                                                                            user_authorized_fsm.AccountMenu.account_configs,
-                                                                                            user_authorized_fsm.AccountMenu.account_ref_program])
+                                                                                            user_authorized_fsm.AccountMenu.configs,
+                                                                                            user_authorized_fsm.AccountMenu.ref_program])
     dp.register_message_handler(account_submenu_cm_cancel, Text(equals='Отмена ввода'), state=[None,
-                                                                                               user_authorized_fsm.AccountMenu.account_promo])
-    dp.register_message_handler(account_ref_program_info, Text(equals='Участие в реферальной программе'), state=user_authorized_fsm.AccountMenu.account_ref_program)
-    dp.register_message_handler(account_ref_program_invite, Text(equals='Сгенерировать приглашение *'), state=user_authorized_fsm.AccountMenu.account_ref_program)
-    dp.register_message_handler(account_ref_program_promocode, Text(equals='Показать реферальный промокод'), state=user_authorized_fsm.AccountMenu.account_ref_program)
-    dp.register_message_handler(account_promo_info, Text(equals='Использованные промокоды'), state=user_authorized_fsm.AccountMenu.account_promo)
-    dp.register_message_handler(account_promo_check, state=user_authorized_fsm.AccountMenu.account_promo)
-    dp.register_message_handler(account_configurations_info, Text(equals='Текущие конфигурации'), state=user_authorized_fsm.AccountMenu.account_configs)
+                                                                                               user_authorized_fsm.AccountMenu.promo])
+    dp.register_message_handler(account_ref_program_info, Text(equals='Участие в реферальной программе'), state=user_authorized_fsm.AccountMenu.ref_program)
+    dp.register_message_handler(account_ref_program_invite, Text(equals='Сгенерировать приглашение *'), state=user_authorized_fsm.AccountMenu.ref_program)
+    dp.register_message_handler(account_ref_program_promocode, Text(equals='Показать реферальный промокод'), state=user_authorized_fsm.AccountMenu.ref_program)
+    dp.register_message_handler(account_promo_info, Text(equals='Использованные промокоды'), state=user_authorized_fsm.AccountMenu.promo)
+    dp.register_message_handler(account_promo_check, state=user_authorized_fsm.AccountMenu.promo)
+    dp.register_message_handler(account_configurations_info, Text(equals='Текущие конфигурации'), state=user_authorized_fsm.AccountMenu.configs)
     dp.register_message_handler(account_configurations_submenu_cm_cancel, Text(equals='Отмена выбора'), state=[None,
-                                                                                                               user_authorized_fsm.ConfigFSM.platform,
-                                                                                                               user_authorized_fsm.ConfigFSM.os,
-                                                                                                               user_authorized_fsm.ConfigFSM.chatgpt])
-    dp.register_message_handler(account_configurations_request_cm_start, Text(equals='Запросить новую конфигурацию'), state=user_authorized_fsm.AccountMenu.account_configs)
-    dp.register_message_handler(account_configurations_request_platform, Text(equals=['\U0001F4F1 Смартфон', '\U0001F4BB ПК']), state=user_authorized_fsm.ConfigFSM.platform)
-    dp.register_message_handler(account_configurations_request_os, Text(equals=['Android', 'IOS (IPhone)', 'Windows', 'macOS', 'Linux']), state=user_authorized_fsm.ConfigFSM.os)
-    dp.register_message_handler(account_configurations_request_chatgpt_info, Text(equals='Что это?', ignore_case=True), state=user_authorized_fsm.ConfigFSM.chatgpt)
-    dp.register_message_handler(account_configurations_request_chatgpt, Text(equals=['Использую', 'Не использую']), state=user_authorized_fsm.ConfigFSM.chatgpt)
+                                                                                                               user_authorized_fsm.ConfigMenu.platform,
+                                                                                                               user_authorized_fsm.ConfigMenu.os,
+                                                                                                               user_authorized_fsm.ConfigMenu.chatgpt])
+    dp.register_message_handler(account_configurations_request_cm_start, Text(equals='Запросить новую конфигурацию'), state=user_authorized_fsm.AccountMenu.configs)
+    dp.register_message_handler(account_configurations_request_platform, Text(equals=['\U0001F4F1 Смартфон', '\U0001F4BB ПК']), state=user_authorized_fsm.ConfigMenu.platform)
+    dp.register_message_handler(account_configurations_request_os, Text(equals=['Android', 'IOS (IPhone)', 'Windows', 'macOS', 'Linux']), state=user_authorized_fsm.ConfigMenu.os)
+    dp.register_message_handler(account_configurations_request_chatgpt_info, Text(equals='Что это?', ignore_case=True), state=user_authorized_fsm.ConfigMenu.chatgpt)
+    dp.register_message_handler(account_configurations_request_chatgpt, Text(equals=['Использую', 'Не использую']), state=user_authorized_fsm.ConfigMenu.chatgpt)
     dp.register_message_handler(show_project_rules, Text(equals='Правила'))
     dp.register_message_handler(show_project_rules, commands=['rules'], state='*')

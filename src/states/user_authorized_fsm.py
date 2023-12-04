@@ -2,13 +2,21 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 
 
 class AccountMenu(StatesGroup):
-    account_menu = State()
-    account_promo = State()
-    account_ref_program = State()
-    account_configs = State()
+    menu = State()
+    promo = State()
+    ref_program = State()
+    configs = State()
 
 
-class ConfigFSM(StatesGroup):
+class PaymentMenu(StatesGroup):
+    menu = State()
+    months_1 = State()
+    months_3 = State()
+    months_12 = State()
+    months_n = State()
+
+
+class ConfigMenu(StatesGroup):
     platform = State()
     os = State()
     chatgpt = State()
