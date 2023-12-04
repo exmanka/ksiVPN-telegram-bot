@@ -14,11 +14,6 @@ from src.handlers.user_authorized import already_registered_system
 
 @user_mw.unauthorized_only()
 async def cm_cancel(message: types.Message, state: FSMContext):
-    current_state = await state.get_state() # Получаем текущее состояние бота
-    if current_state is None:   # Если не находится в каком-либо состоянии
-        await message.reply('Извините, в данном состоянии я вас не понимаю \U0001F914')
-        return
-    
     await state.finish()
     await message.answer('Возврат в главное меню', reply_markup=user_unauthorized_kb.welcome_kb)
 
@@ -100,15 +95,9 @@ async def authorization_promo_no(message: types.Message, state: FSMContext):
 async def command_start(message : types.Message):
     await bot.send_photo(message.from_user.id, messages_dict['hello_message']['img_id'], messages_dict['hello_message']['text'], reply_markup=user_unauthorized_kb.welcome_kb)
 
-    
-# async def close_keyboard(message : types.Message):
-#     await bot.send_message(message.from_user.id, 'Закрываю клавиатуру!', reply_markup=ReplyKeyboardRemove())  # Удаление клавиатуры
-
 
 def register_handlers_unauthorized_client(dp : Dispatcher):
-    # dp.register_message_handler(close_keyboard, commands=['close_kb'])
-    dp.register_message_handler(cm_cancel, Text(equals='Cancel', ignore_case=True), state="*")
-    dp.register_message_handler(cm_cancel, Text(equals='Отмена', ignore_case=True), state="*")
+    dp.register_message_handler(cm_cancel, Text(equals='Отмена', ignore_case=True), state=[None, user_unauthorized_fsm.RegistrationFSM.platform, user_unauthorized_fsm.RegistrationFSM.os, user_unauthorized_fsm.RegistrationFSM.chatgpt, user_unauthorized_fsm.RegistrationFSM.promo])
     dp.register_message_handler(authorization_cm_start, Text(equals='\U0001f525 Подключиться!', ignore_case=True))
     dp.register_message_handler(authorization_take_platform, Text(equals=['\U0001F4F1 Смартфон', '\U0001F4BB ПК']), state=user_unauthorized_fsm.RegistrationFSM.platform)
     dp.register_message_handler(authorization_take_os, Text(equals=['Android', 'IOS (IPhone)', 'Windows', 'macOS', 'Linux']), state=user_unauthorized_fsm.RegistrationFSM.os)
