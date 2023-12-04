@@ -29,6 +29,9 @@ config_chatgpt_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('Использую')).insert(KeyboardButton('Не использую')).insert(KeyboardButton('Что это?')).\
     add(KeyboardButton('Отмена выбора'))
 
+promo_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
+    add(KeyboardButton('Использованные промокоды')).add(KeyboardButton('Отмена ввода'))
+
 ref_program_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('Участие в реферальной программе')).\
     add(KeyboardButton('Сгенерировать приглашение *')).insert(KeyboardButton('Показать реферальный промокод')).\
