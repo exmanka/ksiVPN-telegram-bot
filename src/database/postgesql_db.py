@@ -34,26 +34,56 @@ def find_clientID_by_username(username: str):
     
     return cur.fetchone()
 
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def insert_user_payment(client_id: int, payment_price: float, months_number: int):
+    cur.execute('''
+                SELECT s.id, s.price
+                FROM clients_subscriptions AS cs
+                JOIN subscriptions AS s
+                ON cs.sub_id = s.id
+                WHERE cs.client_id = %s;
+                ''',
+                (client_id,))
+    
+    sub_id, sub_price = cur.fetchone()
+
+    cur.execute('''
+                INSERT INTO payments (client_id, sub_id, price)
+                VALUES(%s, %s, %s);
+                ''',
+                (client_id, sub_id, payment_price))
+    
+    cur.execute('''
+                SELECT id FROM payments
+                WHERE client_id = %s
+                ORDER BY date_of_initiation DESC;
+                ''',
+                (client_id,))
+    
+    conn.commit()
+
+    return cur.fetchone()
+    
 
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ  
-def show_user_info(user_id: int):
+def show_user_info(telegram_id: int):
     cur.execute('''
                 SELECT name, surname, username, telegram_id, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI') FROM clients
                 WHERE telegram_id = %s;
                 ''',
-                (user_id,))
+                (telegram_id,))
     
     conn.commit()
 
     return cur.fetchall()
 
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
-def is_user_registered(user_id: int):
+def is_user_registered(telegram_id: int):
     cur.execute('''
                 SELECT * FROM clients
                 WHERE telegram_id = %s;
                 ''',
-                (user_id,))
+                (telegram_id,))
     
     conn.commit()
     
@@ -102,7 +132,7 @@ def show_configurations_number(client_id: int):
     return cur.fetchone()
 
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
-def is_subscription_active(user_id: int):
+def is_subscription_active(telegram_id: int):
     cur.execute('''
                 SELECT * FROM clients_subscriptions AS cs
                 JOIN clients AS c
@@ -110,28 +140,28 @@ def is_subscription_active(user_id: int):
                 WHERE c.telegram_id = %s
                 AND cs.expiration_date > NOW();
                 ''',
-                (user_id,))
+                (telegram_id,))
     
     conn.commit()
     
     return True if cur.fetchall() else False
 
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
-def show_subscription_expiration_date(user_id: int):
+def show_subscription_expiration_date(telegram_id: int):
     cur.execute('''
                 SELECT TO_CHAR(cs.expiration_date, 'FMDD TMMonth YYYY в HH24:MI') FROM clients_subscriptions AS cs
                 JOIN clients AS c
                 ON cs.client_id = c.id
                 WHERE c.telegram_id = %s;
                 ''',
-                (user_id,))
+                (telegram_id,))
     
     conn.commit()
     
     return cur.fetchone()
 
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
-def show_referral_promocode(user_id: int):
+def show_referral_promocode(telegram_id: int):
     cur.execute('''
                 SELECT pf.phrase
                 FROM clients AS c
@@ -139,14 +169,14 @@ def show_referral_promocode(user_id: int):
                 ON c.id = pf.client_creator_id
                 WHERE c.telegram_id = %s;
                 ''',
-                (user_id,))
+                (telegram_id,))
     
     conn.commit()
     
     return cur.fetchone()
 
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
-def show_invited_by_user_info(user_id: int):
+def show_invited_by_user_info(telegram_id: int):
     cur.execute('''
                 SELECT cc.name, cc.username
                 FROM clients AS c
@@ -156,14 +186,14 @@ def show_invited_by_user_info(user_id: int):
                 ON pr.client_creator_id = cc.id
                 WHERE c.telegram_id = %s;
                 ''',
-                (user_id,))
+                (telegram_id,))
     
     conn.commit()
     
     return cur.fetchone()
 
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
-def show_invited_users_list(user_id: int):
+def show_invited_users_list(telegram_id: int):
     cur.execute('''
                 SELECT c.name, c.username
                 FROM clients AS c
@@ -173,7 +203,7 @@ def show_invited_users_list(user_id: int):
                 ON pr.client_creator_id = cc.id
                 WHERE cc.telegram_id = %s;
                 ''',
-                (user_id,))
+                (telegram_id,))
     
     conn.commit()
     

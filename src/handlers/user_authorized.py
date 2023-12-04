@@ -1,7 +1,8 @@
 from bot_init import bot
 from aiogram import types, Dispatcher
 from random import choice
-from aiogram.types import ReplyKeyboardRemove
+from yoomoney import Quickpay, Client
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from src.keyboards import user_authorized_kb
@@ -38,6 +39,25 @@ async def submenu_cm_cancel(message: types.Message, state: FSMContext = None):
 async def sub_renewal_cm_start(message: types.Message):
     await user_authorized_fsm.PaymentMenu.menu.set()
     await message.answer('Переход в меню продления подписки!', reply_markup=user_authorized_kb.sub_renewal_kb)
+
+@user_mw.authorized_only()
+async def test(call: types.CallbackQuery):
+    await call.answer('Произведите оплату в сообщении', show_alert=True)
+
+@user_mw.authorized_only()
+async def sub_renewal_months_1(message: types.Message):
+    payment_price = 75
+    months_number = 1
+    payment_id = postgesql_db.insert_user_payment(postgesql_db.find_clientID_by_telegramID(message.from_user.id)[0], payment_price, months_number)[0]
+    quickpay = Quickpay(receiver='410018847165870', quickpay_form='shop', targets='ksiVPN', paymentType='SB', sum=2, label=payment_id)
+
+    await message.answer('Ура, жду оплаты подписки', reply_markup=None)
+
+    answer_message = 'Здесь отображается информация о скидке, стоимости и ТП + переход клавиатуры в режим проверки оплаты\n\n'
+    answer_message += '<b>Оплата подписки здесь!</b>'
+    await message.answer(answer_message, parse_mode='HTML',
+                         reply_markup=InlineKeyboardMarkup().\
+                            add(InlineKeyboardButton('Оплатить', url=quickpay.redirected_url, callback_data='test')))
 
 @user_mw.authorized_only()
 async def account_cm_start(message: types.Message):
@@ -317,6 +337,8 @@ def register_handlers_authorized_client(dp: Dispatcher):
                                                                                                  user_authorized_fsm.AccountMenu.menu,
                                                                                                  user_authorized_fsm.PaymentMenu.menu])
     dp.register_message_handler(sub_renewal_cm_start, Text(equals='\u2764\uFE0F\u200D\U0001F525 Продлить подписку!'))
+    dp.register_callback_query_handler(test, text='test', state=user_authorized_fsm.PaymentMenu.menu)
+    dp.register_message_handler(sub_renewal_months_1, Text(equals='1 месяц'), state=user_authorized_fsm.PaymentMenu.menu)
     dp.register_message_handler(account_cm_start, Text(equals='Личный кабинет'))
     dp.register_message_handler(account_user_info, Text(equals='Информация о пользователе'), state=user_authorized_fsm.AccountMenu.menu)
     dp.register_message_handler(account_subscription_info, Text(equals='Информация о подписке'), state=user_authorized_fsm.AccountMenu.menu)
