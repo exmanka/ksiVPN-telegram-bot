@@ -387,3 +387,11 @@ INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, t
 INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(43, 1, 1, 'Android', 'photo', 'AgACAgIAAxkBAAISHGVs7R26GEY8dXROStfoQpnrkHnDAAKV2DEbG19oS3CI_PmuTfxGAQADAgADcwADMwQ', TIMESTAMP '2023-04-01 12:36');
 INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(44, 2, 3, 'IOS', 'photo', 'AgACAgIAAxkBAAISNGVs8wOYMzJ8vMBdnsxMZNepDTIpAAK32DEbG19oS4pLxD6iyqKDAQADAgADcwADMwQ', TIMESTAMP '2023-11-03 23:53');
 INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(45, 2, 3, 'IOS', 'photo', 'AgACAgIAAxkBAAISNmVs83MihX95fWqcx610g7WgPKGTAAK62DEbG19oSxNjqwVk0gH3AQADAgADcwADMwQ', TIMESTAMP '2023-11-29 21:05');
+
+CREATE TABLE payments (
+	id SERIAL PRIMARY KEY,
+	client_id INT NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+	sub_id SMALLINT NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
+	sum DECIMAL(6, 2) NOT NULL
+);
+INSERT INTO payments(client_id, sub_id, sum) VALUES(1, 1, 75);
