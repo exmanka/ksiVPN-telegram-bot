@@ -81,10 +81,7 @@ async def account_submenu_cm_cancel(message: types.Message, state: FSMContext):
     Return to account menu from promocode FSM and referal program FSM
     '''
     
-    current_state = await state.get_state()
-    if current_state is not None:
-        await state.set_state(user_authorized_fsm.AccountMenu.account_menu)
-
+    await state.set_state(user_authorized_fsm.AccountMenu.account_menu)
     await message.answer('Возврат в личный кабинет', reply_markup=user_authorized_kb.account_kb)
 
 @user_mw.authorized_only()
@@ -125,10 +122,7 @@ async def account_configurations_info(message: types.Message):
 
 @user_mw.authorized_only()
 async def account_configurations_submenu_cm_cancel(message: types.Message, state: FSMContext):
-    current_state = await state.get_state()
-    if current_state is not None:
-        await state.set_state(user_authorized_fsm.AccountMenu.account_configs)
-
+    await state.set_state(user_authorized_fsm.AccountMenu.account_configs)
     await message.answer('Возврат в меню конфигураций', reply_markup=user_authorized_kb.config_kb)
 
 @user_mw.authorized_only()
@@ -314,29 +308,29 @@ async def show_project_rules(message: types.Message):
 
 def register_handlers_authorized_client(dp: Dispatcher):
     dp.register_message_handler(subscription_status, Text(equals='Статус подписки'))
-    dp.register_message_handler(account_cm_cancel, Text(equals='Возврат в главное меню'), state=user_authorized_fsm.AccountMenu.account_menu)
-    dp.register_message_handler(account_cm_cancel, Text(equals='Возврат в главное меню'))
+    dp.register_message_handler(account_cm_cancel, Text(equals='Возврат в главное меню'), state=[None,
+                                                                                                 user_authorized_fsm.AccountMenu.account_menu])
     dp.register_message_handler(account_cm_start, Text(equals='Личный кабинет'))
     dp.register_message_handler(account_user_info, Text(equals='Информация о пользователе'), state=user_authorized_fsm.AccountMenu.account_menu)
     dp.register_message_handler(account_subscription_info, Text(equals='Информация о подписке'), state=user_authorized_fsm.AccountMenu.account_menu)
     dp.register_message_handler(account_configurations, Text(equals='Конфигурации'), state=user_authorized_fsm.AccountMenu.account_menu)
     dp.register_message_handler(account_ref_program, Text(equals='Реферальная программа'), state=user_authorized_fsm.AccountMenu.account_menu)
     dp.register_message_handler(account_promo, Text(equals='Ввести промокод'), state=user_authorized_fsm.AccountMenu.account_menu)
-    dp.register_message_handler(account_submenu_cm_cancel, Text(equals='Вернуться'), state=user_authorized_fsm.AccountMenu.account_configs)
-    dp.register_message_handler(account_submenu_cm_cancel, Text(equals='Вернуться'), state=user_authorized_fsm.AccountMenu.account_ref_program)
-    dp.register_message_handler(account_submenu_cm_cancel, Text(equals='Вернуться'))
-    dp.register_message_handler(account_submenu_cm_cancel, Text(equals='Отмена ввода'), state=user_authorized_fsm.AccountMenu.account_promo)
-    dp.register_message_handler(account_submenu_cm_cancel, Text(equals='Отмена ввода'))
+    dp.register_message_handler(account_submenu_cm_cancel, Text(equals='Вернуться'), state=[None,
+                                                                                            user_authorized_fsm.AccountMenu.account_configs,
+                                                                                            user_authorized_fsm.AccountMenu.account_ref_program])
+    dp.register_message_handler(account_submenu_cm_cancel, Text(equals='Отмена ввода'), state=[None,
+                                                                                               user_authorized_fsm.AccountMenu.account_promo])
     dp.register_message_handler(account_ref_program_info, Text(equals='Участие в реферальной программе'), state=user_authorized_fsm.AccountMenu.account_ref_program)
     dp.register_message_handler(account_ref_program_invite, Text(equals='Сгенерировать приглашение *'), state=user_authorized_fsm.AccountMenu.account_ref_program)
     dp.register_message_handler(account_ref_program_promocode, Text(equals='Показать реферальный промокод'), state=user_authorized_fsm.AccountMenu.account_ref_program)
     dp.register_message_handler(account_promo_info, Text(equals='Использованные промокоды'), state=user_authorized_fsm.AccountMenu.account_promo)
     dp.register_message_handler(account_promo_check, state=user_authorized_fsm.AccountMenu.account_promo)
     dp.register_message_handler(account_configurations_info, Text(equals='Текущие конфигурации'), state=user_authorized_fsm.AccountMenu.account_configs)
-    dp.register_message_handler(account_configurations_submenu_cm_cancel, Text(equals='Отмена выбора'), state=user_authorized_fsm.ConfigFSM.platform)
-    dp.register_message_handler(account_configurations_submenu_cm_cancel, Text(equals='Отмена выбора'), state=user_authorized_fsm.ConfigFSM.os)
-    dp.register_message_handler(account_configurations_submenu_cm_cancel, Text(equals='Отмена выбора'), state=user_authorized_fsm.ConfigFSM.chatgpt)
-    dp.register_message_handler(account_configurations_submenu_cm_cancel, Text(equals='Отмена выбора'))
+    dp.register_message_handler(account_configurations_submenu_cm_cancel, Text(equals='Отмена выбора'), state=[None,
+                                                                                                               user_authorized_fsm.ConfigFSM.platform,
+                                                                                                               user_authorized_fsm.ConfigFSM.os,
+                                                                                                               user_authorized_fsm.ConfigFSM.chatgpt])
     dp.register_message_handler(account_configurations_request_cm_start, Text(equals='Запросить новую конфигурацию'), state=user_authorized_fsm.AccountMenu.account_configs)
     dp.register_message_handler(account_configurations_request_platform, Text(equals=['\U0001F4F1 Смартфон', '\U0001F4BB ПК']), state=user_authorized_fsm.ConfigFSM.platform)
     dp.register_message_handler(account_configurations_request_os, Text(equals=['Android', 'IOS (IPhone)', 'Windows', 'macOS', 'Linux']), state=user_authorized_fsm.ConfigFSM.os)

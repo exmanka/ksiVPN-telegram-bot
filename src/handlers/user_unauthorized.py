@@ -97,7 +97,11 @@ async def command_start(message : types.Message):
 
 
 def register_handlers_unauthorized_client(dp : Dispatcher):
-    dp.register_message_handler(cm_cancel, Text(equals='Отмена', ignore_case=True), state=[None, user_unauthorized_fsm.RegistrationFSM.platform, user_unauthorized_fsm.RegistrationFSM.os, user_unauthorized_fsm.RegistrationFSM.chatgpt, user_unauthorized_fsm.RegistrationFSM.promo])
+    dp.register_message_handler(cm_cancel, Text(equals='Отмена', ignore_case=True), state=[None,
+                                                                                           user_unauthorized_fsm.RegistrationFSM.platform,
+                                                                                           user_unauthorized_fsm.RegistrationFSM.os,
+                                                                                           user_unauthorized_fsm.RegistrationFSM.chatgpt,
+                                                                                           user_unauthorized_fsm.RegistrationFSM.promo])
     dp.register_message_handler(authorization_cm_start, Text(equals='\U0001f525 Подключиться!', ignore_case=True))
     dp.register_message_handler(authorization_take_platform, Text(equals=['\U0001F4F1 Смартфон', '\U0001F4BB ПК']), state=user_unauthorized_fsm.RegistrationFSM.platform)
     dp.register_message_handler(authorization_take_os, Text(equals=['Android', 'IOS (IPhone)', 'Windows', 'macOS', 'Linux']), state=user_unauthorized_fsm.RegistrationFSM.os)
