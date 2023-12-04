@@ -37,10 +37,10 @@ async def authorization_take_platform(message: types.Message, state: FSMContext)
 
     if message.text == '\U0001F4F1 Смартфон':
         await message.answer('Укажите операционную систему', reply_markup=user_unauthorized_kb.reg_mobile_os_kb)
-        await state.set_state(user_unauthorized_fsm.RegistrationFSM.os)
     else:
         await message.answer('Укажите операционную систему', reply_markup=user_unauthorized_kb.reg_desktop_os_kb)
-        await state.set_state(user_unauthorized_fsm.RegistrationFSM.os)
+    
+    await state.set_state(user_unauthorized_fsm.RegistrationFSM.os)
 
 @user_mw.unauthorized_only()
 async def authorization_take_os(message: types.Message, state: FSMContext):
