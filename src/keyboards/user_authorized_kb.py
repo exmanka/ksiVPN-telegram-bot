@@ -8,6 +8,7 @@ menu_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
 
 sub_renewal_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('1 месяц')).insert(KeyboardButton('3 месяца (-15%)')).insert(KeyboardButton('12 месяцев (-30%)')).\
+    add(KeyboardButton('Указать вручную')).insert(KeyboardButton('История оплаты')).\
     add(KeyboardButton('Возврат в главное меню'))
 
 account_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
