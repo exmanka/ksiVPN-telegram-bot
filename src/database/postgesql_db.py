@@ -1,10 +1,10 @@
 import psycopg2 as ps
 from aiogram import types
-from bot_init import bot, postgres_PW
+from bot_init import bot, POSTGRES_PW
 
 def sql_start():
     global conn, cur
-    conn = ps.connect(host="localhost", database="tgbot_postgres_db", user="postgres", password=postgres_PW)
+    conn = ps.connect(host="localhost", database="tgbot_postgres_db", user="postgres", password=POSTGRES_PW)
     cur = conn.cursor()
     
     if conn:
@@ -35,18 +35,7 @@ def find_clientID_by_username(username: str):
     return cur.fetchone()
 
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
-def insert_user_payment(client_id: int, payment_price: float, months_number: int):
-    cur.execute('''
-                SELECT s.id, s.price
-                FROM clients_subscriptions AS cs
-                JOIN subscriptions AS s
-                ON cs.sub_id = s.id
-                WHERE cs.client_id = %s;
-                ''',
-                (client_id,))
-    
-    sub_id, sub_price = cur.fetchone()
-
+def insert_user_payment(client_id: int, sub_id: int, payment_price: float):
     cur.execute('''
                 INSERT INTO payments (client_id, sub_id, price)
                 VALUES(%s, %s, %s);
@@ -56,14 +45,43 @@ def insert_user_payment(client_id: int, payment_price: float, months_number: int
     cur.execute('''
                 SELECT id FROM payments
                 WHERE client_id = %s
-                ORDER BY date_of_initiation DESC;
+                ORDER BY date_of_initiation DESC
+                LIMIT 1;
                 ''',
                 (client_id,))
     
     conn.commit()
 
     return cur.fetchone()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ  
+def get_last_user_payments_id(client_id: int):
+    '''
+    Return user's created payments id for the last 20 minutes
+    '''
+
+    cur.execute('''
+                SELECT id FROM payments
+                WHERE client_id = %s
+                AND date_of_initiation > CURRENT_TIMESTAMP - INTERVAL '20 minutes'
+                ORDER BY date_of_initiation DESC
+                ''',
+                (client_id,))
     
+    conn.commit()
+
+    return cur.fetchall()
+
+def get_payment_status(payment_id: int):
+    cur.execute('''
+                SELECT is_successful FROM payments
+                WHERE id = %s;
+                ''',
+                (payment_id,))
+    
+    conn.commit()
+
+    return cur.fetchone()
 
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ  
 def show_user_info(telegram_id: int):
@@ -92,7 +110,7 @@ def is_user_registered(telegram_id: int):
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
 def show_subscription_info(client_id: int):
     cur.execute('''
-                SELECT sub.title, sub.description, sub.price
+                SELECT sub.id, sub.title, sub.description, sub.price
                 FROM clients_subscriptions AS clients_sub
                 JOIN subscriptions AS sub
                 ON sub.id = clients_sub.sub_id

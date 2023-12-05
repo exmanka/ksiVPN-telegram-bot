@@ -14,6 +14,7 @@ class PaymentMenu(StatesGroup):
     months_3 = State()
     months_12 = State()
     months_n = State()
+    verification = State()
 
 
 class ConfigMenu(StatesGroup):

@@ -1,4 +1,4 @@
-from bot_init import bot
+from bot_init import bot, YOOMONEY_TOKEN
 from aiogram import types, Dispatcher
 from random import choice
 from yoomoney import Quickpay, Client
@@ -45,19 +45,70 @@ async def test(call: types.CallbackQuery):
     await call.answer('Произведите оплату в сообщении', show_alert=True)
 
 @user_mw.authorized_only()
-async def sub_renewal_months_1(message: types.Message):
-    payment_price = 75
+async def sub_renewal_months_1(message: types.Message, state: FSMContext):
+
+    # get client_id by telegramID
+    client_id = postgesql_db.find_clientID_by_telegramID(message.from_user.id)[0]
+
+    # get client's sub info
+    sub_id, sub_title, _, sub_price = postgesql_db.show_subscription_info(client_id)[0]
+
+    # count payment sum
     months_number = 1
-    payment_id = postgesql_db.insert_user_payment(postgesql_db.find_clientID_by_telegramID(message.from_user.id)[0], payment_price, months_number)[0]
+    discount = 0.0
+    payment_price = sub_price * months_number * (1 - discount)
+
+    # create entity in db table payments and getting payment_id
+    payment_id = postgesql_db.insert_user_payment(client_id, sub_id, payment_price)[0]
+
+    # create Yoomoney quickpay object
     quickpay = Quickpay(receiver='410018847165870', quickpay_form='shop', targets='ksiVPN', paymentType='SB', sum=2, label=payment_id)
 
-    await message.answer('Ура, жду оплаты подписки', reply_markup=None)
+    # answer with ReplyKeyboardMarkup
+    await message.answer('Ура, жду оплаты подписки', reply_markup=user_authorized_kb.sub_renewal_verification_kb)
+    await state.set_state(user_authorized_fsm.PaymentMenu.verification)
 
-    answer_message = 'Здесь отображается информация о скидке, стоимости и ТП + переход клавиатуры в режим проверки оплаты\n\n'
-    answer_message += '<b>Оплата подписки здесь!</b>'
+    # answer with InlineKeyboardMarkup with link to payment
+    answer_message = f'Подписка: <b>{sub_title}</b>\nПродление на {months_number} месяц.\n\n<b>Сумма к оплате: {payment_price}₽</b>\n\nУникальный идентификатор платежа: {payment_id}.'
     await message.answer(answer_message, parse_mode='HTML',
                          reply_markup=InlineKeyboardMarkup().\
                             add(InlineKeyboardButton('Оплатить', url=quickpay.redirected_url, callback_data='test')))
+
+@user_mw.authorized_only()
+async def sub_renewal_months_3(message: types.Message, state: FSMContext):
+    pass
+
+@user_mw.authorized_only()
+async def sub_renewal_months_12(message: types.Message, state: FSMContext):
+    pass
+
+@user_mw.authorized_only()
+async def sub_renewal_submenu_cm_cancel(message: types.Message, state: FSMContext):
+    await state.set_state(user_authorized_fsm.PaymentMenu.menu)
+    await message.answer('Оплата отменена!', reply_markup=user_authorized_kb.sub_renewal_kb)
+
+@user_mw.authorized_only()
+async def sub_renewal_verification(message: types.Message, state: FSMContext):
+    yoomoney = Client(YOOMONEY_TOKEN)
+
+    # client's initiated payments for last 20 minutes
+    client_payments = postgesql_db.get_last_user_payments_id(postgesql_db.find_clientID_by_telegramID(message.from_user.id)[0])
+    for [payment_id] in client_payments:
+
+        # if payment wasn't successful and wasn't added to clients_subscriptions table (columns paid_months_counter and expiration_date)
+        if postgesql_db.get_payment_status(payment_id)[0] == False:
+            payment_history = yoomoney.operation_history(label=payment_id)
+
+            # if payment was made according to Yoomoney service information
+            if payment_history.operations:
+                await message.answer(f'Оплата произведена успешно!\nid: {payment_id}\ninfo: {payment_history.operations}')
+            
+            # if payment wasn't made according to Yoomoney service information
+            else:
+                await message.answer(f'Оплата платежа с уникальным идентификатором {payment_id} еще не была проведена! Возможно, Вы не оплатили заказ, или оплата все еще в пути!')
+
+    
+    
 
 @user_mw.authorized_only()
 async def account_cm_start(message: types.Message):
@@ -339,6 +390,11 @@ def register_handlers_authorized_client(dp: Dispatcher):
     dp.register_message_handler(sub_renewal_cm_start, Text(equals='\u2764\uFE0F\u200D\U0001F525 Продлить подписку!'))
     dp.register_callback_query_handler(test, text='test', state=user_authorized_fsm.PaymentMenu.menu)
     dp.register_message_handler(sub_renewal_months_1, Text(equals='1 месяц'), state=user_authorized_fsm.PaymentMenu.menu)
+    dp.register_message_handler(sub_renewal_months_3, Text(equals='3 месяца (-15%)'), state=user_authorized_fsm.PaymentMenu.menu)
+    dp.register_message_handler(sub_renewal_months_12, Text(equals='12 месяцев (-30%)'), state=user_authorized_fsm.PaymentMenu.menu)
+    dp.register_message_handler(sub_renewal_submenu_cm_cancel, Text(equals='Отмена оплаты'), state=[None,
+                                                                                                    user_authorized_fsm.PaymentMenu.verification])
+    dp.register_message_handler(sub_renewal_verification, Text(equals='Проверить оплату'), state=user_authorized_fsm.PaymentMenu.verification)
     dp.register_message_handler(account_cm_start, Text(equals='Личный кабинет'))
     dp.register_message_handler(account_user_info, Text(equals='Информация о пользователе'), state=user_authorized_fsm.AccountMenu.menu)
     dp.register_message_handler(account_subscription_info, Text(equals='Информация о подписке'), state=user_authorized_fsm.AccountMenu.menu)

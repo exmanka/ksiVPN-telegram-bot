@@ -11,6 +11,10 @@ sub_renewal_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('Указать вручную')).insert(KeyboardButton('История оплаты')).\
     add(KeyboardButton('Возврат в главное меню'))
 
+sub_renewal_verification_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
+    add(KeyboardButton('Проверить оплату')).\
+    add(KeyboardButton('Отмена оплаты'))
+
 account_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('Реферальная программа')).\
     add(KeyboardButton('Информация о пользователе')).insert(KeyboardButton('Информация о подписке')).\

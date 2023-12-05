@@ -1,4 +1,4 @@
-from bot_init import bot, admin_ID
+from bot_init import bot, ADMIN_ID
 from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters import Text
 from src.states import admin_fsm
@@ -8,7 +8,7 @@ from src.database import postgesql_db
 
 async def send_user_info(user_info, choice_info, is_new_user: bool):
     if is_new_user:
-        await bot.send_message(admin_ID,\
+        await bot.send_message(ADMIN_ID,\
                                 f"Имя: <code>{user_info['fullname']}</code>\n"
                                 f"Тэг: @{user_info['username']}\n"
                                 f"ID: <code>{user_info['id']}</code>\n"
@@ -18,7 +18,7 @@ async def send_user_info(user_info, choice_info, is_new_user: bool):
                                 parse_mode='HTML')
     
     else:
-        await bot.send_message(admin_ID,\
+        await bot.send_message(ADMIN_ID,\
                                 f"Имя: <code>{user_info['fullname']}</code>\n"
                                 f"Тэг: @{user_info['username']}\n"
                                 f"ID: <code>{user_info['id']}</code>\n"
