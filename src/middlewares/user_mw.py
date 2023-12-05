@@ -1,4 +1,3 @@
-from bot_init import admin_ID
 from aiogram import types
 from aiogram.dispatcher.middlewares import BaseMiddleware
 from aiogram.dispatcher.handler import CancelHandler, current_handler

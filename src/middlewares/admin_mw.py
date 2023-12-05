@@ -1,4 +1,4 @@
-from bot_init import admin_ID
+from bot_init import ADMIN_ID
 from aiogram import types
 from aiogram.dispatcher.middlewares import BaseMiddleware
 from aiogram.dispatcher.handler import CancelHandler, current_handler
@@ -18,7 +18,7 @@ class CheckAdmin(BaseMiddleware):
         handler = current_handler.get()
         if handler:
             only_for_admin = getattr(handler, 'admin_only', False)
-            if only_for_admin and not message.from_user.id == admin_ID:
+            if only_for_admin and not message.from_user.id == ADMIN_ID:
                 await message.answer('Ууупс! Эта функция доступна только администратору \U0001F47E')
                 raise CancelHandler()
 
