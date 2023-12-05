@@ -393,7 +393,7 @@ CREATE TABLE payments (
 	client_id INT NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
 	sub_id SMALLINT NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
 	price DECIMAL(6, 2) NOT NULL,
-	is_successfil BOOLEAN NOT NULL DEFAULT FALSE,
+	is_successful BOOLEAN NOT NULL DEFAULT FALSE,
 	date_of_initiation TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 INSERT INTO payments(client_id, sub_id, price) VALUES(1, 1, 75);
