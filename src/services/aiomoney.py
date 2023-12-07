@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Literal, Optional
 from pydantic import BaseModel, Field
 from dataclasses import dataclass
+from bot_init import YOOMONEY_ACCOUNT_NUMBER
 
 
 '''
@@ -137,26 +138,7 @@ class YooMoneyWallet:
         self.host = "https://yoomoney.ru"
         self.__headers = dict(Authorization=f"Bearer {access_token}")
     
-    @property
-    async def account_info(self) -> AccountInfo:
-        url = self.host + "/api/account-info"
-        response, data = await send_request(
-            url, headers=self.__headers
-        )
-        return AccountInfo.model_validate(data)
-    
-    async def get_operation_details(self, operation_id: str) -> OperationDetails:
-        url = self.host + "/api/operation-details"
-        response, data = await send_request(
-            url, headers=self.__headers, data={"operation_id": operation_id}
-        )
-        return OperationDetails.model_validate(data)
-    
     async def get_operation_history(self, label: str | None = None) -> list[Operation]:
-        """
-        Получение последних 30 операций. На 10.03.2023 API yoomoney напросто игнорирует указанные
-        в документации параметры https://yoomoney.ru/docs/payment-buttons/using-api/forms?lang=ru#parameters
-        """
         history_url = self.host + "/api/operation-history"
         response, data = await send_request(
             history_url, headers=self.__headers
@@ -194,10 +176,4 @@ class YooMoneyWallet:
     async def check_payment_on_successful(self, label: str) -> bool:
         need_operations = await self.get_operation_history(label=label)
         return bool(need_operations) and need_operations.pop().status == "success"
-    
-    async def revoke_token(self) -> None:
-        url = self.host + "/api/revoke"
-        response = await send_request(url=url, response_without_data=True, headers=self.__headers)
-        print(f"Запрос на отзыв токена завершен с кодом {response.status} "
-              f"https://yoomoney.ru/docs/wallet/using-api/authorization/revoke-access-token#response")
         

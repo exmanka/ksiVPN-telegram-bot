@@ -10,3 +10,4 @@ dp = Dispatcher(bot, storage=storage)   # Инициализация диспе�
 ADMIN_ID = int(os.getenv('ADMIN_ID'))
 POSTGRES_PW = os.getenv('POSTGRES_PW')
 YOOMONEY_TOKEN = os.getenv('YOOMONEY_TOKEN')
+YOOMONEY_ACCOUNT_NUMBER = os.getenv('YOOMONEY_ACCOUNT_NUMBER')
