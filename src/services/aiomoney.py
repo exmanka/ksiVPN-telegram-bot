@@ -7,19 +7,24 @@ from dataclasses import dataclass
 from bot_init import YOOMONEY_ACCOUNT_NUMBER
 
 
-'''
-Used code: https://github.com/fofmow/aiomoney/tree/main
-'''
-
-
 class UnresolvedRequestMethod(Exception):
+    '''
+    Source code: https://github.com/fofmow/aiomoney
+    '''
     ...
 
 
 class BadResponse(Exception):
+    '''
+    Source code: https://github.com/fofmow/aiomoney
+    '''
     ...
 
 class Operation(BaseModel):
+    '''
+    Source code: https://github.com/fofmow/aiomoney
+    '''
+
     """
     Описание платежной операции
     https://yoomoney.ru/docs/wallet/user-account/operation-history#response-operation
@@ -35,6 +40,10 @@ class Operation(BaseModel):
     operation_type: str = Field(alias="type")
 
 class OperationDetails(BaseModel):
+    '''
+    Source code: https://github.com/fofmow/aiomoney
+    '''
+
     """
     Детальная информация об операции из истории
     https://yoomoney.ru/docs/wallet/user-account/operation-details
@@ -59,6 +68,10 @@ class OperationDetails(BaseModel):
     operation_type: str = Field(alias="type")
 
 class BalanceDetails(BaseModel):
+    '''
+    Source code: https://github.com/fofmow/aiomoney
+    '''
+
     total: float
     available: float
     deposition_pending: Optional[int] = None
@@ -68,11 +81,19 @@ class BalanceDetails(BaseModel):
 
 
 class LinkedCard(BaseModel):
+    '''
+    Source code: https://github.com/fofmow/aiomoney
+    '''
+
     pan_fragment: str
     card_type: str = Field(None, alias="type")
 
 
 class AccountInfo(BaseModel):
+    '''
+    Source code: https://github.com/fofmow/aiomoney
+    '''
+
     account: str  # номер счета
     balance: float  # баланс счета
     currency: str  # код валюты счета
@@ -83,11 +104,19 @@ class AccountInfo(BaseModel):
 
 @dataclass(frozen=True, slots=True)
 class PaymentSource:
+    '''
+    Source code: https://github.com/fofmow/aiomoney
+    '''
+
     BANK_CARD = "AC"
     YOOMONEY_WALLET = "PC"
 
 @dataclass(frozen=True, slots=True)
 class PaymentForm:
+    '''
+    Source code: https://github.com/fofmow/aiomoney
+    '''
+
     link_for_customer: str
     payment_label: str
 
@@ -95,6 +124,10 @@ async def send_request(url: str,
                        method: str = "post",
                        response_without_data: bool = False,
                        **kwargs) -> (ClientResponse, dict | None):
+    '''
+    Source code: https://github.com/fofmow/aiomoney
+    '''
+
     headers = {
         "Content-Type": "application/x-www-form-urlencoded"
     }
@@ -116,11 +149,19 @@ async def send_request(url: str,
 ALLOWED_METHODS = ("post", "get")
 
 async def check_method(method: str):
+    '''
+    Source code: https://github.com/fofmow/aiomoney
+    '''
+
     if method not in ALLOWED_METHODS:
         raise UnresolvedRequestMethod
 
 
 async def post_handle_response(response: ClientResponse):
+    '''
+    Source code: https://github.com/fofmow/aiomoney
+    '''
+
     try:
         response_data = await response.json()
         if isinstance(response_data, dict) and response_data.get("error"):
@@ -134,11 +175,19 @@ async def post_handle_response(response: ClientResponse):
 
 
 class YooMoneyWallet:
+    '''
+    Source code: https://github.com/fofmow/aiomoney
+    '''
+
     def __init__(self, access_token: str):
         self.host = "https://yoomoney.ru"
         self.__headers = dict(Authorization=f"Bearer {access_token}")
     
     async def get_operation_history(self, label: str | None = None) -> list[Operation]:
+        '''
+        Source code: https://github.com/fofmow/aiomoney
+        '''
+    
         history_url = self.host + "/api/operation-history"
         response, data = await send_request(
             history_url, headers=self.__headers
@@ -155,10 +204,14 @@ class YooMoneyWallet:
                                   success_redirect_url: str | None = None,
                                   payment_source: PaymentSource = PaymentSource.BANK_CARD
                                   ) -> PaymentForm:
-        account_info = await self.account_info
+        
+        '''
+        Source code: https://github.com/fofmow/aiomoney
+        '''
+        
         quickpay_url = "https://yoomoney.ru/quickpay/confirm.xml?"
         params = {
-            "receiver": account_info.account,
+            "receiver": YOOMONEY_ACCOUNT_NUMBER,
             "quickpay-form": "button",
             "paymentType": payment_source,
             "sum": amount_rub,
@@ -174,6 +227,10 @@ class YooMoneyWallet:
         )
     
     async def check_payment_on_successful(self, label: str) -> bool:
+        '''
+        Source code: https://github.com/fofmow/aiomoney
+        '''
+
         need_operations = await self.get_operation_history(label=label)
         return bool(need_operations) and need_operations.pop().status == "success"
         
