@@ -35,12 +35,12 @@ def find_clientID_by_username(username: str):
     return cur.fetchone()
 
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
-def insert_user_payment(client_id: int, sub_id: int, payment_price: float):
+def insert_user_payment(client_id: int, sub_id: int, price: float, months_number: int):
     cur.execute('''
-                INSERT INTO payments (client_id, sub_id, price)
-                VALUES(%s, %s, %s);
+                INSERT INTO payments (client_id, sub_id, price, months_number)
+                VALUES(%s, %s, %s, %s);
                 ''',
-                (client_id, sub_id, payment_price))
+                (client_id, sub_id, price, months_number))
     
     cur.execute('''
                 SELECT id FROM payments
@@ -75,6 +75,17 @@ def get_last_user_payments_id(client_id: int, minutes: int):
 def get_payment_status(payment_id: int):
     cur.execute('''
                 SELECT is_successful FROM payments
+                WHERE id = %s;
+                ''',
+                (payment_id,))
+    
+    conn.commit()
+
+    return cur.fetchone()
+
+def get_payment_months_number(payment_id: int):
+    cur.execute('''
+                SELECT months_number FROM payments
                 WHERE id = %s;
                 ''',
                 (payment_id,))
