@@ -18,6 +18,7 @@ if __name__ == '__main__':
     # Регистрация хэндлеров
     dp.middleware.setup(admin_mw.CheckAdmin())
     dp.middleware.setup(user_mw.CheckAuthorized())
+    dp.middleware.setup(user_mw.Throttling())
     user_authorized.register_handlers_authorized_client(dp)
     user_unauthorized.register_handlers_unauthorized_client(dp)
     admin.register_handlers_admin(dp)

@@ -62,6 +62,7 @@ async def sub_renewal_cm_start(message: types.Message):
     await message.answer('Переход в меню продления подписки!', reply_markup=user_authorized_kb.sub_renewal_kb)
 
 @user_mw.authorized_only()
+@user_mw.antiflood(rate_limit=2)
 async def sub_renewal_months_1(message: types.Message, state: FSMContext):
 
     # get client_id by telegramID
@@ -106,13 +107,18 @@ async def sub_renewal_months_1(message: types.Message, state: FSMContext):
     if client_last_payment_status == 'success':
         postgesql_db.update_payment_successful(payment_id, client_id, months_number)
         await state.set_state(user_authorized_fsm.PaymentMenu.menu)
+
+        # delete payment message
+        await bot.delete_message(message.chat.id, message_info['message_id'])
         await message.answer(f'Оплата произведена успешно!\n\nid: {payment_id}', reply_markup=user_authorized_kb.sub_renewal_kb)
 
 @user_mw.authorized_only()
+@user_mw.antiflood(rate_limit=2)
 async def sub_renewal_months_3(message: types.Message, state: FSMContext):
     await message.answer('3')
 
 @user_mw.authorized_only()
+@user_mw.antiflood(rate_limit=2)
 async def sub_renewal_months_12(message: types.Message, state: FSMContext):
     await message.answer('12')
 
