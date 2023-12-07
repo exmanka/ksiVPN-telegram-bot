@@ -187,7 +187,8 @@ class YooMoneyWallet:
         '''
         Source code: https://github.com/fofmow/aiomoney
         '''
-    
+
+        label = str(label)
         history_url = self.host + "/api/operation-history"
         response, data = await send_request(
             history_url, headers=self.__headers
@@ -208,7 +209,8 @@ class YooMoneyWallet:
         '''
         Source code: https://github.com/fofmow/aiomoney
         '''
-        
+
+        unique_label = str(unique_label)
         quickpay_url = "https://yoomoney.ru/quickpay/confirm.xml?"
         params = {
             "receiver": YOOMONEY_ACCOUNT_NUMBER,
@@ -231,6 +233,7 @@ class YooMoneyWallet:
         Source code: https://github.com/fofmow/aiomoney
         '''
 
+        label = str(label)
         need_operations = await self.get_operation_history(label=label)
         return bool(need_operations) and need_operations.pop().status == "success"
         
