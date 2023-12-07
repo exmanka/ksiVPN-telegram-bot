@@ -17,6 +17,9 @@ from src.services.aiomoney import YooMoneyWallet, PaymentSource
 async def already_registered_system(message: types.Message):
     await message.answer('Ух ты! Вы уже есть в нашей системе! Телепортируем в личный кабинет!', reply_markup=user_authorized_kb.menu_kb)
 
+async def delete_message(message_id: int, chat_id: int):
+    pass
+
 async def autocheck_payment_status(payment_id: int):
     wallet = YooMoneyWallet(YOOMONEY_TOKEN)
 
@@ -81,7 +84,7 @@ async def sub_renewal_months_1(message: types.Message, state: FSMContext):
             amount_rub=2,
             unique_label=payment_id,
             payment_source=PaymentSource.YOOMONEY_WALLET,
-            success_redirect_url="https://github.com/fofmow/aiomoney"
+            success_redirect_url="https://t.me/ksiVPN_bot"
         )
 
     # answer with ReplyKeyboardMarkup
@@ -90,9 +93,11 @@ async def sub_renewal_months_1(message: types.Message, state: FSMContext):
 
     # answer with InlineKeyboardMarkup with link to payment
     answer_message = f'Подписка: <b>{sub_title}</b>\nПродление на {months_number} месяц.\n\n<b>Сумма к оплате: {payment_price}₽</b>\n\nУникальный идентификатор платежа: {payment_id}.'
-    await message.answer(answer_message, parse_mode='HTML',
-                         reply_markup=InlineKeyboardMarkup().\
-                            add(InlineKeyboardButton('Оплатить', url=payment_form.link_for_customer)))
+    message_info = await message.answer(answer_message, parse_mode='HTML',
+                                        reply_markup=InlineKeyboardMarkup().\
+                                            add(InlineKeyboardButton('Оплатить', url=payment_form.link_for_customer)))
+    
+    postgesql_db.update_payment_telegram_message_id(payment_id, message_info['message_id'])
     
     # run payment autochecker for 505 seconds
     client_last_payment_status = await autocheck_payment_status(payment_id)
@@ -105,14 +110,22 @@ async def sub_renewal_months_1(message: types.Message, state: FSMContext):
 
 @user_mw.authorized_only()
 async def sub_renewal_months_3(message: types.Message, state: FSMContext):
-    pass
+    await message.answer('3')
 
 @user_mw.authorized_only()
 async def sub_renewal_months_12(message: types.Message, state: FSMContext):
-    pass
+    await message.answer('12')
 
 @user_mw.authorized_only()
 async def sub_renewal_submenu_cm_cancel(message: types.Message, state: FSMContext):
+
+    # get last user's payment's telegram message id
+    last_payment_message_id = postgesql_db.get_last_user_payment_message_id(postgesql_db.find_clientID_by_telegramID(message.from_user.id)[0])[0]
+
+    # delete this message
+    await bot.delete_message(message.chat.id, last_payment_message_id)
+
+    # update state and keyboard
     await state.set_state(user_authorized_fsm.PaymentMenu.menu)
     await message.answer('Оплата отменена!', reply_markup=user_authorized_kb.sub_renewal_kb)
 

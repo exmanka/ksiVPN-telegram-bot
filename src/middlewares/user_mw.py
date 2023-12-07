@@ -21,8 +21,7 @@ def authorized_only():
 
 class CheckAuthorized(BaseMiddleware):
     async def on_process_message(self, message: types.Message, data: dict):
-        handler = current_handler.get()
-        if handler:
+        if handler := current_handler.get():
             only_for_unauthorized_users = getattr(handler, 'unauthorized_only', False)
             if only_for_unauthorized_users and is_user_registered(message.from_user.id):
                 await message.answer('Вы уже зарегистрировались!')

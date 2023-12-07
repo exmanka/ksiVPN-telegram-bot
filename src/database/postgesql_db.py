@@ -72,6 +72,7 @@ def get_last_user_payments_ids(client_id: int, minutes: int):
 
     return cur.fetchall()
 
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ 
 def get_user_payments_ids(client_id: int):
     '''
     Return user's created payments id for all the time
@@ -88,6 +89,7 @@ def get_user_payments_ids(client_id: int):
 
     return cur.fetchall()
 
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ 
 def get_payment_status(payment_id: int):
     cur.execute('''
                 SELECT is_successful FROM payments
@@ -99,6 +101,7 @@ def get_payment_status(payment_id: int):
 
     return cur.fetchone()
 
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ 
 def get_payment_months_number(payment_id: int):
     cur.execute('''
                 SELECT months_number FROM payments
@@ -109,6 +112,24 @@ def get_payment_months_number(payment_id: int):
     conn.commit()
 
     return cur.fetchone()
+
+def get_last_user_payment_message_id(client_id: int):
+    '''
+    Return last user's created payment's telegram message id
+    '''
+
+    cur.execute('''
+                SELECT telegram_message_id FROM payments
+                WHERE client_id = %s
+                ORDER BY date_of_initiation DESC
+                LIMIT 1;
+                ''',
+                (client_id,))
+    
+    conn.commit()
+
+    return cur.fetchone()
+    
 
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ 
 def update_payment_successful(payment_id: int, client_id: int, paid_months: int):
@@ -126,6 +147,17 @@ def update_payment_successful(payment_id: int, client_id: int, paid_months: int)
                 WHERE client_id = %s;
                 ''',
                 (paid_months, paid_months, client_id))
+    
+    conn.commit()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ 
+def update_payment_telegram_message_id(payment_id: int, telegram_message_id: int):
+    cur.execute('''
+                UPDATE payments
+                SET telegram_message_id = %s
+                WHERE id = %s;
+                ''',
+                (telegram_message_id, payment_id))
     
     conn.commit()
 
