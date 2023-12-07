@@ -55,18 +55,18 @@ def insert_user_payment(client_id: int, sub_id: int, payment_price: float):
     return cur.fetchone()
 
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ  
-def get_last_user_payments_id(client_id: int):
+def get_last_user_payments_id(client_id: int, minutes: int):
     '''
-    Return user's created payments id for the last 20 minutes
+    Return user's created payments id for the last n minutes
     '''
 
     cur.execute('''
                 SELECT id FROM payments
                 WHERE client_id = %s
-                AND date_of_initiation > CURRENT_TIMESTAMP - INTERVAL '20 minutes'
+                AND date_of_initiation > CURRENT_TIMESTAMP - INTERVAL '%s minutes'
                 ORDER BY date_of_initiation DESC
                 ''',
-                (client_id,))
+                (client_id, minutes))
     
     conn.commit()
 
@@ -82,6 +82,25 @@ def get_payment_status(payment_id: int):
     conn.commit()
 
     return cur.fetchone()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ 
+def update_payment_successful(payment_id: int, client_id: int, paid_months: int):
+    cur.execute('''
+                UPDATE payments
+                SET is_successful = TRUE
+                WHERE id = %s;
+                ''',
+                (payment_id,))
+    
+    cur.execute('''
+                UPDATE clients_subscriptions
+                SET paid_months_counter = paid_months_counter + %s,
+                expiration_date = expiration_date + INTERVAL '%s months'
+                WHERE client_id = %s;
+                ''',
+                (paid_months, paid_months, client_id))
+    
+    conn.commit()
 
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ  
 def show_user_info(telegram_id: int):

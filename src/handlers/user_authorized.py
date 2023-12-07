@@ -1,7 +1,7 @@
 from bot_init import bot, YOOMONEY_TOKEN
 from aiogram import types, Dispatcher
 from random import choice
-from yoomoney import Quickpay, Client
+from asyncio import sleep
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
@@ -11,10 +11,68 @@ from src.services.messages import messages_dict
 from src.states import user_authorized_fsm
 from src.middlewares import user_mw
 from src.handlers.admin import send_user_info
+from src.services.aiomoney import YooMoneyWallet, PaymentSource
 
 
 async def already_registered_system(message: types.Message):
     await message.answer('Ух ты! Вы уже есть в нашей системе! Телепортируем в личный кабинет!', reply_markup=user_authorized_kb.menu_kb)
+
+async def autocheck_payment_status(payment_id: int):
+    wallet = YooMoneyWallet(YOOMONEY_TOKEN)
+    payment_is_completed: bool = await wallet.check_payment_on_successful(payment_id)
+    print(payment_is_completed)
+    # yoomoney = Client(YOOMONEY_TOKEN)
+    # # wait for user to redirect to Yoomoney site first 10 seconds
+    # await sleep(10)
+
+    # # after that
+    # # first 60 seconds check Yoomoney payment status every 2 seconds
+    # for i in range(30):
+    #     try:
+    #         payment_history = yoomoney.operation_history(label=payment_id, records=1)
+
+    #         # if payment was made according to Yoomoney service information
+    #         if payment_history.operations:
+    #                 if payment_history.operations[-1].status == 'success':
+    #                     return 'success'
+    #     except Exception as e:
+    #         print(e)
+        
+    #     print(f'Wait 1. {i * 1} seconds')
+    #     await sleep(1)
+
+    # # next 120 seconds check Yoomoney payment status every 5 seconds
+    # for i in range(24):
+    #     try:
+    #         payment_history = yoomoney.operation_history(label=payment_id)
+
+    #         # if payment was made according to Yoomoney service information
+    #         if payment_history.operations:
+    #                 if payment_history.operations[-1].status == 'success':
+    #                     return 'success'
+    #     except Exception as e:
+    #         print(e)
+        
+    #     print(f'Wait 2. {i * 5} seconds')
+    #     await sleep(5)
+
+    # # next 180 seconds check Yoomoney payment status every 10 seconds
+    # for i in range(18):
+    #     try:
+    #         payment_history = yoomoney.operation_history(label=payment_id)
+
+    #         # if payment was made according to Yoomoney service information
+    #         if payment_history.operations:
+    #                 if payment_history.operations[-1].status == 'success':
+    #                     return 'success'
+    #     except Exception as e:
+    #         print(e)
+
+    #     print(f'Wait 3. {i * 10} seconds')
+    #     await sleep(10)
+
+    # return payment_history.operations[-1].status
+            
 
 @user_mw.authorized_only()
 async def subscription_status(message: types.Message):
@@ -62,7 +120,15 @@ async def sub_renewal_months_1(message: types.Message, state: FSMContext):
     payment_id = postgesql_db.insert_user_payment(client_id, sub_id, payment_price)[0]
 
     # create Yoomoney quickpay object
-    quickpay = Quickpay(receiver='410018847165870', quickpay_form='shop', targets='ksiVPN', paymentType='SB', sum=2, label=payment_id)
+    # quickpay = Quickpay(receiver='410018847165870', quickpay_form='shop', targets='ksiVPN', paymentType='SB', sum=2, label=payment_id)
+    wallet = YooMoneyWallet(YOOMONEY_TOKEN)
+
+    payment_form = await wallet.create_payment_form(
+            amount_rub=2,
+            unique_label=str(payment_id),
+            payment_source=PaymentSource.YOOMONEY_WALLET,
+            success_redirect_url="https://github.com/fofmow/aiomoney"
+        )
 
     # answer with ReplyKeyboardMarkup
     await message.answer('Ура, жду оплаты подписки', reply_markup=user_authorized_kb.sub_renewal_verification_kb)
@@ -72,7 +138,16 @@ async def sub_renewal_months_1(message: types.Message, state: FSMContext):
     answer_message = f'Подписка: <b>{sub_title}</b>\nПродление на {months_number} месяц.\n\n<b>Сумма к оплате: {payment_price}₽</b>\n\nУникальный идентификатор платежа: {payment_id}.'
     await message.answer(answer_message, parse_mode='HTML',
                          reply_markup=InlineKeyboardMarkup().\
-                            add(InlineKeyboardButton('Оплатить', url=quickpay.redirected_url, callback_data='test')))
+                            add(InlineKeyboardButton('Оплатить', url=payment_form.link_for_customer, callback_data='test')))
+    
+    # run payment autochecker for 360 seconds
+    client_last_payment_status = await autocheck_payment_status(payment_id)
+
+    # if autochecker returns successful payment info
+    if client_last_payment_status == 'success':
+        postgesql_db.update_payment_successful(payment_id, client_id, months_number)
+        await state.set_state(user_authorized_fsm.PaymentMenu.menu)
+        await message.answer(f'Оплата произведена успешно!\n\nid: {payment_id}', reply_markup=user_authorized_kb.sub_renewal_kb)
 
 @user_mw.authorized_only()
 async def sub_renewal_months_3(message: types.Message, state: FSMContext):
@@ -89,26 +164,22 @@ async def sub_renewal_submenu_cm_cancel(message: types.Message, state: FSMContex
 
 @user_mw.authorized_only()
 async def sub_renewal_verification(message: types.Message, state: FSMContext):
-    yoomoney = Client(YOOMONEY_TOKEN)
+    wallet = YooMoneyWallet(YOOMONEY_TOKEN)
 
-    # client's initiated payments for last 20 minutes
-    client_payments = postgesql_db.get_last_user_payments_id(postgesql_db.find_clientID_by_telegramID(message.from_user.id)[0])
+    # client's initiated payments for last n minutes
+    client_payments = postgesql_db.get_last_user_payments_id(postgesql_db.find_clientID_by_telegramID(message.from_user.id)[0], minutes=20)
+
     for [payment_id] in client_payments:
 
         # if payment wasn't successful and wasn't added to clients_subscriptions table (columns paid_months_counter and expiration_date)
         if postgesql_db.get_payment_status(payment_id)[0] == False:
-            payment_history = yoomoney.operation_history(label=payment_id)
+            payment_is_completed: bool = await wallet.check_payment_on_successful(payment_id)
 
-            # if payment was made according to Yoomoney service information
-            if payment_history.operations:
-                await message.answer(f'Оплата произведена успешно!\nid: {payment_id}\ninfo: {payment_history.operations}')
-            
-            # if payment wasn't made according to Yoomoney service information
+            if payment_is_completed:
+                message.answer('Оплата произведена успешно!')
+
             else:
-                await message.answer(f'Оплата платежа с уникальным идентификатором {payment_id} еще не была проведена! Возможно, Вы не оплатили заказ, или оплата все еще в пути!')
-
-    
-    
+                message.answer('Оплаты еще нет!')
 
 @user_mw.authorized_only()
 async def account_cm_start(message: types.Message):
