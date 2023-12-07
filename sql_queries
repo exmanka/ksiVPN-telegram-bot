@@ -395,6 +395,6 @@ CREATE TABLE payments (
 	price DECIMAL(6, 2) NOT NULL,
 	months_number SMALLINT NOT NULL,
 	is_successful BOOLEAN NOT NULL DEFAULT FALSE,
+	telegram_message_id INT,
 	date_of_initiation TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-INSERT INTO payments(client_id, sub_id, price, months_number) VALUES(1, 1, 75, 1);
