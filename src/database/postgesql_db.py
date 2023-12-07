@@ -55,7 +55,7 @@ def insert_user_payment(client_id: int, sub_id: int, price: float, months_number
     return cur.fetchone()
 
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ  
-def get_last_user_payments_id(client_id: int, minutes: int):
+def get_last_user_payments_ids(client_id: int, minutes: int):
     '''
     Return user's created payments id for the last n minutes
     '''
@@ -67,6 +67,22 @@ def get_last_user_payments_id(client_id: int, minutes: int):
                 ORDER BY date_of_initiation DESC
                 ''',
                 (client_id, minutes))
+    
+    conn.commit()
+
+    return cur.fetchall()
+
+def get_user_payments_ids(client_id: int):
+    '''
+    Return user's created payments id for all the time
+    '''
+
+    cur.execute('''
+                SELECT id FROM payments
+                WHERE client_id = %s
+                ORDER BY date_of_initiation DESC
+                ''',
+                (client_id,))
     
     conn.commit()
 

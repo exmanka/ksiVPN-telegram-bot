@@ -122,11 +122,11 @@ async def sub_renewal_verification(message: types.Message, state: FSMContext):
 
     # client's initiated payments for last n minutes
     client_id = postgesql_db.find_clientID_by_telegramID(message.from_user.id)[0]
-    client_payments = postgesql_db.get_last_user_payments_id(client_id, minutes=60)
+    client_payments_ids = postgesql_db.get_last_user_payments_ids(client_id, minutes=60)
     await message.answer('Проверяю все созданные платежи за последний час!')
 
     is_payment_found = False
-    for [payment_id] in client_payments:
+    for [payment_id] in client_payments_ids:
 
         # if payment wasn't added to db as successful and payment is successful according to Yoomoney:
         if postgesql_db.get_payment_status(payment_id)[0] == False and await wallet.check_payment_on_successful(payment_id):
@@ -139,7 +139,7 @@ async def sub_renewal_verification(message: types.Message, state: FSMContext):
             is_payment_found = True
 
     if not is_payment_found:
-        await message.answer('К сожалению, я не смог найти оплаченные заказы :/\n\nИспользуйте команду /restore_payment, чтобы проверить все платежи за все время!')
+        await message.answer('К сожалению, я не смог найти оплаченные заказы :/\n\nИспользуйте команду /restore_payments, чтобы проверить платежи за все время!')
 
 @user_mw.authorized_only()
 async def account_cm_start(message: types.Message):
@@ -413,6 +413,31 @@ async def account_promo_info(message: types.Message, state: FSMContext):
 async def show_project_rules(message: types.Message):
     await message.answer(messages_dict['project_rules']['text'], parse_mode='HTML')
 
+@user_mw.authorized_only()
+async def restore_payments(message: types.Message):
+    wallet = YooMoneyWallet(YOOMONEY_TOKEN)
+    client_id = postgesql_db.find_clientID_by_telegramID(message.from_user.id)[0]
+    client_payments_ids = postgesql_db.get_user_payments_ids(client_id)
+
+    is_payment_found = False
+    for [payment_id] in client_payments_ids:
+
+        # if payment wasn't added to db as successful and payment is successful according to Yoomoney:
+        if postgesql_db.get_payment_status(payment_id)[0] == False and await wallet.check_payment_on_successful(payment_id):
+            months_number = postgesql_db.get_payment_months_number(payment_id)[0]
+            postgesql_db.update_payment_successful(payment_id, client_id, months_number)
+
+            await message.answer(f'Ура! Оплата по заказу с id {payment_id} найдена!')
+
+            is_payment_found = True
+
+    if not is_payment_found:
+        answer_text = 'К сожалению, я не смог найти оплаченные заказы :/\n\n'
+        answer_text += 'Возможно, Вы еще не завершили оплату, либо информация об оплате все еще в пути!\n\n'
+        answer_text += 'Если Вы уверены, что оплата была совершена, обратитесь в раздел помощи /help'
+        await message.answer(answer_text)
+
+
 def register_handlers_authorized_client(dp: Dispatcher):
     dp.register_message_handler(subscription_status, Text(equals='Статус подписки'))
     dp.register_message_handler(submenu_cm_cancel, Text(equals='Возврат в главное меню'), state=[None,
@@ -453,3 +478,4 @@ def register_handlers_authorized_client(dp: Dispatcher):
     dp.register_message_handler(account_configurations_request_chatgpt, Text(equals=['Использую', 'Не использую']), state=user_authorized_fsm.ConfigMenu.chatgpt)
     dp.register_message_handler(show_project_rules, Text(equals='Правила'))
     dp.register_message_handler(show_project_rules, commands=['rules'], state='*')
+    dp.register_message_handler(restore_payments, commands=['restore_payments'], state='*')
