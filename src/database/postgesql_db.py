@@ -72,6 +72,25 @@ def get_last_user_payments_ids(client_id: int, minutes: int):
 
     return cur.fetchall()
 
+def get_user_payments(client_id: int):
+    '''
+    Return user's created payments info for all the time
+    '''
+
+    cur.execute('''
+                SELECT p.id, s.title, p.price, p.months_number, TO_CHAR(p.date_of_initiation, 'FMDD TMMonth YYYY в HH24:MI')
+                FROM payments AS p
+                JOIN subscriptions AS s
+                ON p.sub_id = s.id
+                WHERE p.client_id = %s
+                AND p.is_successful = TRUE;
+                ''',
+                (client_id,))
+    
+    conn.commit()
+
+    return cur.fetchall()
+
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ 
 def get_user_payments_ids(client_id: int):
     '''

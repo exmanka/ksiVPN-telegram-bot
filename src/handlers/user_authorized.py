@@ -129,6 +129,24 @@ async def sub_renewal_months_12(message: types.Message, state: FSMContext):
     await sub_renewal(message, state, months_number=12, discount=.15)
 
 @user_mw.authorized_only()
+@user_mw.antiflood(rate_limit=2)
+async def sub_renewal_payment_history(message: types.Message):
+    payment_history = postgesql_db.get_user_payments(postgesql_db.find_clientID_by_telegramID(message.from_user.id)[0])
+
+    is_payment_found = False
+    for payment_id, sub_title, payment_price, payment_months_number, payment_date in payment_history:
+        answer_message = f'Оплата подписки <b>{sub_title}</b> за <b>{payment_date}</b>\n\n'
+        answer_message += f'За {payment_months_number} месяца подписки Вы заплатили <b>{payment_price}₽</b>.\n\n'
+        answer_message += f'Уникальный идентификатор платежа: <b>{payment_id}</b>.'
+        await message.answer(answer_message, parse_mode='HTML')
+
+        is_payment_found = True
+
+    # if user has no successful payments
+    if not is_payment_found:
+        await message.answer('К сожалению, не удалось найти информацию о поступивших платежах :/.\nВоспользуйтесь командой /restore_payments, чтобы восстановить платеж!')
+
+@user_mw.authorized_only()
 async def sub_renewal_submenu_cm_cancel(message: types.Message, state: FSMContext):
 
     # get last user's payment's telegram message id
@@ -472,6 +490,7 @@ def register_handlers_authorized_client(dp: Dispatcher):
     dp.register_message_handler(sub_renewal_months_1, Text(equals='1 месяц'), state=user_authorized_fsm.PaymentMenu.menu)
     dp.register_message_handler(sub_renewal_months_3, Text(equals='3 месяца (-15%)'), state=user_authorized_fsm.PaymentMenu.menu)
     dp.register_message_handler(sub_renewal_months_12, Text(equals='12 месяцев (-30%)'), state=user_authorized_fsm.PaymentMenu.menu)
+    dp.register_message_handler(sub_renewal_payment_history, Text(equals='История оплаты'), state=user_authorized_fsm.PaymentMenu.menu)
     dp.register_message_handler(sub_renewal_submenu_cm_cancel, Text(equals='Отмена оплаты'), state=[None,
                                                                                                     user_authorized_fsm.PaymentMenu.verification])
     dp.register_message_handler(sub_renewal_verification, Text(equals='Проверить оплату'), state=user_authorized_fsm.PaymentMenu.verification)
