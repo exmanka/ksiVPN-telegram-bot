@@ -5,6 +5,7 @@ from asyncio import sleep
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
+from aiogram.utils.exceptions import MessageToDeleteNotFound
 from src.keyboards import user_authorized_kb
 from src.database import postgesql_db
 from src.services.messages import messages_dict
@@ -84,10 +85,17 @@ async def sub_renewal(message: types.Message, state: FSMContext, months_number: 
         postgesql_db.update_payment_successful(payment_id, client_id, months_number)
         await state.set_state(user_authorized_fsm.PaymentMenu.menu)
 
-        # delete payment message
-        await bot.delete_message(message.chat.id, message_info['message_id'])
-        await message.answer(f'Оплата произведена успешно!\n\nid: {payment_id}', reply_markup=user_authorized_kb.sub_renewal_kb)
+        # try to delete payment message
+        try:
+            await bot.delete_message(message.chat.id, message_info['message_id'])
 
+        # if already deleted
+        except MessageToDeleteNotFound as _t:
+                    pass
+
+        # if not already deleted
+        finally:
+            await message.answer(f'Оплата произведена успешно!\n\nid: {payment_id}', reply_markup=user_authorized_kb.sub_renewal_kb)
 
 @user_mw.authorized_only()
 async def subscription_status(message: types.Message):
@@ -152,12 +160,18 @@ async def sub_renewal_submenu_cm_cancel(message: types.Message, state: FSMContex
     # get last user's payment's telegram message id
     last_payment_message_id = postgesql_db.get_last_user_payment_message_id(postgesql_db.find_clientID_by_telegramID(message.from_user.id)[0])[0]
 
-    # delete this message
-    await bot.delete_message(message.chat.id, last_payment_message_id)
+    # try to delete payment message
+    try:
+        await bot.delete_message(message.chat.id, last_payment_message_id)
 
-    # update state and keyboard
-    await state.set_state(user_authorized_fsm.PaymentMenu.menu)
-    await message.answer('Оплата отменена!', reply_markup=user_authorized_kb.sub_renewal_kb)
+    # if already deleted
+    except MessageToDeleteNotFound as _t:
+        pass
+
+    finally:
+        # update state and keyboard
+        await state.set_state(user_authorized_fsm.PaymentMenu.menu)
+        await message.answer('Оплата отменена!', reply_markup=user_authorized_kb.sub_renewal_kb)
 
 @user_mw.authorized_only()
 async def sub_renewal_verification(message: types.Message, state: FSMContext):
