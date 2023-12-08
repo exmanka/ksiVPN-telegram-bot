@@ -8,7 +8,11 @@ class FSMAdmin(StatesGroup):
     price = State()
 
 class FSMUserInfo(StatesGroup):
-    ready_to_answer = State()
+    ready = State()
 
 class FSMConfigInfo(StatesGroup):
-    ready_to_answer = State()
+    ready = State()
+
+class FSMSendMessage(StatesGroup):
+    echo = State()
+    decision_to_send = State()

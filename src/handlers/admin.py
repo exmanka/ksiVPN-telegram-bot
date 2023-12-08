@@ -2,6 +2,7 @@ from bot_init import bot, ADMIN_ID
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
+from aiogram.utils.exceptions import ChatNotFound
 from src.states import admin_fsm
 from src.keyboards import admin_kb
 from src.middlewares import admin_mw
@@ -31,15 +32,93 @@ async def send_user_info(user_info, choice_info, is_new_user: bool):
 @admin_mw.admin_only()
 async def cm_reset(message: types.Message, state: FSMContext):
     await state.finish()
-    await message.answer('Сброс машинного состояния!')
+    await message.answer('Сброс машинного состояния и клавиатуры!', reply_markup=admin_kb.menu_kb)
 
 @admin_mw.admin_only()
 async def show_admin_keyboard(message: types.Message):
     await message.reply('Для вызова данного меню используйте /admin.\b\bДоступные команды:\n\n/fileid (/fid)\n/sql_user\n/sql_config', reply_markup=admin_kb.menu_kb)
 
 @admin_mw.admin_only()
+async def notifications_menu(message: types.Message):
+    await message.answer('Открываю клавиатуру отправки сообщений пользователям!', reply_markup=admin_kb.notification_kb)
+
+@admin_mw.admin_only()
+async def notifications_send_message_everyone_cm_start(message: types.Message, state: FSMContext):
+    await state.set_state(admin_fsm.FSMSendMessage.echo)
+
+    answer_message = 'Активировано машинное состояние! Введите необходимую информацию следующим сообщением, а также приложите файлы при необходимости!\n\n'
+    answer_message += 'Введите /perfect, чтобы подтвердить выбор последнего отправленного сообщения!'
+    await message.answer(answer_message, parse_mode='HTML')
+
+async def send_message_by_telegram_id(telegram_id: int, message: types.Message):
+    # if message is text
+    if text := message.text:
+        await bot.send_message(telegram_id, text, parse_mode='HTML')
+
+    # if message is animation (GIF or H.264/MPEG-4 AVC video without sound)
+    elif animation := message.animation:
+        await bot.send_animation(telegram_id, animation.file_id)
+
+    # if message is audio (audio file to be treated as music)
+    elif audio := message.audio:
+        await bot.send_audio(telegram_id, audio.file_id, caption=message.caption, parse_mode='HTML')
+
+    # if message is document
+    elif document := message.document:
+        await bot.send_document(telegram_id, document.file_id, caption=message.caption, parse_mode='HTML')
+
+    # if message is photo
+    elif photo := message.photo:
+        await bot.send_photo(telegram_id, photo[0].file_id, caption=message.caption, parse_mode='HTML')
+
+    # if message is sticker
+    elif sticker := message.sticker:
+        await bot.send_sticker(telegram_id, sticker.file_id)
+
+    # if message is video
+    elif video := message.video:
+        await bot.send_video(telegram_id, video.file_id, caption=message.caption, parse_mode='HTML')
+
+    # if message is video note
+    elif video_note := message.video_note:
+        await bot.send_video_note(telegram_id, video_note.file_id)
+
+    # if message is voice
+    elif voice := message.voice:
+        await bot.send_voice(telegram_id, voice.file_id, caption=message.caption, parse_mode='HTML')
+
+
+@admin_mw.admin_only()
+async def notifications_send_message_everyone(message: types.Message, state: FSMContext):
+
+    # if message looks good for admin
+    if message.text and message.text == '/perfect':
+        async with state.proxy() as data:
+            not_connected_users = []
+            for [telegram_id] in postgesql_db.get_clients_telegram_ids():
+                # if user didn't write to bot
+                try:
+                    await send_message_by_telegram_id(telegram_id, data['message'])
+                except ChatNotFound as _t:
+                    not_connected_users.append(telegram_id)
+
+        await message.answer(f'Ладненько, сообщение отправлено!\n\nПользователи, до которых сообщение не дошло: {not_connected_users}')
+        await cm_reset(message, state)
+
+        return
+
+    await message.answer('Вот так будет выглядеть Ваше сообщение:')
+
+    # echo message
+    await send_message_by_telegram_id(message.from_user.id, message)
+
+    # save last message
+    async with state.proxy() as data:
+        data['message'] = message
+
+@admin_mw.admin_only()
 async def show_user_info_sql_cm_start(message: types.Message):
-    await admin_fsm.FSMUserInfo.ready_to_answer.set()
+    await admin_fsm.FSMUserInfo.ready.set()
 
     message_answer = 'Активировано состояние для получения SQL-запроса на вставку пользователя! Перешлите мне сообщение, и я выведу всю возможную информацию!\n\n'
     message_answer += 'Кстати, проверить, какие конфигурации доступны пользователю можно командой /check_configs <telegram_id> | <username>'
@@ -74,7 +153,7 @@ async def show_user_info_sql(message: types.Message):
 
 @admin_mw.admin_only()
 async def show_user_config_sql_cm_start(message: types.Message):
-    await admin_fsm.FSMConfigInfo.ready_to_answer.set()
+    await admin_fsm.FSMConfigInfo.ready.set()
     guide_text = 'Активировано состояние для получения SQL-запроса на вставку конфигурации! Пришлите мне сообщение в формате (вместо переноса строк используются пробелы):\n\n'
     guide_text += '<b>client_id</b> - client_username | client_telegram_id\n'
     guide_text += '<b>protocol_id</b> - <code>w</code> (WireGuard) | <code>x</code> (XTLS-Reality) | <code>s</code> (ShadowSocks)\n'
@@ -237,18 +316,21 @@ async def send_config_file(message: types.Message):
 
 
 def register_handlers_admin(dp : Dispatcher):
-    dp.register_message_handler(cm_reset, Text(equals='Сброс FSM'), state='*')
+    dp.register_message_handler(cm_reset, Text(equals=['_сброс_FSM', '_вернуться']), state='*')
     dp.register_message_handler(cm_reset, commands=['reset'], state='*')
     dp.register_message_handler(show_admin_keyboard, commands=['admin'])
-    dp.register_message_handler(show_user_info_sql_cm_start, Text(equals='SQL вставка пользователя'))
+    dp.register_message_handler(notifications_menu, Text(equals='_отправка_сообщений'))
+    dp.register_message_handler(notifications_send_message_everyone_cm_start, Text(equals='_отправить_всем'))
+    dp.register_message_handler(notifications_send_message_everyone, state=admin_fsm.FSMSendMessage.echo, content_types='any')
+    dp.register_message_handler(show_user_info_sql_cm_start, Text(equals='_SQL_вставка_пользователя'))
     dp.register_message_handler(show_user_info_sql_cm_start, commands=['sql_user'])
-    dp.register_message_handler(show_user_info_sql, state=admin_fsm.FSMUserInfo.ready_to_answer)
-    dp.register_message_handler(show_user_config_sql_cm_start, Text(equals='SQL вставка конфигурации'))
+    dp.register_message_handler(show_user_info_sql, state=admin_fsm.FSMUserInfo.ready)
+    dp.register_message_handler(show_user_config_sql_cm_start, Text(equals='_SQL_вставка_конфигурации'))
     dp.register_message_handler(show_user_config_sql_cm_start, commands=['sql_config'])
-    dp.register_message_handler(check_user_configs, state=admin_fsm.FSMConfigInfo.ready_to_answer, commands=['check_configs'])
-    dp.register_message_handler(show_user_config_sql, state=admin_fsm.FSMConfigInfo.ready_to_answer)
-    dp.register_message_handler(show_user_config_sql, state=admin_fsm.FSMConfigInfo.ready_to_answer, content_types=['photo', 'document'])
-    dp.register_message_handler(get_file_id, Text(equals='Узнать ID файла'), content_types=['text', 'photo', 'document'])
+    dp.register_message_handler(check_user_configs, state=admin_fsm.FSMConfigInfo.ready, commands=['check_configs'])
+    dp.register_message_handler(show_user_config_sql, state=admin_fsm.FSMConfigInfo.ready)
+    dp.register_message_handler(show_user_config_sql, state=admin_fsm.FSMConfigInfo.ready, content_types=['photo', 'document'])
+    dp.register_message_handler(get_file_id, Text(equals='_узнать_id_файла'), content_types=['text', 'photo', 'document'])
     dp.register_message_handler(get_file_id, commands=['fileid', 'fid'], commands_ignore_caption=False, content_types=['text', 'photo', 'document'])
     dp.register_message_handler(send_config_photo, content_types=['photo'])
     dp.register_message_handler(send_config_file, content_types=['document'])

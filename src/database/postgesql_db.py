@@ -455,6 +455,7 @@ def insert_user_entered_global_promo(client_id: int, global_promo_id: int, globa
     
     conn.commit()
 
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
 def show_entered_promos(client_id: int):
     promos_dict = {}
     
@@ -497,3 +498,13 @@ def show_entered_promos(client_id: int):
     conn.commit()
 
     return promos_dict
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def get_clients_telegram_ids():
+    cur.execute('''
+                SELECT telegram_id FROM clients;
+                ''')
+    
+    conn.commit()
+
+    return cur.fetchall()
