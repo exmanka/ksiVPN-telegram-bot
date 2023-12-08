@@ -502,8 +502,8 @@ def register_handlers_authorized_client(dp: Dispatcher):
                                                                                                  user_authorized_fsm.PaymentMenu.menu])
     dp.register_message_handler(sub_renewal_cm_start, Text(equals='\u2764\uFE0F\u200D\U0001F525 Продлить подписку!'))
     dp.register_message_handler(sub_renewal_months_1, Text(equals='1 месяц'), state=user_authorized_fsm.PaymentMenu.menu)
-    dp.register_message_handler(sub_renewal_months_3, Text(equals='3 месяца (-15%)'), state=user_authorized_fsm.PaymentMenu.menu)
-    dp.register_message_handler(sub_renewal_months_12, Text(equals='12 месяцев (-30%)'), state=user_authorized_fsm.PaymentMenu.menu)
+    dp.register_message_handler(sub_renewal_months_3, Text(equals='3 месяца (-10%)'), state=user_authorized_fsm.PaymentMenu.menu)
+    dp.register_message_handler(sub_renewal_months_12, Text(equals='12 месяцев (-15%)'), state=user_authorized_fsm.PaymentMenu.menu)
     dp.register_message_handler(sub_renewal_payment_history, Text(equals='История оплаты'), state=user_authorized_fsm.PaymentMenu.menu)
     dp.register_message_handler(sub_renewal_submenu_cm_cancel, Text(equals='Отмена оплаты'), state=[None,
                                                                                                     user_authorized_fsm.PaymentMenu.verification])
