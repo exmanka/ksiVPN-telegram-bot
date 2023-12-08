@@ -1,7 +1,9 @@
 from bot_init import bot, ADMIN_ID
 from aiogram import types, Dispatcher
+from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from src.states import admin_fsm
+from src.keyboards import admin_kb
 from src.middlewares import admin_mw
 from src.database import postgesql_db
 
@@ -27,9 +29,21 @@ async def send_user_info(user_info, choice_info, is_new_user: bool):
                                 parse_mode='HTML')
 
 @admin_mw.admin_only()
+async def cm_reset(message: types.Message, state: FSMContext):
+    await state.finish()
+    await message.answer('Сброс машинного состояния!')
+
+@admin_mw.admin_only()
+async def show_admin_keyboard(message: types.Message):
+    await message.reply('Для вызова данного меню используйте /admin.\b\bДоступные команды:\n\n/fileid (/fid)\n/sql_user\n/sql_config', reply_markup=admin_kb.menu_kb)
+
+@admin_mw.admin_only()
 async def show_user_info_sql_cm_start(message: types.Message):
     await admin_fsm.FSMUserInfo.ready_to_answer.set()
-    await message.reply('Активировано состояние для получения SQL-запроса на вставку пользователя! Перешлите мне сообщение, и я выведу всю возможную информацию!')
+
+    message_answer = 'Активировано состояние для получения SQL-запроса на вставку пользователя! Перешлите мне сообщение, и я выведу всю возможную информацию!\n\n'
+    message_answer += 'Кстати, проверить, какие конфигурации доступны пользователю можно командой /check_configs <telegram_id> | <username>'
+    await message.reply(message_answer)
 
 @admin_mw.admin_only()
 async def show_user_info_sql(message: types.Message):
@@ -194,7 +208,7 @@ async def get_file_id(message: types.Message):
     elif message.document:
         await message.answer(f'file_id документа:\n<code>{message.document.file_id}</code>', parse_mode='HTML')
     else:
-        await message.answer('Файл не был прикреплен вместе с вызовом команды /fileid!')
+        await message.answer('Файл не был прикреплен вместе с вызовом команды /fileid (/fid)!')
 
 @admin_mw.admin_only()
 async def send_config_photo(message: types.Message):
@@ -223,12 +237,18 @@ async def send_config_file(message: types.Message):
 
 
 def register_handlers_admin(dp : Dispatcher):
-    dp.register_message_handler(show_user_info_sql_cm_start, commands=['sql_user'], state=None)
+    dp.register_message_handler(cm_reset, Text(equals='Сброс FSM'), state='*')
+    dp.register_message_handler(cm_reset, commands=['reset'], state='*')
+    dp.register_message_handler(show_admin_keyboard, commands=['admin'])
+    dp.register_message_handler(show_user_info_sql_cm_start, Text(equals='SQL вставка пользователя'))
+    dp.register_message_handler(show_user_info_sql_cm_start, commands=['sql_user'])
     dp.register_message_handler(show_user_info_sql, state=admin_fsm.FSMUserInfo.ready_to_answer)
-    dp.register_message_handler(show_user_config_sql_cm_start, commands=['sql_config'], state=None)
+    dp.register_message_handler(show_user_config_sql_cm_start, Text(equals='SQL вставка конфигурации'))
+    dp.register_message_handler(show_user_config_sql_cm_start, commands=['sql_config'])
     dp.register_message_handler(check_user_configs, state=admin_fsm.FSMConfigInfo.ready_to_answer, commands=['check_configs'])
     dp.register_message_handler(show_user_config_sql, state=admin_fsm.FSMConfigInfo.ready_to_answer)
     dp.register_message_handler(show_user_config_sql, state=admin_fsm.FSMConfigInfo.ready_to_answer, content_types=['photo', 'document'])
-    dp.register_message_handler(get_file_id, commands_ignore_caption=False, commands=['fileid', 'fid'], content_types=['text', 'photo', 'document'])
+    dp.register_message_handler(get_file_id, Text(equals='Узнать ID файла'), content_types=['text', 'photo', 'document'])
+    dp.register_message_handler(get_file_id, commands=['fileid', 'fid'], commands_ignore_caption=False, content_types=['text', 'photo', 'document'])
     dp.register_message_handler(send_config_photo, content_types=['photo'])
     dp.register_message_handler(send_config_file, content_types=['document'])

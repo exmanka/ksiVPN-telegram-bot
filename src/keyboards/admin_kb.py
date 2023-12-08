@@ -1,7 +1,7 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
 
-button_load = KeyboardButton('/Загрузить')
-button_delete = KeyboardButton('/Удалить')
-
-button_case_admin = ReplyKeyboardMarkup(resize_keyboard=True).add(button_load).add(button_delete)
+menu_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
+    add(KeyboardButton('Узнать ID файла')).\
+    add(KeyboardButton('SQL вставка пользователя')).insert(KeyboardButton('SQL вставка конфигурации')).\
+    add(KeyboardButton('Сброс FSM'))
