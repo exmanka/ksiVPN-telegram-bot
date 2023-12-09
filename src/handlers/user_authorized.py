@@ -225,19 +225,24 @@ async def account_subscription_info(message: types.Message):
     await message.answer(f'<b>{subscription_info[0]}</b>\n\n{subscription_info[1]}\n\nСтоимость: {subscription_info[2]}₽ в месяц.', parse_mode='HTML')
 
 @user_mw.authorized_only()
-async def account_configurations(message: types.Message, state: FSMContext):
+async def account_configurations_cm_start(message: types.Message, state: FSMContext):
     await state.set_state(user_authorized_fsm.AccountMenu.configs)
     await message.answer('Меню конфигураций', reply_markup=user_authorized_kb.config_kb)
 
 @user_mw.authorized_only()
-async def account_ref_program(message: types.Message, state:FSMContext):
+async def account_ref_program_cm_start(message: types.Message, state:FSMContext):
     await state.set_state(user_authorized_fsm.AccountMenu.ref_program)
     await message.answer(messages_dict['ref_program']['text'], reply_markup=user_authorized_kb.ref_program_kb, parse_mode='HTML')
 
 @user_mw.authorized_only()
-async def account_promo(message: types.Message, state: FSMContext):
+async def account_promo_cm_start(message: types.Message, state: FSMContext):
     await state.set_state(user_authorized_fsm.AccountMenu.promo)
     await message.answer('Отлично, теперь введите промокод!', reply_markup=user_authorized_kb.promo_kb)
+
+@user_mw.authorized_only()
+async def account_settings_cm_start(message: types.Message, state: FSMContext):
+    await state.set_state(user_authorized_fsm.AccountMenu.settings)
+    await message.answer('Перехожу в настройки', reply_markup=user_authorized_kb.settings_kb)
 
 @user_mw.authorized_only()
 async def account_submenu_cm_cancel(message: types.Message, state: FSMContext):
@@ -336,6 +341,20 @@ async def account_configurations_request_chatgpt(message: types.Message, state: 
     await message.answer(f'Пожалуйста, не забывайте, что он тоже человек, и периодически спит (хотя на самом деле крайне редко)')
 
     await state.set_state(user_authorized_fsm.AccountMenu.configs)
+
+@user_mw.authorized_only()
+async def account_settings_submenu_cm_cancel(message: types.Message, state: FSMContext):
+    await state.set_state(user_authorized_fsm.AccountMenu.settings)
+    await message.answer('Возвращаю в настройки', reply_markup=user_authorized_kb.settings_kb)
+
+
+@user_mw.authorized_only()
+async def account_settings_chatgpt(message: types.Message, state: FSMContext):
+    pass
+
+@user_mw.authorized_only()
+async def account_settings_notifications(message: types.Message, state: FSMContext):
+    pass
 
 @user_mw.authorized_only()
 async def account_ref_program_info(message: types.Message):
@@ -511,14 +530,16 @@ def register_handlers_authorized_client(dp: Dispatcher):
     dp.register_message_handler(account_cm_start, Text(equals='Личный кабинет'))
     dp.register_message_handler(account_user_info, Text(equals='О пользователе'), state=user_authorized_fsm.AccountMenu.menu)
     dp.register_message_handler(account_subscription_info, Text(equals='О подписке'), state=user_authorized_fsm.AccountMenu.menu)
-    dp.register_message_handler(account_configurations, Text(equals='Конфигурации'), state=user_authorized_fsm.AccountMenu.menu)
-    dp.register_message_handler(account_ref_program, Text(equals='Реферальная программа'), state=user_authorized_fsm.AccountMenu.menu)
-    dp.register_message_handler(account_promo, Text(equals='Ввести промокод'), state=user_authorized_fsm.AccountMenu.menu)
     dp.register_message_handler(account_submenu_cm_cancel, Text(equals='Вернуться'), state=[None,
                                                                                             user_authorized_fsm.AccountMenu.configs,
-                                                                                            user_authorized_fsm.AccountMenu.ref_program])
+                                                                                            user_authorized_fsm.AccountMenu.ref_program,
+                                                                                            user_authorized_fsm.AccountMenu.settings])
     dp.register_message_handler(account_submenu_cm_cancel, Text(equals='Отмена ввода'), state=[None,
                                                                                                user_authorized_fsm.AccountMenu.promo])
+    dp.register_message_handler(account_configurations_cm_start, Text(equals='Конфигурации'), state=user_authorized_fsm.AccountMenu.menu)
+    dp.register_message_handler(account_ref_program_cm_start, Text(equals='Реферальная программа'), state=user_authorized_fsm.AccountMenu.menu)
+    dp.register_message_handler(account_promo_cm_start, Text(equals='Ввести промокод'), state=user_authorized_fsm.AccountMenu.menu)
+    dp.register_message_handler(account_settings_cm_start, Text(equals='Настройки'), state=user_authorized_fsm.AccountMenu.menu)
     dp.register_message_handler(account_ref_program_info, Text(equals='Участие в реферальной программе'), state=user_authorized_fsm.AccountMenu.ref_program)
     dp.register_message_handler(account_ref_program_invite, Text(equals='Сгенерировать приглашение *'), state=user_authorized_fsm.AccountMenu.ref_program)
     dp.register_message_handler(account_ref_program_promocode, Text(equals='Показать реферальный промокод'), state=user_authorized_fsm.AccountMenu.ref_program)
@@ -534,6 +555,11 @@ def register_handlers_authorized_client(dp: Dispatcher):
     dp.register_message_handler(account_configurations_request_os, Text(equals=['Android', 'IOS (IPhone)', 'Windows', 'macOS', 'Linux']), state=user_authorized_fsm.ConfigMenu.os)
     dp.register_message_handler(account_configurations_request_chatgpt_info, Text(equals='Что это?', ignore_case=True), state=user_authorized_fsm.ConfigMenu.chatgpt)
     dp.register_message_handler(account_configurations_request_chatgpt, Text(equals=['Использую', 'Не использую']), state=user_authorized_fsm.ConfigMenu.chatgpt)
+    dp.register_message_handler(account_settings_submenu_cm_cancel, Text(equals='Обратно'), state=[None,
+                                                                                                   user_authorized_fsm.SettingsMenu.chatgpt,
+                                                                                                   user_authorized_fsm.SettingsMenu.notifications])
+    dp.register_message_handler(account_settings_chatgpt, Text(equals='Режим ChatGPT'), state=user_authorized_fsm.AccountMenu.settings)
+    dp.register_message_handler(account_settings_notifications, Text(equals='Уведомления'), state=user_authorized_fsm.AccountMenu.settings)
     dp.register_message_handler(show_project_rules, Text(equals='Правила'))
     dp.register_message_handler(show_project_rules, commands=['rules'], state='*')
     dp.register_message_handler(restore_payments, commands=['restore_payments'], state='*')

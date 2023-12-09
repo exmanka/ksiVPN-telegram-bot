@@ -18,7 +18,7 @@ sub_renewal_verification_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
 account_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('Реферальная программа')).\
     add(KeyboardButton('О пользователе')).insert(KeyboardButton('О подписке')).\
-    add(KeyboardButton('Конфигурации')).insert(KeyboardButton('Ввести промокод')).\
+    add(KeyboardButton('Конфигурации')).insert(KeyboardButton('Ввести промокод')).insert(KeyboardButton('Настройки')).\
     add(KeyboardButton('Возврат в главное меню'))
 
 config_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
@@ -44,4 +44,8 @@ promo_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
 ref_program_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('Участие в реферальной программе')).\
     add(KeyboardButton('Сгенерировать приглашение *')).insert(KeyboardButton('Показать реферальный промокод')).\
+    add(KeyboardButton('Вернуться'))
+
+settings_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
+    add(KeyboardButton('Режим ChatGPT')).insert(KeyboardButton('Уведомления')).\
     add(KeyboardButton('Вернуться'))

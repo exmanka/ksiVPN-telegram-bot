@@ -6,6 +6,7 @@ class AccountMenu(StatesGroup):
     promo = State()
     ref_program = State()
     configs = State()
+    settings = State()
 
 
 class PaymentMenu(StatesGroup):
@@ -13,7 +14,6 @@ class PaymentMenu(StatesGroup):
     months_1 = State()
     months_3 = State()
     months_12 = State()
-    months_n = State()
     verification = State()
 
 
@@ -21,3 +21,8 @@ class ConfigMenu(StatesGroup):
     platform = State()
     os = State()
     chatgpt = State()
+
+
+class SettingsMenu(StatesGroup):
+    chatgpt = State()
+    notifications = State()
