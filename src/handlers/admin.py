@@ -92,17 +92,29 @@ async def notifications_send_message_everyone(message: types.Message, state: FSM
 
     # if message looks good for admin
     if message.text and message.text == '/perfect':
+
+        answer_message = ''
         async with state.proxy() as data:
-            not_connected_users = []
-            for [telegram_id] in postgesql_db.get_clients_telegram_ids():
+            for idx, [telegram_id] in enumerate(postgesql_db.get_clients_telegram_ids()):
+
                 # if user didn't write to bot
                 try:
                     await send_message_by_telegram_id(telegram_id, data['message'])
+                
+                # add him to answer_message
                 except ChatNotFound as _t:
-                    not_connected_users.append(telegram_id)
+                    name, surname, username, telegram_id, _ = postgesql_db.show_user_info(telegram_id)
+                    answer_message += f'{idx + 1}. {name} {surname} {username} (tg_id: <code>{telegram_id}</code>)\n'
 
-        await message.answer(f'Ладненько, сообщение отправлено!\n\nПользователи, до которых сообщение не дошло: {not_connected_users}')
-        await cm_reset(message, state)
+        # if some users didn't write to bot
+        if answer_message:
+            answer_message = 'Ладненько, сообщение отправлено!\n\nПользователи, до которых сообщение не дошло:\n' + answer_message
+
+        # if all users use bot
+        else:
+            answer_message = 'Ладненько, сообщение отправлено!\n\nУра, сообщение получат все пользователи сервиса!'
+
+        await message.answer(answer_message)
 
         return
 
@@ -128,29 +140,37 @@ async def notifications_send_message_selected_list(message: types.Message, state
     # parse users mentioned in message
     selected_users = message.text.split(' ')
 
-    selected_clients_ids = []
+    selected_telegram_ids = []
     for user in selected_users:
 
-        # if username
+        # if user mentioned by username and exists in db
         if user[0] == '@':
-            client_id = postgesql_db.find_clientID_by_username(user)
+            if telegram_id := postgesql_db.get_telegramID_by_username(user):
+                selected_telegram_ids.append(telegram_id[0])
 
-        # if telegram_id
-        else:
-            client_id = postgesql_db.find_clientID_by_telegramID(user)
-
-        selected_clients_ids.append(client_id)
+        # if user mentioned by telegram_id and exists in db
+        elif postgesql_db.find_clientID_by_telegramID(user):
+            selected_telegram_ids.append(user)
 
     async with state.proxy() as data:
-        data['selected_clients_ids'] = selected_clients_ids
+        data['selected_telegram_ids'] = selected_telegram_ids
         
     await state.set_state(admin_fsm.FSMSendMessage.selected_decision)
 
     # show selected users info
-    answer_message = 'Сообщение будет отправленно пользователям:\n\n'
-    for idx, client_id in enumerate(selected_clients_ids):
-        name, surname, username, telegram_id, _ = postgesql_db.show_user_info
-        answer_message += f'{idx}. {username} ({name}, {surname}), telegram_id <b>{telegram_id}</b>\n'
+    answer_message = ''
+    for idx, telegram_id in enumerate(selected_telegram_ids):
+        name, surname, username, telegram_id, _ = postgesql_db.show_user_info(telegram_id)
+        answer_message += f'{idx + 1}. {name} {surname} {username} (tg_id: <code>{telegram_id}</code>)\n'
+
+    # if at least 1 user is in db
+    if answer_message:
+        answer_message = 'Сообщение будет отправленно пользователям:\n\n' + answer_message
+
+    # if mentioned people are not in db
+    else:
+        answer_message = 'Вы ошиблись при вводе пользователей! Сообщение ни до кого не дойдет!'
+
     await message.answer(answer_message, parse_mode='HTML')
 
     answer_message = 'Теперь введите необходимую информацию следующим сообщением, а также приложите файлы при необходимости!\n\n'
@@ -162,16 +182,29 @@ async def notifications_send_message_selected(message: types.Message, state: FSM
 
     # if message looks good for admin
     if message.text and message.text == '/perfect':
+
+        answer_message = ''
         async with state.proxy() as data:
-            for telegram_id in data['selected_clients_ids']:
-                not_connected_users = []
+            for idx, telegram_id in enumerate(data['selected_telegram_ids']):
+
                 # if user didn't write to bot
                 try:
                     await send_message_by_telegram_id(telegram_id, data['message'])
+                
+                # add him to answer_message
                 except ChatNotFound as _t:
-                    not_connected_users.append(telegram_id)
+                    name, surname, username, telegram_id, _ = postgesql_db.show_user_info(telegram_id)
+                    answer_message += f'{idx + 1}. {username} ({name}, {surname}), telegram_id <b>{telegram_id}</b>\n'
 
-        await message.answer(f'Ладненько, сообщение отправлено!\n\nПользователи, до которых сообщение не дошло: {not_connected_users}')
+        # if some users didn't write to bot
+        if answer_message:
+            answer_message = 'Ладненько, сообщение отправлено!\n\nПользователи, до которых сообщение не дошло:\n' + answer_message
+
+        # if all users use bot
+        else:
+            answer_message = 'Ладненько, сообщение отправлено!\n\nУра, сообщение получат все указанные пользователи!'
+
+        await message.answer(answer_message)
         await cm_reset(message, state)
 
         return
@@ -391,14 +424,16 @@ def register_handlers_admin(dp : Dispatcher):
     dp.register_message_handler(notifications_menu, Text(equals='_отправка_сообщений'))
     dp.register_message_handler(notifications_send_message_everyone_cm_start, Text(equals='_отправить_всем'))
     dp.register_message_handler(notifications_send_message_everyone, state=admin_fsm.FSMSendMessage.everyone_decision, content_types='any')
+    dp.register_message_handler(notifications_send_message_selected_cm_start, Text(equals='_отправить_избранным'))
+    dp.register_message_handler(notifications_send_message_selected_list, state=admin_fsm.FSMSendMessage.selected_list)
+    dp.register_message_handler(notifications_send_message_selected, state=admin_fsm.FSMSendMessage.selected_decision, content_types='any')
     dp.register_message_handler(show_user_info_sql_cm_start, Text(equals='_SQL_вставка_пользователя'))
     dp.register_message_handler(show_user_info_sql_cm_start, commands=['sql_user'])
     dp.register_message_handler(show_user_info_sql, state=admin_fsm.FSMUserInfo.ready)
     dp.register_message_handler(show_user_config_sql_cm_start, Text(equals='_SQL_вставка_конфигурации'))
     dp.register_message_handler(show_user_config_sql_cm_start, commands=['sql_config'])
     dp.register_message_handler(check_user_configs, state=admin_fsm.FSMConfigInfo.ready, commands=['check_configs'])
-    dp.register_message_handler(show_user_config_sql, state=admin_fsm.FSMConfigInfo.ready)
-    dp.register_message_handler(show_user_config_sql, state=admin_fsm.FSMConfigInfo.ready, content_types=['photo', 'document'])
+    dp.register_message_handler(show_user_config_sql, state=admin_fsm.FSMConfigInfo.ready, content_types=['text', 'photo', 'document'])
     dp.register_message_handler(get_file_id, Text(equals='_узнать_id_файла'), content_types=['text', 'photo', 'document'])
     dp.register_message_handler(get_file_id, commands=['fileid', 'fid'], commands_ignore_caption=False, content_types=['text', 'photo', 'document'])
     dp.register_message_handler(send_config_photo, content_types=['photo'])

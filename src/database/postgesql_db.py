@@ -34,6 +34,18 @@ def find_clientID_by_username(username: str):
     
     return cur.fetchone()
 
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ 
+def get_telegramID_by_username(username: str):
+    cur.execute('''
+                SELECT telegram_id FROM clients
+                WHERE username = %s;
+                ''',
+                (username,))
+    
+    conn.commit()
+
+    return cur.fetchone()
+
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
 def insert_user_payment(client_id: int, sub_id: int, price: float, months_number: int):
     cur.execute('''
@@ -190,7 +202,7 @@ def show_user_info(telegram_id: int):
     
     conn.commit()
 
-    return cur.fetchall()
+    return cur.fetchone()
 
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
 def is_user_registered(telegram_id: int):
