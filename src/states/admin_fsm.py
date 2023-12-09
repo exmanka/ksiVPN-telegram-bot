@@ -14,5 +14,6 @@ class FSMConfigInfo(StatesGroup):
     ready = State()
 
 class FSMSendMessage(StatesGroup):
-    echo = State()
-    decision_to_send = State()
+    everyone_decision = State()
+    selected_list = State()
+    selected_decision = State()

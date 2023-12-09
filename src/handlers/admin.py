@@ -28,28 +28,7 @@ async def send_user_info(user_info, choice_info, is_new_user: bool):
                                 f"Конфигурация: {choice_info['platform'][2:]}, {choice_info['os_name']}, {choice_info['chatgpt']} ChatGPT\n\n"
                                 f"<b>Запрос дополнительной конфигурации от пользователя!</b>",
                                 parse_mode='HTML')
-
-@admin_mw.admin_only()
-async def cm_reset(message: types.Message, state: FSMContext):
-    await state.finish()
-    await message.answer('Сброс машинного состояния и клавиатуры!', reply_markup=admin_kb.menu_kb)
-
-@admin_mw.admin_only()
-async def show_admin_keyboard(message: types.Message):
-    await message.reply('Для вызова данного меню используйте /admin.\b\bДоступные команды:\n\n/fileid (/fid)\n/sql_user\n/sql_config', reply_markup=admin_kb.menu_kb)
-
-@admin_mw.admin_only()
-async def notifications_menu(message: types.Message):
-    await message.answer('Открываю клавиатуру отправки сообщений пользователям!', reply_markup=admin_kb.notification_kb)
-
-@admin_mw.admin_only()
-async def notifications_send_message_everyone_cm_start(message: types.Message, state: FSMContext):
-    await state.set_state(admin_fsm.FSMSendMessage.echo)
-
-    answer_message = 'Активировано машинное состояние! Введите необходимую информацию следующим сообщением, а также приложите файлы при необходимости!\n\n'
-    answer_message += 'Введите /perfect, чтобы подтвердить выбор последнего отправленного сообщения!'
-    await message.answer(answer_message, parse_mode='HTML')
-
+        
 async def send_message_by_telegram_id(telegram_id: int, message: types.Message):
     # if message is text
     if text := message.text:
@@ -87,6 +66,26 @@ async def send_message_by_telegram_id(telegram_id: int, message: types.Message):
     elif voice := message.voice:
         await bot.send_voice(telegram_id, voice.file_id, caption=message.caption, parse_mode='HTML')
 
+@admin_mw.admin_only()
+async def cm_reset(message: types.Message, state: FSMContext):
+    await state.finish()
+    await message.answer('Сброс машинного состояния и клавиатуры!', reply_markup=admin_kb.menu_kb)
+
+@admin_mw.admin_only()
+async def show_admin_keyboard(message: types.Message):
+    await message.reply('Для вызова данного меню используйте /admin.\b\bДоступные команды:\n\n/fileid (/fid)\n/sql_user\n/sql_config', reply_markup=admin_kb.menu_kb)
+
+@admin_mw.admin_only()
+async def notifications_menu(message: types.Message):
+    await message.answer('Открываю клавиатуру отправки сообщений пользователям!', reply_markup=admin_kb.notification_kb)
+
+@admin_mw.admin_only()
+async def notifications_send_message_everyone_cm_start(message: types.Message, state: FSMContext):
+    await state.set_state(admin_fsm.FSMSendMessage.everyone_decision)
+
+    answer_message = 'Активировано машинное состояние! Введите необходимую информацию следующим сообщением, а также приложите файлы при необходимости!\n\n'
+    answer_message += 'Введите /perfect, чтобы подтвердить выбор последнего отправленного сообщения!'
+    await message.answer(answer_message, parse_mode='HTML')
 
 @admin_mw.admin_only()
 async def notifications_send_message_everyone(message: types.Message, state: FSMContext):
@@ -96,6 +95,76 @@ async def notifications_send_message_everyone(message: types.Message, state: FSM
         async with state.proxy() as data:
             not_connected_users = []
             for [telegram_id] in postgesql_db.get_clients_telegram_ids():
+                # if user didn't write to bot
+                try:
+                    await send_message_by_telegram_id(telegram_id, data['message'])
+                except ChatNotFound as _t:
+                    not_connected_users.append(telegram_id)
+
+        await message.answer(f'Ладненько, сообщение отправлено!\n\nПользователи, до которых сообщение не дошло: {not_connected_users}')
+        await cm_reset(message, state)
+
+        return
+
+    await message.answer('Вот так будет выглядеть Ваше сообщение:')
+
+    # echo message
+    await send_message_by_telegram_id(message.from_user.id, message)
+
+    # save last message
+    async with state.proxy() as data:
+        data['message'] = message
+
+@admin_mw.admin_only()
+async def notifications_send_message_selected_cm_start(message: types.Message, state: FSMContext):
+    await state.set_state(admin_fsm.FSMSendMessage.selected_list)
+
+    answer_message = 'Активировано машинное состояние! Введите через запятую <b>username</b> или <b>telegram_id</b> пользователей, для которых предназначена рассылка.'
+    await message.answer(answer_message, parse_mode='HTML')
+
+@admin_mw.admin_only()
+async def notifications_send_message_selected_list(message: types.Message, state: FSMContext):
+
+    # parse users mentioned in message
+    selected_users = message.text.split(' ')
+
+    selected_clients_ids = []
+    for user in selected_users:
+
+        # if username
+        if user[0] == '@':
+            client_id = postgesql_db.find_clientID_by_username(user)
+
+        # if telegram_id
+        else:
+            client_id = postgesql_db.find_clientID_by_telegramID(user)
+
+        selected_clients_ids.append(client_id)
+
+    async with state.proxy() as data:
+        data['selected_clients_ids'] = selected_clients_ids
+        
+    await state.set_state(admin_fsm.FSMSendMessage.selected_decision)
+
+    # show selected users info
+    answer_message = 'Сообщение будет отправленно пользователям:\n\n'
+    for idx, client_id in enumerate(selected_clients_ids):
+        name, surname, username, telegram_id, _ = postgesql_db.show_user_info
+        answer_message += f'{idx}. {username} ({name}, {surname}), telegram_id <b>{telegram_id}</b>\n'
+    await message.answer(answer_message, parse_mode='HTML')
+
+    answer_message = 'Теперь введите необходимую информацию следующим сообщением, а также приложите файлы при необходимости!\n\n'
+    answer_message += 'Введите /perfect, чтобы подтвердить выбор последнего отправленного сообщения!'
+    await message.answer(answer_message)
+
+@admin_mw.admin_only()
+async def notifications_send_message_selected(message: types.Message, state: FSMContext):
+
+    # if message looks good for admin
+    if message.text and message.text == '/perfect':
+        async with state.proxy() as data:
+            for telegram_id in data['selected_clients_ids']:
+                not_connected_users = []
                 # if user didn't write to bot
                 try:
                     await send_message_by_telegram_id(telegram_id, data['message'])
@@ -321,7 +390,7 @@ def register_handlers_admin(dp : Dispatcher):
     dp.register_message_handler(show_admin_keyboard, commands=['admin'])
     dp.register_message_handler(notifications_menu, Text(equals='_отправка_сообщений'))
     dp.register_message_handler(notifications_send_message_everyone_cm_start, Text(equals='_отправить_всем'))
-    dp.register_message_handler(notifications_send_message_everyone, state=admin_fsm.FSMSendMessage.echo, content_types='any')
+    dp.register_message_handler(notifications_send_message_everyone, state=admin_fsm.FSMSendMessage.everyone_decision, content_types='any')
     dp.register_message_handler(show_user_info_sql_cm_start, Text(equals='_SQL_вставка_пользователя'))
     dp.register_message_handler(show_user_info_sql_cm_start, commands=['sql_user'])
     dp.register_message_handler(show_user_info_sql, state=admin_fsm.FSMUserInfo.ready)
