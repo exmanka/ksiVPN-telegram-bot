@@ -3,7 +3,7 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 
 menu_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('\u2764\uFE0F\u200D\U0001F525 Продлить подписку!')).\
-    add(KeyboardButton('Личный кабинет')).insert(KeyboardButton('Статус подписки')).\
+    add(KeyboardButton('Статус подписки')).insert(KeyboardButton('Личный кабинет')).\
     add(KeyboardButton('Правила')).insert(KeyboardButton('Помощь')).insert(KeyboardButton('О сервисе'))
 
 sub_renewal_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
@@ -17,7 +17,7 @@ sub_renewal_verification_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
 
 account_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('Реферальная программа')).\
-    add(KeyboardButton('Информация о пользователе')).insert(KeyboardButton('Информация о подписке')).\
+    add(KeyboardButton('О пользователе')).insert(KeyboardButton('О подписке')).\
     add(KeyboardButton('Конфигурации')).insert(KeyboardButton('Ввести промокод')).\
     add(KeyboardButton('Возврат в главное меню'))
 
