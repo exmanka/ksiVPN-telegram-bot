@@ -534,12 +534,27 @@ def get_notifications_info(client_id: int):
 
     return cur.fetchone()
 
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
 def update_notifications_1d(client_id: int):
     cur.execute('''
                 UPDATE notifications
                 SET disable_in_1d = NOT disable_in_1d
                 WHERE client_id = %s
                 RETURNING disable_in_1d;
+                ''',
+                (client_id,))
+    
+    conn.commit()
+
+    return cur.fetchone()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def update_notifications_3d(client_id: int):
+    cur.execute('''
+                UPDATE notifications
+                SET disable_in_3d = NOT disable_in_3d
+                WHERE client_id = %s
+                RETURNING disable_in_3d;
                 ''',
                 (client_id,))
     
