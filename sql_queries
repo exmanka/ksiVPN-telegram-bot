@@ -398,3 +398,11 @@ CREATE TABLE payments (
 	telegram_message_id INT,
 	date_of_initiation TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE notifications (
+	client_id INT NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+	disable_in_1d BOOLEAN NOT NULL DEFAULT TRUE,
+	disable_in_13 BOOLEAN NOT NULL DEFAULT TRUE,
+	disable_in_14 BOOLEAN NOT NULL DEFAULT TRUE
+);
+INSERT INTO notifications(client_id) VALUES()
