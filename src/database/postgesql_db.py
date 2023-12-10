@@ -520,3 +520,29 @@ def get_clients_telegram_ids():
     conn.commit()
 
     return cur.fetchall()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def get_notifications_info(client_id: int):
+    cur.execute('''
+                SELECT disable_in_1d, disable_in_3d, disable_in_7d
+                FROM notifications
+                WHERE client_id = %s;
+                ''',
+                (client_id,))
+    
+    conn.commit()
+
+    return cur.fetchone()
+
+def update_notifications_1d(client_id: int):
+    cur.execute('''
+                UPDATE notifications
+                SET disable_in_1d = NOT disable_in_1d
+                WHERE client_id = %s
+                RETURNING disable_in_1d;
+                ''',
+                (client_id,))
+    
+    conn.commit()
+
+    return cur.fetchone()

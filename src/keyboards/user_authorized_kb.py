@@ -1,4 +1,5 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from src.database import postgesql_db
 
 
 menu_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
@@ -49,3 +50,32 @@ ref_program_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
 settings_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('Режим ChatGPT')).insert(KeyboardButton('Уведомления')).\
     add(KeyboardButton('Вернуться'))
+
+async def settings_notifications(client_id: int) -> ReplyKeyboardMarkup:
+    disable_in_1_day, disable_in_3_days, disable_in_7_days = postgesql_db.get_notifications_info(client_id)
+    settings_notifications_kb = ReplyKeyboardMarkup(resize_keyboard=True)
+
+    # if client turned on notifications one day before subscription disabling
+    if disable_in_1_day:
+        settings_notifications_kb.add(KeyboardButton('Выключить за 1 день'))
+    # if client turned off notifications one day before subscription disabling
+    else:
+        settings_notifications_kb.add(KeyboardButton('Включить за 1 день'))
+
+    # if client turned on notifications 3 days before subscription disabling
+    if disable_in_3_days:
+        settings_notifications_kb.insert(KeyboardButton('Выключить за 3 дня'))
+    # if client turned off notifications 3 days before subscription disabling
+    else:
+        settings_notifications_kb.insert(KeyboardButton('Включить за 3 дня'))
+
+    # if client turned on notifications 7 days before subscription disabling
+    if disable_in_7_days:
+        settings_notifications_kb.insert(KeyboardButton('Выключить за 7 дней'))
+    # if client turned off notifications 7 days before subscription disabling
+    else:
+        settings_notifications_kb.insert(KeyboardButton('Включить за 7 дней'))
+
+    settings_notifications_kb.add(KeyboardButton('Обратно'))
+
+    return settings_notifications_kb
