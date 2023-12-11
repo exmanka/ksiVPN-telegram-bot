@@ -35,6 +35,26 @@ def find_clientID_by_username(username: str):
     return cur.fetchone()
 
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ 
+def get_notifications_status():
+    cur.execute('''
+                SELECT c.telegram_id,
+                CURRENT_TIMESTAMP <= cs.expiration_date AND cs.expiration_date < CURRENT_TIMESTAMP + INTERVAL '30 minutes' AS is_subscription_expiration_now,
+                n.disable_in_1d AND CURRENT_TIMESTAMP + INTERVAL '1 days' <= cs.expiration_date AND cs.expiration_date < CURRENT_TIMESTAMP + INTERVAL '1 days 30 minutes' AS is_subscription_expiration_in_1d,
+                n.disable_in_3d AND CURRENT_TIMESTAMP + INTERVAL '3 days' <= cs.expiration_date AND cs.expiration_date < CURRENT_TIMESTAMP + INTERVAL '3 days 30 minutes' AS is_subscription_expiration_in_3d,
+                n.disable_in_7d AND CURRENT_TIMESTAMP + INTERVAL '7 days' <= cs.expiration_date AND cs.expiration_date < CURRENT_TIMESTAMP + INTERVAL '7 days 30 minutes' AS is_subscription_expiration_in_7d
+                FROM clients AS c
+                JOIN notifications AS n
+                ON c.id = n.client_id
+                JOIN clients_subscriptions AS cs
+                ON n.client_id = cs.client_id;
+                ''')
+
+    conn.commit()
+
+    return cur.fetchall()
+
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ 
 def get_telegramID_by_username(username: str):
     cur.execute('''
                 SELECT telegram_id FROM clients
