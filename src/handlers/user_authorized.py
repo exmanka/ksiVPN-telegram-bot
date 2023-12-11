@@ -347,10 +347,30 @@ async def account_settings_submenu_cm_cancel(message: types.Message, state: FSMC
     await state.set_state(user_authorized_fsm.AccountMenu.settings)
     await message.answer('Возвращаю в настройки', reply_markup=user_authorized_kb.settings_kb)
 
-
 @user_mw.authorized_only()
 async def account_settings_chatgpt(message: types.Message, state: FSMContext):
-    pass
+    await state.set_state(user_authorized_fsm.SettingsMenu.chatgpt)
+    await message.answer('Переход в меню настройки режима ChatGPT', reply_markup=await user_authorized_kb.settings_chatgpt(message.from_user.id))
+
+@user_mw.authorized_only()
+async def account_settings_chatgpt_mode(message: types.Message, state: FSMContext):
+    chatgpt_mode_status: bool = postgesql_db.update_chatgpt_mode(message.from_user.id)[0]
+
+    # if user switches ChatGPT mode from settings
+    if await state.get_state() == user_authorized_fsm.SettingsMenu.chatgpt.state:
+        reply_keyboard = await user_authorized_kb.settings_chatgpt(message.from_user.id)
+
+    # if user switches ChatGPT mode using command
+    else:
+        reply_keyboard = None
+
+    # if user turned option on
+    if chatgpt_mode_status:
+        await message.answer('Режим ChatGPT для бота включен!', reply_markup=reply_keyboard)
+
+    # if user turned option off
+    else:
+        await message.answer('Режим ChatGPT для бота выключен!', reply_markup=reply_keyboard)
 
 @user_mw.authorized_only()
 async def account_settings_notifications(message: types.Message, state: FSMContext):
@@ -601,6 +621,7 @@ def register_handlers_authorized_client(dp: Dispatcher):
                                                                                                    user_authorized_fsm.SettingsMenu.chatgpt,
                                                                                                    user_authorized_fsm.SettingsMenu.notifications])
     dp.register_message_handler(account_settings_chatgpt, Text(equals='Режим ChatGPT'), state=user_authorized_fsm.AccountMenu.settings)
+    dp.register_message_handler(account_settings_chatgpt_mode, Text(equals=['Выключить', 'Включить']), state=user_authorized_fsm.SettingsMenu.chatgpt)
     dp.register_message_handler(account_settings_notifications, Text(equals='Уведомления'), state=user_authorized_fsm.AccountMenu.settings)
     dp.register_message_handler(account_settings_notifications_1d, Text(equals=['Выключить за 1 день', 'Включить за 1 день']), state=user_authorized_fsm.SettingsMenu.notifications)
     dp.register_message_handler(account_settings_notifications_3d, Text(equals=['Выключить за 3 дня', 'Включить за 3 дня']), state=user_authorized_fsm.SettingsMenu.notifications)
@@ -608,3 +629,4 @@ def register_handlers_authorized_client(dp: Dispatcher):
     dp.register_message_handler(show_project_rules, Text(equals='Правила'))
     dp.register_message_handler(show_project_rules, commands=['rules'], state='*')
     dp.register_message_handler(restore_payments, commands=['restore_payments'], state='*')
+    dp.register_message_handler(account_settings_chatgpt_mode, commands=['chatgpt_mode'], state='*')

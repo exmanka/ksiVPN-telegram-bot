@@ -79,3 +79,18 @@ async def settings_notifications(client_id: int) -> ReplyKeyboardMarkup:
     settings_notifications_kb.add(KeyboardButton('Обратно'))
 
     return settings_notifications_kb
+
+async def settings_chatgpt(telegram_id: int) -> ReplyKeyboardMarkup:
+    settings_chatgpt_kb = ReplyKeyboardMarkup(resize_keyboard=True)
+
+    # if client turned on ChatGPT mode for bot
+    if postgesql_db.get_chatgpt_mode_status(telegram_id)[0]:
+        settings_chatgpt_kb.add(KeyboardButton('Выключить'))
+
+    # if client turned off ChatGPT mode for bot
+    else:
+        settings_chatgpt_kb.add(KeyboardButton('Включить'))
+
+    settings_chatgpt_kb.add(KeyboardButton('Обратно'))
+
+    return settings_chatgpt_kb

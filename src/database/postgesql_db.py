@@ -595,3 +595,30 @@ def update_notifications_7d(client_id: int):
     conn.commit()
 
     return cur.fetchone()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def get_chatgpt_mode_status(telegram_id: int):
+    cur.execute('''
+                SELECT bot_chatgpt_mode
+                FROM clients
+                WHERE telegram_id = %s;
+                ''',
+                (telegram_id,))
+    
+    conn.commit()
+
+    return cur.fetchone()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def update_chatgpt_mode(telegram_id: int):
+    cur.execute('''
+                UPDATE clients
+                SET bot_chatgpt_mode = NOT bot_chatgpt_mode
+                WHERE telegram_id = %s
+                RETURNING bot_chatgpt_mode;
+                ''',
+                (telegram_id,))
+    
+    conn.commit()
+
+    return cur.fetchone()
