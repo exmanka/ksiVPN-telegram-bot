@@ -2,11 +2,6 @@ SET TIMEZONE = ‘Europe/Moscow’;
 SHOW TIMEZONE;
 SELECT TIMEOFDAY();
 
-DROP TABLE IF EXISTS clients_subscriptions;
-DROP TABLE IF EXISTS promocodes_ref;
-DROP TABLE IF EXISTS clients;
-DROP TABLE IF EXISTS subscriptions;
-
 CREATE TABLE clients (
 	id SERIAL PRIMARY KEY,
 	name VARCHAR(64) NOT NULL,
@@ -206,7 +201,7 @@ CREATE TABLE clients_promo_global (
 	client_id INT NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
 	promocode_id SMALLINT NOT NULL REFERENCES promocodes_global(id) ON DELETE CASCADE,
 	date_of_entry TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-)
+);
 
 
 CREATE TABLE promocodes_local (
@@ -261,8 +256,8 @@ INSERT INTO configurations_locations(country, city, description, bandwidth, ping
 INSERT INTO configurations_locations(country, city, description, bandwidth, ping, is_chatgpt_available) VALUES('США', 'Силиконовая долина', 'Тестовый сервер, где проверяются новые функции, доступные в будущем на остальных серверах (для работы прямиком из Силиконовой долины и тестировать бета-версий 😎)', 50, 150, FALSE);
 
 
-CREATE TYPE osEnum AS ENUM ('Android', 'IOS', 'Windows', 'macOS', 'Linux');
-CREATE TYPE fileTypeEnum AS ENUM('photo', 'document', 'link');
+-- CREATE TYPE osEnum AS ENUM ('Android', 'IOS', 'Windows', 'macOS', 'Linux');
+-- CREATE TYPE fileTypeEnum AS ENUM('photo', 'document', 'link');
 CREATE TABLE configurations (
 	id SERIAL PRIMARY KEY,
 	client_id INT NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
@@ -457,3 +452,22 @@ INSERT INTO sub_notifications_settings(client_id) VALUES(43);
 INSERT INTO sub_notifications_settings(client_id) VALUES(44);
 INSERT INTO sub_notifications_settings(client_id) VALUES(45);
 INSERT INTO sub_notifications_settings(client_id) VALUES(46);
+
+-- remove all tables query
+SELECT 'DROP TABLE IF EXISTS ' || tablename || ' CASCADE;' 
+FROM pg_tables
+WHERE schemaname = 'public';
+
+DROP TABLE IF EXISTS clients CASCADE;
+DROP TABLE IF EXISTS clients_subscriptions CASCADE;
+DROP TABLE IF EXISTS subscriptions CASCADE;
+DROP TABLE IF EXISTS promocodes_ref CASCADE;
+DROP TABLE IF EXISTS clients_promo_global CASCADE;
+DROP TABLE IF EXISTS promocodes_global CASCADE;
+DROP TABLE IF EXISTS clients_promo_local CASCADE;
+DROP TABLE IF EXISTS promocodes_local CASCADE;
+DROP TABLE IF EXISTS configurations CASCADE;
+DROP TABLE IF EXISTS configurations_protocols CASCADE;
+DROP TABLE IF EXISTS configurations_locations CASCADE;
+DROP TABLE IF EXISTS payments CASCADE;
+DROP TABLE IF EXISTS sub_notifications_settings CASCADE;
