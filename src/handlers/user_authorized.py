@@ -361,10 +361,10 @@ async def account_settings_notifications(message: types.Message, state: FSMConte
 @user_mw.authorized_only()
 async def account_settings_notifications_1d(message: types.Message):
     client_id = postgesql_db.find_clientID_by_telegramID(message.from_user.id)[0]
-    disable_in_1d_state = postgesql_db.update_notifications_1d(client_id)[0]
+    expiration_in_1d_state = postgesql_db.update_notifications_1d(client_id)[0]
 
     # if user turned option on
-    if disable_in_1d_state:
+    if expiration_in_1d_state:
         await message.answer('Отправка уведомления за 1 день до срока окончания подписки включена!', reply_markup=await user_authorized_kb.settings_notifications(client_id))
 
     # if user turned option off
@@ -374,10 +374,10 @@ async def account_settings_notifications_1d(message: types.Message):
 @user_mw.authorized_only()
 async def account_settings_notifications_3d(message: types.Message):
     client_id = postgesql_db.find_clientID_by_telegramID(message.from_user.id)[0]
-    disable_in_3d_state = postgesql_db.update_notifications_3d(client_id)[0]
+    expiration_in_3d_state = postgesql_db.update_notifications_3d(client_id)[0]
 
     # if user turned option on
-    if disable_in_3d_state:
+    if expiration_in_3d_state:
         await message.answer('Отправка уведомления за 3 дня до срока окончания подписки включена!', reply_markup=await user_authorized_kb.settings_notifications(client_id))
 
     # if user turned option off
@@ -387,10 +387,10 @@ async def account_settings_notifications_3d(message: types.Message):
 @user_mw.authorized_only()
 async def account_settings_notifications_7d(message: types.Message):
     client_id = postgesql_db.find_clientID_by_telegramID(message.from_user.id)[0]
-    disable_in_7d_state = postgesql_db.update_notifications_7d(client_id)[0]
+    expiration_in_7d_state = postgesql_db.update_notifications_7d(client_id)[0]
 
     # if user turned option on
-    if disable_in_7d_state:
+    if expiration_in_7d_state:
         await message.answer('Отправка уведомления за 7 дней до срока окончания подписки включена!', reply_markup=await user_authorized_kb.settings_notifications(client_id))
 
     # if user turned option off

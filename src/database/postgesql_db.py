@@ -35,26 +35,6 @@ def find_clientID_by_username(username: str):
     return cur.fetchone()
 
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ 
-def get_notifications_status():
-    cur.execute('''
-                SELECT c.telegram_id,
-                CURRENT_TIMESTAMP <= cs.expiration_date AND cs.expiration_date < CURRENT_TIMESTAMP + INTERVAL '30 minutes' AS is_subscription_expiration_now,
-                n.disable_in_1d AND CURRENT_TIMESTAMP + INTERVAL '1 days' <= cs.expiration_date AND cs.expiration_date < CURRENT_TIMESTAMP + INTERVAL '1 days 30 minutes' AS is_subscription_expiration_in_1d,
-                n.disable_in_3d AND CURRENT_TIMESTAMP + INTERVAL '3 days' <= cs.expiration_date AND cs.expiration_date < CURRENT_TIMESTAMP + INTERVAL '3 days 30 minutes' AS is_subscription_expiration_in_3d,
-                n.disable_in_7d AND CURRENT_TIMESTAMP + INTERVAL '7 days' <= cs.expiration_date AND cs.expiration_date < CURRENT_TIMESTAMP + INTERVAL '7 days 30 minutes' AS is_subscription_expiration_in_7d
-                FROM clients AS c
-                JOIN notifications AS n
-                ON c.id = n.client_id
-                JOIN clients_subscriptions AS cs
-                ON n.client_id = cs.client_id;
-                ''')
-
-    conn.commit()
-
-    return cur.fetchall()
-
-
-# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ 
 def get_telegramID_by_username(username: str):
     cur.execute('''
                 SELECT telegram_id FROM clients
@@ -544,8 +524,8 @@ def get_clients_telegram_ids():
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
 def get_notifications_info(client_id: int):
     cur.execute('''
-                SELECT disable_in_1d, disable_in_3d, disable_in_7d
-                FROM notifications
+                SELECT sub_expiration_in_1d, sub_expiration_in_3d, sub_expiration_in_7d
+                FROM sub_notifications_settings
                 WHERE client_id = %s;
                 ''',
                 (client_id,))
@@ -554,13 +534,33 @@ def get_notifications_info(client_id: int):
 
     return cur.fetchone()
 
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ 
+def get_notifications_status():
+    cur.execute('''
+                SELECT c.telegram_id,
+                TO_CHAR(cs.expiration_date, 'FMDD TMMonth в HH24:MI') AS subscription_expiration_date,
+                CURRENT_TIMESTAMP <= cs.expiration_date AND cs.expiration_date < CURRENT_TIMESTAMP + INTERVAL '30 minutes' AS is_subscription_expiration_now,
+                sns.sub_expiration_in_1d AND CURRENT_TIMESTAMP + INTERVAL '1 days' <= cs.expiration_date AND cs.expiration_date < CURRENT_TIMESTAMP + INTERVAL '1 days 30 minutes' AS is_subscription_expiration_in_1d,
+                sns.sub_expiration_in_3d AND CURRENT_TIMESTAMP + INTERVAL '3 days' <= cs.expiration_date AND cs.expiration_date < CURRENT_TIMESTAMP + INTERVAL '3 days 30 minutes' AS is_subscription_expiration_in_3d,
+                sns.sub_expiration_in_7d AND CURRENT_TIMESTAMP + INTERVAL '7 days' <= cs.expiration_date AND cs.expiration_date < CURRENT_TIMESTAMP + INTERVAL '7 days 30 minutes' AS is_subscription_expiration_in_7d
+                FROM clients AS c
+                JOIN sub_notifications_settings AS sns
+                ON c.id = sns.client_id
+                JOIN clients_subscriptions AS cs
+                ON sns.client_id = cs.client_id;
+                ''')
+
+    conn.commit()
+
+    return cur.fetchall()
+
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
 def update_notifications_1d(client_id: int):
     cur.execute('''
-                UPDATE notifications
-                SET disable_in_1d = NOT disable_in_1d
+                UPDATE sub_notifications_settings
+                SET sub_expiration_in_1d = NOT sub_expiration_in_1d
                 WHERE client_id = %s
-                RETURNING disable_in_1d;
+                RETURNING sub_expiration_in_1d;
                 ''',
                 (client_id,))
     
@@ -571,10 +571,10 @@ def update_notifications_1d(client_id: int):
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
 def update_notifications_3d(client_id: int):
     cur.execute('''
-                UPDATE notifications
-                SET disable_in_3d = NOT disable_in_3d
+                UPDATE sub_notifications_settings
+                SET sub_expiration_in_3d = NOT sub_expiration_in_3d
                 WHERE client_id = %s
-                RETURNING disable_in_3d;
+                RETURNING sub_expiration_in_3d;
                 ''',
                 (client_id,))
     
@@ -585,10 +585,10 @@ def update_notifications_3d(client_id: int):
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
 def update_notifications_7d(client_id: int):
     cur.execute('''
-                UPDATE notifications
-                SET disable_in_7d = NOT disable_in_7d
+                UPDATE sub_notifications_settings
+                SET sub_expiration_in_7d = NOT sub_expiration_in_7d
                 WHERE client_id = %s
-                RETURNING disable_in_7d;
+                RETURNING sub_expiration_in_7d;
                 ''',
                 (client_id,))
     

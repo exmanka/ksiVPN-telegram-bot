@@ -52,27 +52,27 @@ settings_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('Вернуться'))
 
 async def settings_notifications(client_id: int) -> ReplyKeyboardMarkup:
-    disable_in_1_day, disable_in_3_days, disable_in_7_days = postgesql_db.get_notifications_info(client_id)
+    sub_expires_in_1_day, sub_expires_in_3_days, sub_expires_in_7_days = postgesql_db.get_notifications_info(client_id)
     settings_notifications_kb = ReplyKeyboardMarkup(resize_keyboard=True)
 
-    # if client turned on notifications one day before subscription disabling
-    if disable_in_1_day:
+    # if client turned on notifications one day before subscription expires
+    if sub_expires_in_1_day:
         settings_notifications_kb.add(KeyboardButton('Выключить за 1 день'))
-    # if client turned off notifications one day before subscription disabling
+    # if client turned off notifications one day before subscription expires
     else:
         settings_notifications_kb.add(KeyboardButton('Включить за 1 день'))
 
-    # if client turned on notifications 3 days before subscription disabling
-    if disable_in_3_days:
+    # if client turned on notifications 3 days before subscription expires
+    if sub_expires_in_3_days:
         settings_notifications_kb.insert(KeyboardButton('Выключить за 3 дня'))
-    # if client turned off notifications 3 days before subscription disabling
+    # if client turned off notifications 3 days before subscription expires
     else:
         settings_notifications_kb.insert(KeyboardButton('Включить за 3 дня'))
 
-    # if client turned on notifications 7 days before subscription disabling
-    if disable_in_7_days:
+    # if client turned on notifications 7 days before subscription expires
+    if sub_expires_in_7_days:
         settings_notifications_kb.insert(KeyboardButton('Выключить за 7 дней'))
-    # if client turned off notifications 7 days before subscription disabling
+    # if client turned off notifications 7 days before subscription expires
     else:
         settings_notifications_kb.insert(KeyboardButton('Включить за 7 дней'))
 
