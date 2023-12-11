@@ -5,14 +5,10 @@ from src.database import postgesql_db
 from src.handlers import admin, other
 from src.middlewares import admin_mw, user_mw
 from src.services import scheduler
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 async def on_startup(_):
     postgesql_db.sql_start()
-    print('DB has been successfully launched!')
-
     await scheduler.scheduler_start()
-    print('Scheluler has been successfully launched!')
     print('Bot has been successfully launched!')
 
 
