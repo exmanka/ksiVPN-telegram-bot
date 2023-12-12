@@ -9,7 +9,7 @@ CREATE TABLE clients (
 	username VARCHAR(33),
 	telegram_id BIGINT NOT NULL UNIQUE,
 	register_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	used_ref_promo_id INT REFERENCES promocodes_ref(id) ON DELETE RESTRICT,
+	used_ref_promo_id INT,
 	bot_chatgpt_mode BOOLEAN NOT NULL DEFAULT FALSE
 );
 
@@ -130,9 +130,24 @@ INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expira
 INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(46, 1, 0, TIMESTAMP '2023-12-11 15:23:00' + INTERVAL '1 months');		-- 'Юрий Ялин'
 
 
+CREATE OR REPLACE FUNCTION create_ref_promocode() RETURNS text
+AS $$
+DECLARE
+    ref_promo text;
+    done boolean;
+BEGIN
+    done := false;
+    WHILE NOT done LOOP
+        ref_promo := 'REF'||upper(substring(md5(''||now()::text||random()::text) for 7));
+        done := NOT exists(SELECT 1 FROM promocodes_ref WHERE phrase=ref_promo);
+    END LOOP;
+    RETURN ref_promo;
+END;
+$$ LANGUAGE PLPGSQL VOLATILE;
+
 CREATE TABLE promocodes_ref (
 	id SERIAL PRIMARY KEY,
-	phrase VARCHAR(10) UNIQUE,
+	phrase VARCHAR(10) UNIQUE NOT NULL DEFAULT create_ref_promocode(),
 	client_creator_id INT UNIQUE NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
 	provided_sub_id SMALLINT REFERENCES subscriptions(id) ON DELETE CASCADE,
 	bonus_time INTERVAL NOT NULL DEFAULT '1 month'
