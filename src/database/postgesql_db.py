@@ -259,7 +259,7 @@ def show_configurations_number(client_id: int):
     return cur.fetchone()
 
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
-def is_subscription_active(telegram_id: int):
+def is_subscription_active(telegram_id: int) -> bool:
     cur.execute('''
                 SELECT * FROM clients_subscriptions AS cs
                 JOIN clients AS c

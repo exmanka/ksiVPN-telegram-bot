@@ -285,6 +285,10 @@ async def account_configurations_submenu_cm_cancel(message: types.Message, state
 
 @user_mw.authorized_only()
 async def account_configurations_request_cm_start(message: types.Message):
+    if not postgesql_db.is_subscription_active(message.from_user.id):
+        await message.answer('Для запроса новой конфигурации необходимо продлить подписку!')
+        return
+
     answer_text = 'Понадобиться ответить на 3 вопроса, чтобы запросить новую конфигурацию у администратора!\n\n'
     answer_text += f'В данный момент у Вас <b>{postgesql_db.show_configurations_number(postgesql_db.find_clientID_by_telegramID(message.from_user.id)[0])[0]}</b> конфигураций.'
     await message.answer(answer_text, parse_mode='HTML')
@@ -321,11 +325,12 @@ async def account_configurations_request_chatgpt_info(message: types.Message):
 async def account_configurations_request_chatgpt(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['chatgpt'] = message.text
+
         await send_user_info({'fullname': message.from_user.full_name, 'username': message.from_user.username,\
                             'id': message.from_user.id}, data._data, is_new_user=False)
 
     
-    await message.answer(f'Отлично! Теперь ждем ответа от разработчика: в скором времени он проверит Вашу регистрацию и вышлет конфигурацию!',
+    await message.answer(f'Отлично! Теперь ждем ответа от разработчика: в скором времени он проверит ваши конфигурации и вышлет новую!',
                             reply_markup=user_authorized_kb.config_kb)
     await message.answer(f'Пожалуйста, не забывайте, что он тоже человек, и периодически спит (хотя на самом деле крайне редко)')
 

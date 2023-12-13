@@ -29,12 +29,8 @@ async def send_user_info(user: dict, choice: dict, is_new_user: bool):
                                 f"ID: <code>{user['id']}</code>\n"
                                 f"Конфигурация: {choice['platform'][2:]}, {choice['os_name']}, {choice['chatgpt']} ChatGPT\n\n"
                                 f"<b>Запрос дополнительной конфигурации от пользователя!</b>",
+                                reply_markup=await admin_kb.configuration(user['id']),
                                 parse_mode='HTML')
-        
-        await bot.send_message(ADMIN_ID,
-                               f"Сообщение, на которое нужно ответить через <b>reply</b>!\n\n"
-                               f"Metadata: {user['id']}",
-                               parse_mode='HTML')
         
 async def send_message_by_telegram_id(telegram_id: int, message: types.Message):
     # if message is text
@@ -550,7 +546,7 @@ async def send_configuration(message: types.Message, state: FSMContext):
             answer_text = await create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, telegram_file_id=telegram_file_id)
 
             await bot.send_message(telegram_id, 'Ура, конфигурация получена!')
-            await bot.send_document(telegram_id, telegram_file_id, answer_text, parse_mode='HTML')
+            await bot.send_document(telegram_id, telegram_file_id, caption=answer_text, parse_mode='HTML')
             await message.reply('Отлично, конфигурация в виде документа отправлена!')
             await state.finish()
 
@@ -562,7 +558,7 @@ async def send_configuration(message: types.Message, state: FSMContext):
             answer_text = await create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, telegram_file_id=telegram_file_id)
 
             await bot.send_message(telegram_id, 'Ура, конфигурация получена!')
-            await bot.send_photo(telegram_id, telegram_file_id, answer_text, parse_mode='HTML')
+            await bot.send_photo(telegram_id, telegram_file_id, caption=answer_text, parse_mode='HTML')
             await message.reply('Отлично, конфигурация в виде фото отправлена!')
             await state.finish()
             
