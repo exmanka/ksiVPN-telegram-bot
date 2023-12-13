@@ -1,4 +1,4 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
 
 menu_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
@@ -10,3 +10,6 @@ menu_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
 notification_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('_отправить_всем')).insert(KeyboardButton('_отправить_избранным')).\
     add(KeyboardButton('_вернуться'))
+
+async def configuration(telegram_id: int):
+    return InlineKeyboardMarkup().add(InlineKeyboardButton('Ответить', callback_data=telegram_id))

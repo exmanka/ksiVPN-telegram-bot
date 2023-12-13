@@ -13,7 +13,7 @@ CREATE TABLE clients (
 	bot_chatgpt_mode BOOLEAN NOT NULL DEFAULT FALSE
 );
 
-INSERT INTO clients (name, surname, username, telegram_id, register_date) VALUES('Михаил', 'Ким', '@exmanka', 824515558, 'EPOCH');
+INSERT INTO clients (name, telegram_id, register_date) VALUES('EXmanka', 824515558, 'EPOCH');
 INSERT INTO clients (name, username, telegram_id, register_date) VALUES('Anastasiya', '@CassiopeiaW', 371145065, TIMESTAMP '2023-01-01 00:00');
 INSERT INTO clients (name, surname, username, telegram_id, register_date) VALUES('Ульяна', 'Крылова', '@ulianak138', 988996691, TIMESTAMP '2023-01-01 00:00');
 INSERT INTO clients (name, username, telegram_id, register_date) VALUES('марьям :)', '@khatuevamariam', 633834276, TIMESTAMP '2023-01-01 00:00');

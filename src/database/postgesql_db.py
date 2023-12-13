@@ -622,3 +622,68 @@ def update_chatgpt_mode(telegram_id: int):
     conn.commit()
 
     return cur.fetchone()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def is_promo_ref(phrase: str) -> bool:
+    cur.execute('''
+                SELECT TRUE
+                FROM promocodes_ref
+                WHERE phrase = %s;
+                ''',
+                (phrase,))
+    
+    conn.commit()
+
+    return True if cur.fetchone() else False
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def insert_client(name: str,
+                  telegram_id: int,
+                  provided_sub_id: int,
+                  bonus_time: str,
+                  surname: str | None = None,
+                  username: str | None = None,
+                  used_ref_promo_id: int | None = None
+                  ):
+    
+    cur.execute('''
+                INSERT INTO clients (name, surname, username, telegram_id, used_ref_promo_id)
+                VALUES (%s, %s, %s, %s, %s)
+                RETURNING id;
+                ''',
+                (name, surname, username, telegram_id, used_ref_promo_id))
+    
+    client_id: int = cur.fetchone()[0]
+
+    cur.execute('''
+                INSERT INTO clients_subscriptions (client_id, sub_id, expiration_date)
+                VALUES (%s, %s, TIMESTAMP 'EPOCH' + INTERVAL %s);
+                ''',
+                (client_id, provided_sub_id, bonus_time))
+
+    cur.execute('''
+                INSERT INTO promocodes_ref (client_creator_id)
+                VALUES (%s);
+                ''',
+                (client_id,))
+    
+    cur.execute('''
+                INSERT INTO sub_notifications_settings (client_id)
+                VALUES (%s);
+                ''',
+                (client_id,))
+    
+    conn.commit()
+    
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def get_promo_ref_info(phrase: str):
+    cur.execute('''
+                SELECT id, client_creator_id, provided_sub_id, bonus_time
+                FROM promocodes_ref
+                WHERE phrase = %s;
+                ''',
+                (phrase,))
+    
+    conn.commit()
+
+    return cur.fetchone()

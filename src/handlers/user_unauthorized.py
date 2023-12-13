@@ -10,6 +10,7 @@ from src.middlewares import user_mw
 from src.handlers.admin import send_user_info
 from src.services.messages import messages_dict
 from src.handlers.user_authorized import already_registered_system
+from src.keyboards.user_authorized_kb import menu_kb
 
 
 @user_mw.unauthorized_only()
@@ -58,39 +59,45 @@ async def authorization_take_chatgpt(message: types.Message, state: FSMContext):
     await state.set_state(user_unauthorized_fsm.RegistrationFSM.promo)
     await message.answer('И последний шаг: введите реферальный промокод, если он имеется', reply_markup=user_unauthorized_kb.reg_ref_promo_kb)
 
+async def authorization_complete(message: types.Message, state: FSMContext):
+    used_ref_promo_id = None
+    provided_sub_id = 2 # default sub_id ADD CONSTANT IN FUTURE
+    bonus_time = '0 days'
+    user = message.from_user
+
+    async with state.proxy() as data:
+        if phrase := data['promo']:
+            used_ref_promo_id, _, provided_sub_id, bonus_time = postgesql_db.get_promo_ref_info(phrase)
+
+        postgesql_db.insert_client(user.first_name, user.id, provided_sub_id, bonus_time, user.last_name, user.username, used_ref_promo_id)
+        await send_user_info({'fullname': user.full_name, 'username': user.username, 'id': user.id}, data._data, is_new_user=True)
+
+    await message.answer(f'Отлично! Теперь ждем ответа от разработчика: в скором времени он проверит Вашу регистрацию и вышлет конфигурацию! А пока вы можете исследовать бота!',
+                         reply_markup=menu_kb)
+    await message.answer(f'Пожалуйста, не забывайте, что он тоже человек, и периодически спит (хотя на самом деле крайне редко)')
+    
+    await state.finish()
+
 @user_mw.unauthorized_only()
 async def authorization_promo_yes(message: types.Message, state: FSMContext):
-    if message.text in ['Masha', 'Maria', 'masha', 'maria']:
+    if postgesql_db.is_promo_ref(message.text):
         await message.answer('Промокод принят!')
         async with state.proxy() as data:
             data['promo'] = message.text
-
-        async with state.proxy() as data:
-            await send_user_info({'fullname': message.from_user.full_name, 'username': message.from_user.username,\
-                                'id': message.from_user.id}, data._data)
         
-        await message.answer(f'Отлично! Теперь ждем ответа от разработчика: в скором времени он проверит Вашу регистрацию и вышлет конфигурацию!',
-                                reply_markup=ReplyKeyboardRemove())
-        await message.answer(f'Пожалуйста, не забывайте, что он тоже человек, и периодически спит (хотя на самом деле крайне редко)')
-
-        await state.finish()
+        await authorization_complete(message, state)
     else:
         await message.answer('Такого промокода нет! Попробуйте ввести его еще раз')
+
+        async with state.proxy() as data:
+            data['promo'] = None
 
 @user_mw.unauthorized_only()
 async def authorization_promo_no(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        data['promo'] = 'без_промокода'
+        data['promo'] = None
 
-    async with state.proxy() as data:
-        await send_user_info({'fullname': message.from_user.full_name, 'username': message.from_user.username,\
-                                'id': message.from_user.id}, data._data, is_new_user=True)
-
-    await message.answer(f'Отлично! Теперь ждем ответа от разработчика: в скором времени он проверит Вашу регистрацию и вышлет конфигурацию!',
-                            reply_markup=ReplyKeyboardRemove())
-    await message.answer(f'Пожалуйста, не забывайте, что он тоже человек, и периодически спит (хотя на самом деле крайне редко)')
-
-    await state.finish()
+    await authorization_complete(message, state)
 
 async def command_start(message : types.Message):
     await bot.send_photo(message.from_user.id, messages_dict['hello_message']['img_id'], messages_dict['hello_message']['text'], reply_markup=user_unauthorized_kb.welcome_kb)

@@ -9,25 +9,31 @@ from src.middlewares import admin_mw
 from src.database import postgesql_db
 
 
-async def send_user_info(user_info, choice_info, is_new_user: bool):
+async def send_user_info(user: dict, choice: dict, is_new_user: bool):
     if is_new_user:
-        await bot.send_message(ADMIN_ID,\
-                                f"Имя: <code>{user_info['fullname']}</code>\n"
-                                f"Тэг: @{user_info['username']}\n"
-                                f"ID: <code>{user_info['id']}</code>\n"
-                                f"Промокод: <code>{choice_info['promo']}</code>\n"
-                                f"Конфигурация: {choice_info['platform'][2:]}, {choice_info['os_name']}, {choice_info['chatgpt']} ChatGPT\n\n"
+        await bot.send_message(ADMIN_ID,
+                                f"Имя: <code>{user['fullname']}</code>\n"
+                                f"Тэг: @{user['username']}\n"
+                                f"ID: <code>{user['id']}</code>\n"
+                                f"Промокод: <code>{choice['promo']}</code>\n"
+                                f"Конфигурация: {choice['platform'][2:]}, {choice['os_name']}, {choice['chatgpt']} ChatGPT\n\n"
                                 f"<b>Запрос на подключение от нового пользователя!</b>",
+                                reply_markup=await admin_kb.configuration(user['id']),
                                 parse_mode='HTML')
-    
+        
     else:
-        await bot.send_message(ADMIN_ID,\
-                                f"Имя: <code>{user_info['fullname']}</code>\n"
-                                f"Тэг: @{user_info['username']}\n"
-                                f"ID: <code>{user_info['id']}</code>\n"
-                                f"Конфигурация: {choice_info['platform'][2:]}, {choice_info['os_name']}, {choice_info['chatgpt']} ChatGPT\n\n"
+        await bot.send_message(ADMIN_ID,
+                                f"Имя: <code>{user['fullname']}</code>\n"
+                                f"Тэг: @{user['username']}\n"
+                                f"ID: <code>{user['id']}</code>\n"
+                                f"Конфигурация: {choice['platform'][2:]}, {choice['os_name']}, {choice['chatgpt']} ChatGPT\n\n"
                                 f"<b>Запрос дополнительной конфигурации от пользователя!</b>",
                                 parse_mode='HTML')
+        
+        await bot.send_message(ADMIN_ID,
+                               f"Сообщение, на которое нужно ответить через <b>reply</b>!\n\n"
+                               f"Metadata: {user['id']}",
+                               parse_mode='HTML')
         
 async def send_message_by_telegram_id(telegram_id: int, message: types.Message):
     # if message is text
@@ -392,30 +398,32 @@ async def get_file_id(message: types.Message):
         await message.answer('Файл не был прикреплен вместе с вызовом команды /fileid (/fid)!')
 
 @admin_mw.admin_only()
-async def send_config_photo(message: types.Message):
+async def send_configuration(message: types.Message):
     try:
-        await bot.send_photo(int(message.reply_to_message.text.split('\n')[2][3:]), message.photo[0].file_id,\
-                             'Готово! Ваш QR-код от сервера в ' + message.caption)
+        # if message is text
+        if text := message.text:
+            await bot.send_message(message.reply_to_message.text.split(' ')[-1], 'Готово! Ваш файл конфигурации от сервера в ' +\
+                            text)
+        
+        # if message is document
+        elif document := message.document:
+            await bot.send_document(message.reply_to_message.text.split(' ')[-1], document.file_id, message.caption)
+
+        # if message is photo
+        elif photo := message.photo:
+            await bot.send_photo(message.reply_to_message.text.split(' ')[-1], photo[0].file_id,\
+                            'Готово! Ваш QR-код от сервера в ' + message.caption)
+            
+        # other cases
+        else:
+            await message.reply('Вы предоставили неверный тип вложения!')
+
     except AttributeError:
         await message.reply('Вы не указали получателя!')
     except IndexError:
         await message.reply('Указано неподходящее сообщение!')
     except TypeError:
         await message.reply('Вы не указали страну подключения!')
-
-@admin_mw.admin_only()
-async def send_config_file(message: types.Message):
-    try:
-        await bot.send_document(int(message.reply_to_message.text.split('\n')[2][3:]), message.document.file_id)
-        await bot.send_message(int(message.reply_to_message.text.split('\n')[2][3:]), 'Готово! Ваш файл конфигурации от сервера в ' +\
-                               message.caption)
-    except AttributeError:
-        await message.reply('Вы не указали получателя!')
-    except IndexError:
-        await message.reply('Указано неподходящее сообщение!')
-    except TypeError:
-        await message.reply('Вы не указали страну подключения!')
-
 
 def register_handlers_admin(dp : Dispatcher):
     dp.register_message_handler(cm_reset, Text(equals=['_сброс_FSM', '_вернуться']), state='*')
@@ -436,5 +444,4 @@ def register_handlers_admin(dp : Dispatcher):
     dp.register_message_handler(show_user_config_sql, state=admin_fsm.FSMConfigInfo.ready, content_types=['text', 'photo', 'document'])
     dp.register_message_handler(get_file_id, Text(equals='_узнать_id_файла'), content_types=['text', 'photo', 'document'])
     dp.register_message_handler(get_file_id, commands=['fileid', 'fid'], commands_ignore_caption=False, content_types=['text', 'photo', 'document'])
-    dp.register_message_handler(send_config_photo, content_types=['photo'])
-    dp.register_message_handler(send_config_file, content_types=['document'])
+    dp.register_message_handler(send_configuration, content_types=['text', 'photo', 'document'])
