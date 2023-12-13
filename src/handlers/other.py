@@ -3,7 +3,7 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters import Text
 from src.services.messages import messages_dict
 from src.services.gpt4free import chatgpt_answer
-from src.database.postgesql_db import get_chatgpt_mode_status
+from src.database.postgesql_db import get_chatgpt_mode_status, is_user_registered
 import json, string
 
 
@@ -23,8 +23,8 @@ async def answer_unrecognized_messages(message: types.Message):
     Processing unrecognized messages and filtering obscene words handler
     '''
     
-    # if client turns on ChatGPT mode for bot
-    if get_chatgpt_mode_status(message.from_user.id)[0]:
+    # if client is regstered and client turns on ChatGPT mode for bot
+    if is_user_registered(message.from_user.id) and get_chatgpt_mode_status(message.from_user.id)[0]:
 
         # use aiogram.utils.chat_action.ChatActionSender in aiogram 3
         await bot.send_chat_action(message.from_user.id, 'typing')

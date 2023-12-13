@@ -683,6 +683,25 @@ def insert_client(name: str,
                 (client_id,))
     
     conn.commit()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def insert_configuration(client_id: int,
+                         protocol_id: int,
+                         location_id: int,
+                         os: str,
+                         file_type: str,
+                         telegram_file_id: str) -> tuple[int]:
+    
+    cur.execute('''
+                INSERT INTO configurations (client_id, protocol_id, location_id, os, file_type, telegram_file_id)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                RETURNING id;
+                ''',
+                (client_id, protocol_id, location_id, os, file_type, telegram_file_id))
+    
+    conn.commit()
+
+    return cur.fetchone()
     
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
 def get_promo_ref_info(phrase: str):

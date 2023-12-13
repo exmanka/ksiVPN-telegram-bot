@@ -13,6 +13,7 @@ from src.states import user_authorized_fsm
 from src.middlewares import user_mw
 from src.handlers.admin import send_user_info
 from src.services.aiomoney import YooMoneyWallet, PaymentSource
+from src.services import service_functions
 
 
 async def already_registered_system(message: types.Message):
@@ -259,32 +260,20 @@ async def account_configurations_info(message: types.Message):
     await message.answer(f'Информация о всех ваших конфигурациях, теперь не нужно искать их по диалогу с ботом!\n\nВсего конфигураций <b>{len(configurations_info)}</b>.',
                          parse_mode='HTML')
 
-    for config in configurations_info:
-        answer_text = ''
-        answer_text += f'<b>Создана</b>: {config[1]}\n'
-
-        # creating answer text with ChatGPT option
-        if config[3]:
-            answer_text += f'<b>Платформа</b>: {config[2]} с доступом к ChatGPT\n'
-
-        # creating answer text without ChatGPT option
-        else:
-            answer_text += f'<b>Платформа</b>: {config[2]}\n'
-
-        answer_text += f'<b>Протокол</b>: {config[4]}\n'
-        answer_text += f'<b>Локация VPN</b>: {config[5]}, {config[6]}, скорость до {config[7]} Мбит/с, ожидаемый пинг {config[8]} мс.'
+    for file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id in configurations_info:
+        answer_text = await service_functions.create_configuration_description(date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping)
 
         # if config was generated as photo
-        if config[0] == 'photo':
-            await bot.send_photo(message.from_user.id, config[9], answer_text, parse_mode='HTML', protect_content=True)
+        if file_type == 'photo':
+            await bot.send_photo(message.from_user.id, telegram_file_id, answer_text, parse_mode='HTML', protect_content=True)
 
         # if config was generated as document
-        elif config[0] == 'document':
-            await bot.send_document(message.from_user.id, config[9], caption=answer_text, parse_mode='HTML', protect_content=True)
+        elif file_type == 'document':
+            await bot.send_document(message.from_user.id, telegram_file_id, caption=answer_text, parse_mode='HTML', protect_content=True)
 
         # if config was generated as link
         else:
-            answer_text = f'<code>{config[9]}</code>\n\n' + answer_text
+            answer_text = f'<code>{telegram_file_id}</code>\n\n' + answer_text
             await bot.send_message(message.from_user.id, answer_text, parse_mode='HTML')
 
     await message.answer('Напоминаю правила (/rules):\n1. Одно устройство - одна конфигурация.\n2. Конфигурациями делиться с другими людьми запрещено!')

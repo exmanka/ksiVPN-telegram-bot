@@ -7,6 +7,7 @@ from src.states import admin_fsm
 from src.keyboards import admin_kb
 from src.middlewares import admin_mw
 from src.database import postgesql_db
+from src.services import service_functions
 
 
 async def send_user_info(user: dict, choice: dict, is_new_user: bool):
@@ -398,34 +399,183 @@ async def get_file_id(message: types.Message):
         await message.answer('Файл не был прикреплен вместе с вызовом команды /fileid (/fid)!')
 
 @admin_mw.admin_only()
-async def send_configuration(message: types.Message):
+async def send_configuration_cm_start(call: types.CallbackQuery, state: FSMContext):
+    await admin_fsm.FSMSendConfig.ready.set()
+
+    async with state.proxy() as data:
+        data['telegram_id'] = call.data
+
+    guide_text = 'Активировано машинное состояние! Пришлите мне сообщение в формате (вместо переноса строк используйте пробелы):\n\n'
+    guide_text += '<b>protocol</b> — <code>wireguard/wg/w</code> | <code>xtls-reality/xtls/reality/x</code> | <code>shadosocks/ss/s</code>\n'
+    guide_text += '<b>location</b> — <code>netherlands/n</code> | <code>latvia/l</code> | <code>germany/g</code> | <code>usa/u</code>\n'
+    guide_text += '<b>os</b> — <code>android</code> | <code>ios</code> | <code>windows</code> | <code>macos/mac</code> | <code>linux</code>\n'
+    guide_text += '<b>link</b> — если вместо фото или файла *.conf нужна ссылка для XTLS/SS для ПК\n\n'
+    guide_text += '<b>Не забываем прикрепить файл, если требуется!</b>'
+    await call.message.answer(guide_text, parse_mode='HTML')
+    await call.answer()
+
+async def get_configuration_sql_data(protocol: str, location: str, os: str, link: str | None = None) -> tuple[int, int, str]:
+    protocol_id = None
+    match protocol.lower():
+        case 'wireguard':
+            protocol_id = 1
+        case 'w':
+            protocol_id = 1
+        case 'wg':
+            protocol_id = 1
+        
+        case 'x':
+            protocol_id = 2
+        case 'xtls':
+            protocol_id = 2
+        case 'reality':
+            protocol_id = 2
+        case 'xtls-reality':
+            protocol_id = 2
+
+        case 's':
+            protocol_id = 3
+        case 'ss':
+            protocol_id = 3
+        case 'shadowsocks':
+            protocol_id = 3
+        
+        case _:
+            raise Exception('неверный ввод протокола (первый аргумент)!')
+        
+    location_id = None
+    match location.lower():
+        case 'n':
+            location_id = 1
+        case 'netherlands':
+            location_id = 1
+
+        case 'l':
+            location_id = 2
+        case 'latvia':
+            location_id = 2
+
+        case 'g':
+            location_id = 3
+        case 'germany':
+            location_id = 3
+
+        case 'u':
+            location_id = 4
+        case 'usa':
+            location_id = 4
+
+        case _:
+            raise Exception('неверный ввод страны (второй аргумент)!')
+        
+    os_enum = None
+    match os.lower():
+        case 'andoid':
+            os_enum = 'Android'
+
+        case 'ios':
+            os_enum = 'IOS'
+
+        case 'windows':
+            os_enum = 'Windows'
+
+        case 'linux':
+            os_enum = 'Linux'
+
+        case 'mac':
+            os_enum = 'macOS'
+        case 'macos':
+            os_enum = 'macOS'
+
+        case _:
+            raise Exception('неверный ввод ОС (третий аргумент)')
+        
+    if link and not link.startswith('vless://'):
+        raise Exception('неверный ввод vless ссылки (четвертый аргумент)!')
+        
+    return protocol_id, location_id, os_enum, link
+
+async def create_configuration(client_id: int,
+                               file_type: str,
+                               flag_protocol: str,
+                               flag_location: str,
+                               flag_os: str,
+                               flag_link: str | None = None,
+                               telegram_file_id: int | None = None) -> str:
+
+    link = None
+    if file_type == 'link':
+        protocol_id, location_id, os_enum, link = await get_configuration_sql_data(flag_protocol, flag_location, flag_os, flag_link)
+        postgesql_db.insert_configuration(client_id, protocol_id, location_id, os_enum, file_type, link)
+
+    elif file_type == 'document' or 'photo':
+        if telegram_file_id is None:
+            raise Exception('при попытке создания конфигурации не был указан telegram_file_id!')
+        
+        protocol_id, location_id, os_enum, _ = await get_configuration_sql_data(flag_protocol, flag_location, flag_os, flag_link)
+        postgesql_db.insert_configuration(client_id, protocol_id, location_id, os_enum, file_type, telegram_file_id)
+
+    else:
+        raise Exception('при попытке создания конфигурации был указан неверный file_type!')
+            
+    _, date_of_receipt, _, is_chatgpt_available, name, country, city, bandwidth, ping, _ = postgesql_db.show_configurations_info(client_id)[0]
+    configuration_description = await service_functions.create_configuration_description(date_of_receipt, os_enum, is_chatgpt_available, name, country, city, bandwidth, ping, link)
+
+    return configuration_description
+
+@admin_mw.admin_only()
+async def send_configuration(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        telegram_id = data['telegram_id']
+
+    client_id = postgesql_db.find_clientID_by_telegramID(telegram_id)[0]
+
     try:
         # if message is text
         if text := message.text:
-            await bot.send_message(message.reply_to_message.text.split(' ')[-1], 'Готово! Ваш файл конфигурации от сервера в ' +\
-                            text)
+            file_type = 'link'
+            flag_protocol, flag_location, flag_os, flag_link = text.split(' ')
+            answer_text = await create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, flag_link)
+
+            await bot.send_message(telegram_id, 'Ура, конфигурация получена!')
+            await bot.send_message(telegram_id, answer_text, parse_mode='HTML')
+            await message.reply('Отлично, конфигурация vless отправлена!')
+            await state.finish()
         
         # if message is document
         elif document := message.document:
-            await bot.send_document(message.reply_to_message.text.split(' ')[-1], document.file_id, message.caption)
+            file_type = 'document'
+            flag_protocol, flag_location, flag_os = message.caption.split(' ')
+            telegram_file_id = document.file_id
+            answer_text = await create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, telegram_file_id=telegram_file_id)
+
+            await bot.send_message(telegram_id, 'Ура, конфигурация получена!')
+            await bot.send_document(telegram_id, telegram_file_id, answer_text, parse_mode='HTML')
+            await message.reply('Отлично, конфигурация в виде документа отправлена!')
+            await state.finish()
 
         # if message is photo
         elif photo := message.photo:
-            await bot.send_photo(message.reply_to_message.text.split(' ')[-1], photo[0].file_id,\
-                            'Готово! Ваш QR-код от сервера в ' + message.caption)
+            file_type = 'photo'
+            flag_protocol, flag_location, flag_os = message.caption.split(' ')
+            telegram_file_id = photo[0].file_id
+            answer_text = await create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, telegram_file_id=telegram_file_id)
+
+            await bot.send_message(telegram_id, 'Ура, конфигурация получена!')
+            await bot.send_photo(telegram_id, telegram_file_id, answer_text, parse_mode='HTML')
+            await message.reply('Отлично, конфигурация в виде фото отправлена!')
+            await state.finish()
             
         # other cases
         else:
             await message.reply('Вы предоставили неверный тип вложения!')
 
-    except AttributeError:
-        await message.reply('Вы не указали получателя!')
-    except IndexError:
-        await message.reply('Указано неподходящее сообщение!')
-    except TypeError:
-        await message.reply('Вы не указали страну подключения!')
+    except ValueError as ve:
+        await message.reply(f'Ошибка: {ve}\nСкорее всего, вы указали неверное число флагов!')
+    except Exception as e:
+        await message.reply(f'Ошибка: {e}')
 
-def register_handlers_admin(dp : Dispatcher):
+def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(cm_reset, Text(equals=['_сброс_FSM', '_вернуться']), state='*')
     dp.register_message_handler(cm_reset, commands=['reset'], state='*')
     dp.register_message_handler(show_admin_keyboard, commands=['admin'])
@@ -444,4 +594,5 @@ def register_handlers_admin(dp : Dispatcher):
     dp.register_message_handler(show_user_config_sql, state=admin_fsm.FSMConfigInfo.ready, content_types=['text', 'photo', 'document'])
     dp.register_message_handler(get_file_id, Text(equals='_узнать_id_файла'), content_types=['text', 'photo', 'document'])
     dp.register_message_handler(get_file_id, commands=['fileid', 'fid'], commands_ignore_caption=False, content_types=['text', 'photo', 'document'])
-    dp.register_message_handler(send_configuration, content_types=['text', 'photo', 'document'])
+    dp.register_callback_query_handler(send_configuration_cm_start, lambda call: call.data.isdigit())
+    dp.register_message_handler(send_configuration, content_types=['text', 'photo', 'document'], state=admin_fsm.FSMSendConfig.ready)
