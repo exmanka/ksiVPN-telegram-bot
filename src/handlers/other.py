@@ -3,7 +3,7 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters import Text
 from src.services.messages import messages_dict
 from src.services.gpt4free import chatgpt_answer
-from src.database.postgesql_db import get_chatgpt_mode_status, is_user_registered
+from src.database.postgesql_db import is_user_registered, is_subscription_active, get_chatgpt_mode_status
 import json, string
 
 
@@ -26,11 +26,17 @@ async def answer_unrecognized_messages(message: types.Message):
     # if client is regstered and client turns on ChatGPT mode for bot
     if is_user_registered(message.from_user.id) and get_chatgpt_mode_status(message.from_user.id)[0]:
 
-        # use aiogram.utils.chat_action.ChatActionSender in aiogram 3
-        await bot.send_chat_action(message.from_user.id, 'typing')
-        await message.reply(await chatgpt_answer(message.text))
+        # is client's subscription is active
+        if is_subscription_active(message.from_user.id):
 
-    # if client turns off ChatGPT mode for bot
+            # use aiogram.utils.chat_action.ChatActionSender in aiogram 3
+            await bot.send_chat_action(message.from_user.id, 'typing')
+            await message.reply(await chatgpt_answer(message.text))
+
+        else:
+            await message.reply('Режим ChatGPT доступен только пользователям с активной подпиской!')
+
+    # if client turns off ChatGPT mode for bot or not registered
     else:
         await message.reply('Извините, я вас не понимаю \U0001F914\nВы можете дать мне безграничную силу, включив <b>режим ChatGPT</b> в Личном кабинете —> Настройках или введя команду /chatgpt_mode',
                             parse_mode='HTML')
