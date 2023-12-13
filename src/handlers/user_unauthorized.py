@@ -61,15 +61,15 @@ async def authorization_take_chatgpt(message: types.Message, state: FSMContext):
 
 async def authorization_complete(message: types.Message, state: FSMContext):
     used_ref_promo_id = None
-    provided_sub_id = 2 # default sub_id ADD CONSTANT IN FUTURE
-    bonus_time = '0 days'
+    provided_sub_id = None
+    bonus_time = None
     user = message.from_user
 
     async with state.proxy() as data:
         if phrase := data['promo']:
             used_ref_promo_id, _, provided_sub_id, bonus_time = postgesql_db.get_promo_ref_info(phrase)
 
-        postgesql_db.insert_client(user.first_name, user.id, provided_sub_id, bonus_time, user.last_name, user.username, used_ref_promo_id)
+        postgesql_db.insert_client(user.first_name, user.id, user.last_name, user.username, used_ref_promo_id, provided_sub_id, bonus_time)
         await send_user_info({'fullname': user.full_name, 'username': user.username, 'id': user.id}, data._data, is_new_user=True)
 
     await message.answer(f'Отлично! Теперь ждем ответа от разработчика: в скором времени он проверит Вашу регистрацию и вышлет конфигурацию! А пока вы можете исследовать бота!',

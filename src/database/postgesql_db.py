@@ -639,12 +639,21 @@ def is_promo_ref(phrase: str) -> bool:
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
 def insert_client(name: str,
                   telegram_id: int,
-                  provided_sub_id: int,
-                  bonus_time: str,
                   surname: str | None = None,
                   username: str | None = None,
-                  used_ref_promo_id: int | None = None
+                  used_ref_promo_id: int | None = None,
+                  provided_sub_id: int | None = None,
+                  bonus_time: str | None = None,
                   ):
+    
+    if username:
+        username = '@' + username
+    
+    if provided_sub_id is None:
+        provided_sub_id = 2 # добавить глобальную константу
+
+    if bonus_time is None:
+        bonus_time = '0 days'
     
     cur.execute('''
                 INSERT INTO clients (name, surname, username, telegram_id, used_ref_promo_id)
