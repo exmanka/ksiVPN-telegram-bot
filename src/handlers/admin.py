@@ -466,7 +466,7 @@ async def get_configuration_sql_data(protocol: str, location: str, os: str, link
         
     os_enum = None
     match os.lower():
-        case 'andoid':
+        case 'android':
             os_enum = 'Android'
 
         case 'ios':
