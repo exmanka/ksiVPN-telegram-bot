@@ -793,8 +793,10 @@ def insert_configuration(client_id: int,
     
     cur.execute('''
                 UPDATE clients_subscriptions
-                SET expiration_date = NOW() + (expiration_date - 'EPOCH');
-                ''')
+                SET expiration_date = NOW() + (expiration_date - 'EPOCH')
+                WHERE client_id = %s;
+                ''',
+                (client_id,))
 
     conn.commit()
     
