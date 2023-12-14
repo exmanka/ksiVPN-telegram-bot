@@ -274,6 +274,21 @@ def is_subscription_active(telegram_id: int) -> bool:
     return True if cur.fetchall() else False
 
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def is_subscription_not_started(telegram_id: int) -> bool:
+    cur.execute('''
+                SELECT * FROM clients_subscriptions AS cs
+                JOIN clients AS c
+                ON cs.client_id = c.id
+                WHERE c.telegram_id = %s
+                AND cs.expiration_date < TIMESTAMP 'EPOCH' + INTERVAL '5 years';
+                ''',
+                (telegram_id,))
+    
+    conn.commit()
+    
+    return True if cur.fetchall() else False
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
 def show_subscription_expiration_date(telegram_id: int):
     cur.execute('''
                 SELECT TO_CHAR(cs.expiration_date, 'FMDD TMMonth YYYY в HH24:MI') FROM clients_subscriptions AS cs
@@ -650,7 +665,20 @@ def insert_client(name: str,
         username = '@' + username
     
     if provided_sub_id is None:
-        provided_sub_id = 2 # добавить глобальную константу
+
+        if used_ref_promo_id is None:
+            provided_sub_id = 2 # добавить глобальную константу
+        else:
+            cur.execute('''
+                        SELECT cs.sub_id
+                        FROM promocodes_ref AS pr
+                        JOIN clients AS c ON pr.client_creator_id = c.id
+                        JOIN clients_subscriptions AS cs ON cs.client_id = c.id
+                        WHERE pr.id = %s;
+                        ''',
+                        (used_ref_promo_id,))
+            
+            provided_sub_id = cur.fetchone()[0]
 
     if bonus_time is None:
         bonus_time = '0 days'
@@ -699,9 +727,12 @@ def insert_configuration(client_id: int,
                 ''',
                 (client_id, protocol_id, location_id, os, file_type, telegram_file_id))
     
-    conn.commit()
+    cur.execute('''
+                UPDATE clients_subscriptions
+                SET expiration_date = NOW() + (expiration_date - 'EPOCH');
+                ''')
 
-    return cur.fetchone()
+    conn.commit()
     
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
 def get_promo_ref_info(phrase: str):
