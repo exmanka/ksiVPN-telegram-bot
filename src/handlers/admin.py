@@ -12,22 +12,27 @@ from src.services import service_functions
 
 async def send_user_info(user: dict, choice: dict, is_new_user: bool):
     if is_new_user:
+        _, client_creator_id, provided_sub_id, bonus_time = postgesql_db.get_promo_ref_info_parsed(choice['promo'])
+        client_creator_name, _, username, telegram_id,_ = postgesql_db.get_user_info_by_clientID(client_creator_id)
+        _, _, _, price = postgesql_db.get_subscription_info_by_subID(provided_sub_id)
+
         await bot.send_message(ADMIN_ID,
-                                f"Имя: <code>{user['fullname']}</code>\n"
-                                f"Тэг: @{user['username']}\n"
-                                f"ID: <code>{user['id']}</code>\n"
-                                f"Промокод: <code>{choice['promo']}</code>\n"
-                                f"Конфигурация: {choice['platform'][2:]}, {choice['os_name']}, {choice['chatgpt']} ChatGPT\n\n"
+                                f"<b>Имя</b>: <code>{user['fullname']}</code>\n"
+                                f"<b>Тэг</b>: @{user['username']}\n"
+                                f"<b>ID</b>: <code>{user['id']}</code>\n"
+                                f"<b>Промокод</b>: <code>{choice['promo']}</code> от пользователя {client_creator_name} {username} <code>{telegram_id}</code>"
+                                f"на {bonus_time} бесплатных дней по подписке {int(price)}₽/мес.\n"
+                                f"<b>Конфигурация</b>: {choice['platform'][2:]}, {choice['os_name']}, {choice['chatgpt']} ChatGPT\n\n"
                                 f"<b>Запрос на подключение от нового пользователя!</b>",
                                 reply_markup=await admin_kb.configuration(user['id']),
                                 parse_mode='HTML')
         
     else:
         await bot.send_message(ADMIN_ID,
-                                f"Имя: <code>{user['fullname']}</code>\n"
-                                f"Тэг: @{user['username']}\n"
-                                f"ID: <code>{user['id']}</code>\n"
-                                f"Конфигурация: {choice['platform'][2:]}, {choice['os_name']}, {choice['chatgpt']} ChatGPT\n\n"
+                                f"<b>Имя</b>: <code>{user['fullname']}</code>\n"
+                                f"<b>Тэг</b>: @{user['username']}\n"
+                                f"<b>ID</b>: <code>{user['id']}</code>\n"
+                                f"<b>Конфигурация</b>: {choice['platform'][2:]}, {choice['os_name']}, {choice['chatgpt']} ChatGPT\n\n"
                                 f"<b>Запрос дополнительной конфигурации от пользователя!</b>",
                                 reply_markup=await admin_kb.configuration(user['id']),
                                 parse_mode='HTML')
