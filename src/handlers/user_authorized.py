@@ -229,8 +229,8 @@ async def account_user_info(message: types.Message):
 
 @user_mw.authorized_only()
 async def account_subscription_info(message: types.Message):
-    subscription_info = postgesql_db.show_subscription_info(postgesql_db.find_clientID_by_telegramID(message.from_user.id)[0])[0]
-    await message.answer(f'<b>{subscription_info[0]}</b>\n\n{subscription_info[1]}\n\nСтоимость: {subscription_info[2]}₽ в месяц.', parse_mode='HTML')
+    _, title, description, price = postgesql_db.show_subscription_info(postgesql_db.find_clientID_by_telegramID(message.from_user.id)[0])[0]
+    await message.answer(f'<b>{title}</b>\n\n{description}\n\nСтоимость: {int(price)}₽ в месяц.', parse_mode='HTML')
 
 @user_mw.authorized_only()
 async def account_configurations_cm_start(message: types.Message, state: FSMContext):
