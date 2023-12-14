@@ -1,3 +1,5 @@
+from bot_init import bot
+
 async def create_configuration_description(date_of_receipt: str,
                                            os: str,
                                            is_chatgpt_available: bool,
@@ -27,3 +29,33 @@ async def create_configuration_description(date_of_receipt: str,
     answer_text += f'<b>Локация VPN</b>: {country}, {city}, скорость до {bandwidth} Мбит/с, ожидаемый пинг {ping} мс.'
 
     return answer_text
+
+async def send_configuration(telegram_id: int,
+                             file_type: str,
+                             date_of_receipt: str,
+                             os: str,
+                             is_chatgpt_available: bool,
+                             name: str,
+                             country: str,
+                             city: str,
+                             bandwidth: int,
+                             ping: int,
+                             telegram_file_id: str):
+    
+    answer_text = await create_configuration_description(date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping)
+
+    # if config was generated as photo
+    if file_type == 'photo':
+        await bot.send_photo(telegram_id, telegram_file_id, answer_text, parse_mode='HTML', protect_content=True)
+
+    # if config was generated as document
+    elif file_type == 'document':
+        await bot.send_document(telegram_id, telegram_file_id, caption=answer_text, parse_mode='HTML', protect_content=True)
+
+    # if config was generated as link
+    elif file_type == 'link':
+        answer_text = f'<code>{telegram_file_id}</code>\n\n' + answer_text
+        await bot.send_message(telegram_id, answer_text, parse_mode='HTML')
+
+    else:
+        raise Exception('указан неверный тип файла')

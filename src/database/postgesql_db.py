@@ -204,12 +204,24 @@ def show_user_info(telegram_id: int):
 
     return cur.fetchone()
 
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
 def get_user_info_by_clientID(client_id: int):
     cur.execute('''
                 SELECT name, surname, username, telegram_id, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI') FROM clients
                 WHERE id = %s;
                 ''',
                 (client_id,))
+    
+    conn.commit()
+
+    return cur.fetchone()
+
+def get_user_parsed_tuple_by_telegramID(telegram_id: int):
+    cur.execute('''
+                SELECT id, name, surname, username, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI') FROM clients
+                WHERE telegram_id = %s;
+                ''',
+                (telegram_id,))
     
     conn.commit()
 

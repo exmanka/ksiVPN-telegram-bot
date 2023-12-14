@@ -268,20 +268,7 @@ async def account_configurations_info(message: types.Message):
                          parse_mode='HTML')
 
     for file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id in configurations_info:
-        answer_text = await service_functions.create_configuration_description(date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping)
-
-        # if config was generated as photo
-        if file_type == 'photo':
-            await bot.send_photo(message.from_user.id, telegram_file_id, answer_text, parse_mode='HTML', protect_content=True)
-
-        # if config was generated as document
-        elif file_type == 'document':
-            await bot.send_document(message.from_user.id, telegram_file_id, caption=answer_text, parse_mode='HTML', protect_content=True)
-
-        # if config was generated as link
-        else:
-            answer_text = f'<code>{telegram_file_id}</code>\n\n' + answer_text
-            await bot.send_message(message.from_user.id, answer_text, parse_mode='HTML')
+        await service_functions.send_configuration(message.from_user.id, file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id)
 
     await message.answer('Напоминаю правила (/rules):\n1. Одно устройство - одна конфигурация.\n2. Конфигурациями делиться с другими людьми запрещено!')
 
