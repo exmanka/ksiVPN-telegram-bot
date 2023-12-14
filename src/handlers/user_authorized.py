@@ -100,6 +100,10 @@ async def sub_renewal(message: types.Message, state: FSMContext, months_number: 
 
 @user_mw.authorized_only()
 async def subscription_status(message: types.Message):
+    if postgesql_db.is_subscription_not_started(message.from_user.id):
+        await message.answer('Подписка еще не активирована, так как администратор пока что не прислал конфигурацию!')
+        return
+    
     if postgesql_db.is_subscription_active(message.from_user.id):
         await message.answer('Подписка активна!')
     else:
