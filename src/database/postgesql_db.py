@@ -402,6 +402,43 @@ def check_local_promo_exists(phrase):
     return cur.fetchone()
 
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def get_local_promo_parsed_tuple_by_phrase(phrase: str) -> tuple[int, str, str, str, str, int]:
+    cur.execute('''
+                SELECT id, expiration_date, TO_CHAR(expiration_date, 'FMDD TMMonth YYYY в HH24:MI'), bonus_time, TO_CHAR(bonus_time, 'FMDDD'), provided_sub_id
+                FROM promocodes_local
+                WHERE phrase = %s;
+                ''',
+                (phrase,))
+    
+    conn.commit()
+
+    return cur.fetchone()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def update_client_subscription(client_id: int, new_sub_id: int):
+    cur.execute('''
+                UPDATE clients_subscriptions
+                SET sub_id = %s
+                WHERE client_id = %s
+                ''',
+                (new_sub_id, client_id))
+    
+    conn.commit()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def get_global_promo_parsed_tuple_by_phrase(phrase: str) -> tuple[int, str, str, str, str]:
+    cur.execute('''
+                SELECT id, expiration_date, TO_CHAR(expiration_date, 'FMDD TMMonth YYYY в HH24:MI'), bonus_time, TO_CHAR(bonus_time, 'FMDDD')
+                FROM promocodes_global
+                WHERE phrase = %s;
+                ''',
+                (phrase,))
+    
+    conn.commit()
+
+    return cur.fetchone()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
 def check_global_promo_exists(phrase):
     cur.execute('''
                 SELECT id
@@ -445,7 +482,7 @@ def is_global_promo_already_entered(client_id: int, global_promo_id: int):
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
 def check_local_promo_valid(local_promo_id: int):
     cur.execute('''
-                SELECT bonus_time, TO_CHAR(bonus_time, 'FMDDD')
+                SELECT bonus_time, TO_CHAR(bonus_time, 'FMDDD'), provided_sub_id
                 FROM promocodes_local
                 WHERE id = %s
                 AND expiration_date > NOW();

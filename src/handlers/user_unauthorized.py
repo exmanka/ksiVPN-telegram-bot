@@ -110,6 +110,7 @@ async def authorization_promo_no(message: types.Message, state: FSMContext):
         data['promo'] = None
 
     await authorization_complete(message, state)
+    await message.answer('<b>Чтобы получить конфигурацию, Вам нужно продлить подписку!</b>', parse_mode='HTML')
 
 async def command_start(message : types.Message):
     await bot.send_photo(message.from_user.id, messages_dict['hello_message']['img_id'], messages_dict['hello_message']['text'], reply_markup=user_unauthorized_kb.welcome_kb)

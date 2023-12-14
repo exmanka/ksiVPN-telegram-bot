@@ -2,6 +2,20 @@ SET TIMEZONE = ‘Europe/Moscow’;
 SHOW TIMEZONE;
 SELECT TIMEOFDAY();
 
+DROP TABLE IF EXISTS clients CASCADE;
+DROP TABLE IF EXISTS clients_subscriptions CASCADE;
+DROP TABLE IF EXISTS subscriptions CASCADE;
+DROP TABLE IF EXISTS promocodes_ref CASCADE;
+DROP TABLE IF EXISTS clients_promo_global CASCADE;
+DROP TABLE IF EXISTS promocodes_global CASCADE;
+DROP TABLE IF EXISTS clients_promo_local CASCADE;
+DROP TABLE IF EXISTS promocodes_local CASCADE;
+DROP TABLE IF EXISTS configurations CASCADE;
+DROP TABLE IF EXISTS configurations_protocols CASCADE;
+DROP TABLE IF EXISTS configurations_locations CASCADE;
+DROP TABLE IF EXISTS payments CASCADE;
+DROP TABLE IF EXISTS sub_notifications_settings CASCADE;
+
 CREATE TABLE clients (
 	id SERIAL PRIMARY KEY,
 	name VARCHAR(64) NOT NULL,
@@ -209,10 +223,10 @@ CREATE TABLE promocodes_global (
 	bonus_time INTERVAL NOT NULL
 );
 
-INSERT INTO promocodes_global(phrase, expiration_date, bonus_time) VALUES('TEST_PROMO_ON_1', TIMESTAMP '2023-12-20', INTERVAL '1 months');
-INSERT INTO promocodes_global(phrase, expiration_date, bonus_time) VALUES('TEST_PROMO_ON_3', TIMESTAMP '2023-12-10', INTERVAL '3 months');
+INSERT INTO promocodes_global(phrase, expiration_date, bonus_time) VALUES('TEST_PROMO_ON_1', TIMESTAMP '2023-12-30', INTERVAL '1 months');
+INSERT INTO promocodes_global(phrase, expiration_date, bonus_time) VALUES('TEST_PROMO_ON_3', TIMESTAMP '2023-12-30', INTERVAL '3 months');
 INSERT INTO promocodes_global(phrase, expiration_date, bonus_time) VALUES('TEST_PROMO_OFF', TIMESTAMP '2023-11-10', INTERVAL '3 months');
-INSERT INTO promocodes_global(phrase, expiration_date, bonus_time) VALUES('TEST_PROMO_ON_24', TIMESTAMP '2023-12-10', INTERVAL '24 months');
+INSERT INTO promocodes_global(phrase, expiration_date, bonus_time) VALUES('TEST_PROMO_ON_24', TIMESTAMP '2023-12-30', INTERVAL '24 months');
 
 
 CREATE TABLE clients_promo_global (
@@ -226,14 +240,14 @@ CREATE TABLE promocodes_local (
 	id SMALLSERIAL PRIMARY KEY,
 	phrase VARCHAR(32) UNIQUE NOT NULL,
 	expiration_date TIMESTAMP NOT NULL,
-	provided_sub_id SMALLINT NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
+	provided_sub_id SMALLINT REFERENCES subscriptions(id) ON DELETE CASCADE,
 	bonus_time INTERVAL NOT NULL
 );
 
-INSERT INTO promocodes_local(phrase, expiration_date, provided_sub_id, bonus_time) VALUES('LOCAL_PROMO_OFF', TIMESTAMP '2023-11-01', 1, INTERVAL '2 months');
-INSERT INTO promocodes_local(phrase, expiration_date, provided_sub_id, bonus_time) VALUES('LOCAL_PROMO_ON1W', TIMESTAMP '2023-12-01', 1, INTERVAL '1 weeks');
-INSERT INTO promocodes_local(phrase, expiration_date, provided_sub_id, bonus_time) VALUES('LOCAL_PROMO_ON2W', TIMESTAMP '2023-12-01', 2, INTERVAL '2 weeks');
-INSERT INTO promocodes_local(phrase, expiration_date, provided_sub_id, bonus_time) VALUES('LOCAL_PROMO_ON2D', TIMESTAMP '2023-12-01', 3, INTERVAL '2 days');
+INSERT INTO promocodes_local(phrase, expiration_date, bonus_time) VALUES('LOCAL_PROMO_OFF', TIMESTAMP '2023-11-01', INTERVAL '2 months');
+INSERT INTO promocodes_local(phrase, expiration_date, bonus_time) VALUES('LOCAL_PROMO_ON1W', TIMESTAMP '2023-12-30', INTERVAL '1 weeks');
+INSERT INTO promocodes_local(phrase, expiration_date, provided_sub_id, bonus_time) VALUES('LOCAL_PROMO_ON2W', TIMESTAMP '2023-12-30', 2, INTERVAL '2 weeks');
+INSERT INTO promocodes_local(phrase, expiration_date, provided_sub_id, bonus_time) VALUES('LOCAL_PROMO_ON2D', TIMESTAMP '2023-12-30', 3, INTERVAL '2 days');
 
 
 CREATE TABLE clients_promo_local (
@@ -476,17 +490,3 @@ INSERT INTO sub_notifications_settings(client_id) VALUES(46);
 SELECT 'DROP TABLE IF EXISTS ' || tablename || ' CASCADE;' 
 FROM pg_tables
 WHERE schemaname = 'public';
-
-DROP TABLE IF EXISTS clients CASCADE;
-DROP TABLE IF EXISTS clients_subscriptions CASCADE;
-DROP TABLE IF EXISTS subscriptions CASCADE;
-DROP TABLE IF EXISTS promocodes_ref CASCADE;
-DROP TABLE IF EXISTS clients_promo_global CASCADE;
-DROP TABLE IF EXISTS promocodes_global CASCADE;
-DROP TABLE IF EXISTS clients_promo_local CASCADE;
-DROP TABLE IF EXISTS promocodes_local CASCADE;
-DROP TABLE IF EXISTS configurations CASCADE;
-DROP TABLE IF EXISTS configurations_protocols CASCADE;
-DROP TABLE IF EXISTS configurations_locations CASCADE;
-DROP TABLE IF EXISTS payments CASCADE;
-DROP TABLE IF EXISTS sub_notifications_settings CASCADE;

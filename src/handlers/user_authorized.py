@@ -1,4 +1,4 @@
-from bot_init import bot, YOOMONEY_TOKEN
+from bot_init import bot, YOOMONEY_TOKEN, ADMIN_ID
 from aiogram import types, Dispatcher
 from random import choice
 from asyncio import sleep
@@ -455,6 +455,25 @@ async def account_ref_program_invite(message: types.Message):
 async def account_ref_program_promocode(message: types.Message):
     await message.answer(f'Ваш реферальный промокод: <code>{postgesql_db.show_referral_promocode(message.from_user.id)[0]}</code>', parse_mode='HTML')
 
+async def send_admin_info_promo_entered(client_id: int, phrase: str, promo_type: str):
+    name, surname, username, telegram_id, _ = postgesql_db.get_user_info_by_clientID(client_id)
+    answer_message = f'Пользователем {name} {surname} {username} <code>{telegram_id}</code> был введен '
+
+    if promo_type == 'global':
+        id, _, expiration_date_parsed, _, bonus_time_parsed = postgesql_db.get_global_promo_parsed_tuple_by_phrase(phrase)
+        answer_message += f'глобальный промокод с ID {id} на {bonus_time_parsed} дней подписки, заканчивающийся {expiration_date_parsed}.'
+
+    elif promo_type == 'local':
+        id, _, expiration_date_parsed, _, bonus_time_parsed, provided_sub_id = postgesql_db.get_local_promo_parsed_tuple_by_phrase(phrase)
+        _, _, _, price = postgesql_db.get_subscription_info_by_subID(provided_sub_id)
+        answer_message += f'специальный промокод с ID {id} на {bonus_time_parsed} дней подписки, предоставляющий подписку за {int(price)}₽/мес., '
+        answer_message += f'заканчивающийся {expiration_date_parsed}'
+
+    else:
+        raise Exception('ввведен неверный тип промокода')
+    
+    await bot.send_message(ADMIN_ID, answer_message, parse_mode='HTML')
+
 @user_mw.authorized_only()
 async def account_promo_check(message: types.Message, state: FSMContext):
 
@@ -478,6 +497,7 @@ async def account_promo_check(message: types.Message, state: FSMContext):
             if promo_bonus_time:
                 postgesql_db.insert_user_entered_global_promo(client_id, promo_global_id[0], promo_bonus_time[0])
                 await message.answer(f'Ура! Промокод на {promo_bonus_time[1]} дней бесплатной подписки принят!', reply_markup=user_authorized_kb.account_kb)
+                await send_admin_info_promo_entered(client_id, message.text, 'global')
                 await state.set_state(user_authorized_fsm.AccountMenu.menu)
 
             else:
@@ -500,8 +520,19 @@ async def account_promo_check(message: types.Message, state: FSMContext):
 
                 # if local promo didn't expire
                 if promo_local_bonus_time:
-                    postgesql_db.insert_user_entered_local_promo(client_id, promo_local_id[0], promo_local_bonus_time[0])
-                    await message.answer(f'Ура! Специальный промокод на {promo_local_bonus_time[1]} дней бесплатной подписки принят!', reply_markup=user_authorized_kb.account_kb)
+                    bonus_time, bonus_time_parsed, provided_sub_id = promo_local_bonus_time
+                    postgesql_db.insert_user_entered_local_promo(client_id, promo_local_id[0], bonus_time)
+
+                    answer_message = f'Ура! Специальный промокод на {bonus_time_parsed} дней бесплатной подписки принят!'
+
+                    # if local promo changes client's subscription
+                    if provided_sub_id:
+                        postgesql_db.update_client_subscription(client_id, provided_sub_id)
+                        _, title, _, price = postgesql_db.get_subscription_info_by_subID(provided_sub_id)
+                        answer_message += f'\n\nТип вашей подписки сменен на «<b>{title}</b>» со стоимостью {int(price)}₽/мес!'
+
+                    await message.answer(answer_message, parse_mode='HTML', reply_markup=user_authorized_kb.account_kb)
+                    await send_admin_info_promo_entered(client_id, message.text, 'local')
                     await state.set_state(user_authorized_fsm.AccountMenu.menu)
                 
                 else:
