@@ -44,7 +44,7 @@ async def sub_renewal(message: types.Message, state: FSMContext, months_number: 
     sub_id, sub_title, _, sub_price = postgesql_db.show_subscription_info(client_id)[0]
 
     # count payment sum
-    payment_price = sub_price * months_number * (1 - discount)
+    payment_price = max(sub_price * months_number * (1 - discount), 2)
 
     # create entity in db table payments and getting payment_id
     payment_id = postgesql_db.insert_user_payment(client_id, sub_id, payment_price, months_number)[0]
