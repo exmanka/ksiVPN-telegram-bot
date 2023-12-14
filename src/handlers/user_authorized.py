@@ -210,19 +210,22 @@ async def account_cm_start(message: types.Message):
 
 @user_mw.authorized_only()
 async def account_user_info(message: types.Message):
-    user_info = postgesql_db.show_user_info(message.from_user.id)[0]
-    tmp_string = f'Вот что я о Вас знаю:\n\nИмя: {user_info[0]}\n'
+    name, surname, username, telegram_id, register_date = postgesql_db.show_user_info(message.from_user.id)
+    tmp_string = f'Вот что я о Вас знаю:\n\n'
+    tmp_string += f'<b>Имя</b>: {name}\n'
 
     # if user has surname
-    if not user_info[1]:
-        tmp_string += f'Фамилия: {user_info[0][1]}\n'
+    if surname is not None:
+        tmp_string += f'<b>Фамилия</b>: {surname}\n'
 
     # if user has username
-    if not user_info[2]:
-        tmp_string += f'Ник: @{user_info[2]}\n'
+    if username is not None:
+        tmp_string += f'<b>Ник</b>: {username}\n'
 
-    tmp_string += f'Телеграм ID: {user_info[3]}\nДата регистрации: {user_info[4]}'
-    await message.answer(tmp_string)
+    tmp_string += f'<b>Телеграм ID</b>: {telegram_id}\n'
+    tmp_string += f'<b>Дата регистрации</b>: {register_date}'
+
+    await message.answer(tmp_string, parse_mode='HTML')
 
 @user_mw.authorized_only()
 async def account_subscription_info(message: types.Message):
