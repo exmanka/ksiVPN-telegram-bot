@@ -69,8 +69,8 @@ CREATE TABLE subscriptions (
 	description VARCHAR(128)
 );
 
-INSERT INTO subscriptions (price, title, description) VALUES(75, 'Олдскулл подписка', 'Для ребят, которые с сервисом с самого начала!');
 INSERT INTO subscriptions (price, title, description) VALUES(200, 'Стандартная подписка', 'Основная подписка, предоставляющая все возможности сервиса.');
+INSERT INTO subscriptions (price, title, description) VALUES(75, 'Олдскулл подписка', 'Для ребят, которые с сервисом с самого начала!');
 INSERT INTO subscriptions (price, title, description) VALUES(0, 'Подписка для любимых', 'Только для избранных!');
 INSERT INTO subscriptions (price, title, description) VALUES(150, 'Олдскулл подписка на двоих', 'Для ребят, которые с сервисом с самого начала!');
 
@@ -83,52 +83,52 @@ CREATE TABLE clients_subscriptions (
 );
 
 -- вставка сформирована 2023-11-17
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(1, 1, 10, TIMESTAMP '2023-11-18 16:00');								-- '@exmanka'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(2, 1, 8, TIMESTAMP '2023-01-01 00:00:00' + INTERVAL '8 months');		-- '@Cassiopeiaw'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(3, 1, 8, TIMESTAMP '2023-01-01 00:00:00' + INTERVAL '8 months');		-- '@ulianak138'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(4, 1, 4, TIMESTAMP '2023-01-01 00:00:00' + INTERVAL '10 months');		-- '@khatuevamariam'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(1, 2, 10, TIMESTAMP '2023-11-18 16:00');								-- '@exmanka'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(2, 2, 8, TIMESTAMP '2023-01-01 00:00:00' + INTERVAL '8 months');		-- '@Cassiopeiaw'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(3, 2, 8, TIMESTAMP '2023-01-01 00:00:00' + INTERVAL '8 months');		-- '@ulianak138'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(4, 2, 4, TIMESTAMP '2023-01-01 00:00:00' + INTERVAL '10 months');		-- '@khatuevamariam'
 INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(5, 4, 9, TIMESTAMP '2023-01-01 00:00:00' + INTERVAL '10 months');		-- '@lebedinkaaa'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(6, 1, 8, TIMESTAMP '2023-01-01 00:00:00' + INTERVAL '8 months');		-- '@Limeghost'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(6, 2, 8, TIMESTAMP '2023-01-01 00:00:00' + INTERVAL '8 months');		-- '@Limeghost'
 INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(7, 4, 9, TIMESTAMP '2023-01-01 00:00:00' + INTERVAL '10 months');		-- '@d_dobyshin'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(8, 1, 6, TIMESTAMP '2023-03-11 12:22:00' + INTERVAL '6 months');		-- '@KiraYoshikage_33'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(8, 2, 6, TIMESTAMP '2023-03-11 12:22:00' + INTERVAL '6 months');		-- '@KiraYoshikage_33'
 INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(9, 3, 23, TIMESTAMP '2023-04-01 12:59:00' + INTERVAL '2 years');		-- '@Y0gu4t'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(10, 1, 8, TIMESTAMP '2023-04-01 12:55:00' + INTERVAL '9 months');		-- '@myaufi'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(11, 1, 0, TIMESTAMP '2023-04-01 15:29:00' + INTERVAL '6 months');		-- '@mmarlamarisha'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(10, 2, 8, TIMESTAMP '2023-04-01 12:55:00' + INTERVAL '9 months');		-- '@myaufi'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(11, 2, 0, TIMESTAMP '2023-04-01 15:29:00' + INTERVAL '6 months');		-- '@mmarlamarisha'
 INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(12, 4, 4, TIMESTAMP '2023-04-01 14:31:00' + INTERVAL '6 months');		-- '@aabramovvv'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(13, 1, 3, TIMESTAMP '2023-04-01 12:14:00' + INTERVAL '4 months');		-- '@nastyaso1'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(14, 1, 3, TIMESTAMP '2023-04-06 23:37:00' + INTERVAL '5 months');		-- '@Arina_206'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(15, 1, 3, TIMESTAMP '2023-04-06 22:28:00' + INTERVAL '4 months');		-- '@mystredesyeux'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(16, 1, 3, TIMESTAMP '2023-04-08 14:49:00' + INTERVAL '4 months');		-- '@annavasilevaV'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(17, 1, 4, TIMESTAMP '2023-04-10 11:37:00' + INTERVAL '5 months');		-- 'Lion'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(18, 1, 4, TIMESTAMP '2023-04-14 18:51:00' + INTERVAL '5 months');		-- '@vrrvng'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(19, 1, 3, TIMESTAMP '2023-04-20 18:47:00' + INTERVAL '4 months');		-- '@seregin_denis'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(20, 1, 4, TIMESTAMP '2023-04-27 00:13:00' + INTERVAL '5 months');		-- '@nyzaaaii'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(13, 2, 3, TIMESTAMP '2023-04-01 12:14:00' + INTERVAL '4 months');		-- '@nastyaso1'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(14, 2, 3, TIMESTAMP '2023-04-06 23:37:00' + INTERVAL '5 months');		-- '@Arina_206'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(15, 2, 3, TIMESTAMP '2023-04-06 22:28:00' + INTERVAL '4 months');		-- '@mystredesyeux'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(16, 2, 3, TIMESTAMP '2023-04-08 14:49:00' + INTERVAL '4 months');		-- '@annavasilevaV'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(17, 2, 4, TIMESTAMP '2023-04-10 11:37:00' + INTERVAL '5 months');		-- 'Lion'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(18, 2, 4, TIMESTAMP '2023-04-14 18:51:00' + INTERVAL '5 months');		-- '@vrrvng'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(19, 2, 3, TIMESTAMP '2023-04-20 18:47:00' + INTERVAL '4 months');		-- '@seregin_denis'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(20, 2, 4, TIMESTAMP '2023-04-27 00:13:00' + INTERVAL '5 months');		-- '@nyzaaaii'
 INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(21, 4, 6, TIMESTAMP '2023-05-11 14:49:00' + INTERVAL '8 months');		-- '@sdohnj'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(22, 1, 4, TIMESTAMP '2023-05-23 23:34:00' + INTERVAL '5 months');		-- '@n_kirian'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(23, 1, 2, TIMESTAMP '2023-05-22 18:33:00' + INTERVAL '4 months');		-- '@Mastyunina'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(24, 1, 3, TIMESTAMP '2023-05-23 20:44:00' + INTERVAL '4 months');		-- '@AlexLuter91'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(25, 1, 2, TIMESTAMP '2023-06-11 23:28:00' + INTERVAL '3 months');		-- '@vbbvs1'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(26, 1, 0, TIMESTAMP '2023-07-12 15:01:00' + INTERVAL '2 months');		-- '@Lambrulam'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(27, 1, 2, TIMESTAMP '2023-07-12 14:56:00' + INTERVAL '2 months');		-- '@chizzzhova'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(28, 1, 0, TIMESTAMP '2023-08-04 15:23:00' + INTERVAL '1 months');		-- '@aalyolya'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(29, 1, 0, TIMESTAMP '2023-08-07 17:54:00' + INTERVAL '1 months');		-- '@dimedr8l'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(30, 1, 0, TIMESTAMP '2023-07-27 02:47:00' + INTERVAL '1 months');		-- 'Ant_Zhd'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(31, 1, 0, TIMESTAMP '2023-08-06 14:32:00' + INTERVAL '1 months');		-- '@vvryya'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(32, 2, 1, TIMESTAMP '2023-08-14 15:26:00' + INTERVAL '2 months');		-- '@olgusha1185'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(33, 1, 0, TIMESTAMP '2023-09-13 13:00:00' + INTERVAL '1 months');		-- '@WAFFLES123'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(34, 1, 0, TIMESTAMP '2023-09-12 16:25:00' + INTERVAL '1 months');		-- '@Fivecentandtwonew_grivennik'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(35, 1, 0, TIMESTAMP '2023-09-20 18:16:00' + INTERVAL '1 months');		-- '@gngstreet'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(36, 1, 0, TIMESTAMP '2023-10-13 13:28:00' + INTERVAL '1 months');		-- '@unique_tema'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(37, 2, 3, TIMESTAMP '2023-09-04 23:45:00' + INTERVAL '3 months');		-- '@Howtofindmee'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(22, 2, 4, TIMESTAMP '2023-05-23 23:34:00' + INTERVAL '5 months');		-- '@n_kirian'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(23, 2, 2, TIMESTAMP '2023-05-22 18:33:00' + INTERVAL '4 months');		-- '@Mastyunina'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(24, 2, 3, TIMESTAMP '2023-05-23 20:44:00' + INTERVAL '4 months');		-- '@AlexLuter91'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(25, 2, 2, TIMESTAMP '2023-06-11 23:28:00' + INTERVAL '3 months');		-- '@vbbvs1'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(26, 2, 0, TIMESTAMP '2023-07-12 15:01:00' + INTERVAL '2 months');		-- '@Lambrulam'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(27, 2, 2, TIMESTAMP '2023-07-12 14:56:00' + INTERVAL '2 months');		-- '@chizzzhova'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(28, 2, 0, TIMESTAMP '2023-08-04 15:23:00' + INTERVAL '1 months');		-- '@aalyolya'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(29, 2, 0, TIMESTAMP '2023-08-07 17:54:00' + INTERVAL '1 months');		-- '@dimedr8l'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(30, 2, 0, TIMESTAMP '2023-07-27 02:47:00' + INTERVAL '1 months');		-- 'Ant_Zhd'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(31, 2, 0, TIMESTAMP '2023-08-06 14:32:00' + INTERVAL '1 months');		-- '@vvryya'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(32, 1, 1, TIMESTAMP '2023-08-14 15:26:00' + INTERVAL '2 months');		-- '@olgusha1185'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(33, 2, 0, TIMESTAMP '2023-09-13 13:00:00' + INTERVAL '1 months');		-- '@WAFFLES123'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(34, 2, 0, TIMESTAMP '2023-09-12 16:25:00' + INTERVAL '1 months');		-- '@Fivecentandtwonew_grivennik'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(35, 2, 0, TIMESTAMP '2023-09-20 18:16:00' + INTERVAL '1 months');		-- '@gngstreet'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(36, 2, 0, TIMESTAMP '2023-10-13 13:28:00' + INTERVAL '1 months');		-- '@unique_tema'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(37, 1, 3, TIMESTAMP '2023-09-04 23:45:00' + INTERVAL '3 months');		-- '@Howtofindmee'
 INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(38, 3, 0, TIMESTAMP '2023-04-14 23:07:00' + INTERVAL '0 months');		-- '@Ghostick'
 INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(39, 3, 0, TIMESTAMP '2023-04-05 20:31:00' + INTERVAL '0 months');		-- '@ekaterina_dasova'
 INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(40, 3, 0, TIMESTAMP '2023-04-04 02:47:00' + INTERVAL '0 months');		-- 'Mother'
 INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(41, 4, 0, TIMESTAMP '2023-08-11 15:11:00' + INTERVAL '0 months');		-- '@KoberO'
 INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(42, 3, 0, TIMESTAMP '2023-01-01 00:00:00' + INTERVAL '0 months');		-- '@marialubina'
 INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(43, 3, 0, TIMESTAMP '2023-01-01 00:00:00' + INTERVAL '0 months');		-- 'Father'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(44, 1, 0, TIMESTAMP '2023-11-03 22:53:00' + INTERVAL '1 months');		-- '@radulichh'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(45, 1, 0, TIMESTAMP '2023-11-29 21:07:00' + INTERVAL '1 months');		-- '@e11ino4ka'
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(46, 1, 0, TIMESTAMP '2023-12-11 15:23:00' + INTERVAL '1 months');		-- 'Юрий Ялин'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(44, 2, 0, TIMESTAMP '2023-11-03 22:53:00' + INTERVAL '1 months');		-- '@radulichh'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(45, 2, 0, TIMESTAMP '2023-11-29 21:07:00' + INTERVAL '1 months');		-- '@e11ino4ka'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(46, 2, 0, TIMESTAMP '2023-12-11 15:23:00' + INTERVAL '1 months');		-- 'Юрий Ялин'
 
 
 CREATE OR REPLACE FUNCTION create_ref_promocode() RETURNS text
@@ -150,56 +150,56 @@ CREATE TABLE promocodes_ref (
 	id SERIAL PRIMARY KEY,
 	phrase VARCHAR(10) UNIQUE NOT NULL DEFAULT create_ref_promocode(),
 	client_creator_id INT UNIQUE NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
-	provided_sub_id SMALLINT REFERENCES subscriptions(id) ON DELETE CASCADE,
+	provided_sub_id SMALLINT NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
 	bonus_time INTERVAL NOT NULL DEFAULT '1 month'
 );
 
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFGL0VL17', 1);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFHXN9JE6', 2);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REF45TCQVQ', 3);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REF5IIM9YA', 4);
-INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REF0ANOZGP', 5, 1);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFIMPUUSK', 6);
-INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFLDIRB3F', 7, 1);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFZ6M727S', 8);
-INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFYYEZ87O', 9, 1);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFPLZ86P8', 10);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFIR5AS4H', 11);
-INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFBNZKOEL', 12, 1);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFGO4X40E', 13);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFWCBKWQX', 14);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REF38LYZ6K', 15);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFI7GN5XA', 16);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REF6V2K6WY', 17);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFK8JMM5C', 18);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFOB8IULI', 19);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFOCQZN36', 20);
-INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFTUGLUSA', 21, 1);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFFACPCLS', 22);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFCRN0K5A', 23);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFSU4AK3K', 24);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REF38YUC1M', 25);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFKJ8UWBL', 26);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REF0FMGMR7', 27);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFFA6INWE', 28);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFJPB3FEA', 29);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REF7I7CQQP', 30);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFNBUDLDT', 31);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFYBZSW3M', 32);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFC33T0F1', 33);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFCFCV3HG', 34);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REF3A0ABQ1', 35);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REF3KLBZ0E', 36);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REF3FSL2QK', 37);
-INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFR0UUY2L', 38, 1);
-INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFN5RJMGJ', 39, 1);
-INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFO55AUAP', 40, 1);
-INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFKI78HOH', 41, 1);
-INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFYFYIIG3', 42, 1);
-INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFHW30C3F', 43, 1);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFGW38C3F', 44);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFYFYIZG3', 45);
-INSERT INTO promocodes_ref(phrase, client_creator_id) VALUES('REFPFYIZG3', 46);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFGL0VL17', 1, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFHXN9JE6', 2, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REF45TCQVQ', 3, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REF5IIM9YA', 4, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REF0ANOZGP', 5, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFIMPUUSK', 6, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFLDIRB3F', 7, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFZ6M727S', 8, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFYYEZ87O', 9, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFPLZ86P8', 10, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFIR5AS4H', 11, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFBNZKOEL', 12, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFGO4X40E', 13, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFWCBKWQX', 14, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REF38LYZ6K', 15, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFI7GN5XA', 16, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REF6V2K6WY', 17, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFK8JMM5C', 18, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFOB8IULI', 19, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFOCQZN36', 20, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFTUGLUSA', 21, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFFACPCLS', 22, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFCRN0K5A', 23, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFSU4AK3K', 24, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REF38YUC1M', 25, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFKJ8UWBL', 26, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REF0FMGMR7', 27, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFFA6INWE', 28, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFJPB3FEA', 29, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REF7I7CQQP', 30, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFNBUDLDT', 31, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFYBZSW3M', 32, 1);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFC33T0F1', 33, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFCFCV3HG', 34, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REF3A0ABQ1', 35, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REF3KLBZ0E', 36, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REF3FSL2QK', 37, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFR0UUY2L', 38, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFN5RJMGJ', 39, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFO55AUAP', 40, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFKI78HOH', 41, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFYFYIIG3', 42, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFHW30C3F', 43, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFGW38C3F', 44, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFYFYIZG3', 45, 2);
+INSERT INTO promocodes_ref(phrase, client_creator_id, provided_sub_id) VALUES('REFPFYIZG3', 46, 2);
 
 
 CREATE TABLE promocodes_global (
@@ -226,12 +226,12 @@ CREATE TABLE promocodes_local (
 	id SMALLSERIAL PRIMARY KEY,
 	phrase VARCHAR(32) UNIQUE NOT NULL,
 	expiration_date TIMESTAMP NOT NULL,
-	provided_sub_id SMALLINT REFERENCES subscriptions(id) ON DELETE CASCADE,
+	provided_sub_id SMALLINT NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
 	bonus_time INTERVAL NOT NULL
 );
 
-INSERT INTO promocodes_local(phrase, expiration_date, bonus_time) VALUES('LOCAL_PROMO_OFF', TIMESTAMP '2023-11-01', INTERVAL '2 months');
-INSERT INTO promocodes_local(phrase, expiration_date, bonus_time) VALUES('LOCAL_PROMO_ON1W', TIMESTAMP '2023-12-01', INTERVAL '1 weeks');
+INSERT INTO promocodes_local(phrase, expiration_date, provided_sub_id, bonus_time) VALUES('LOCAL_PROMO_OFF', TIMESTAMP '2023-11-01', 1, INTERVAL '2 months');
+INSERT INTO promocodes_local(phrase, expiration_date, provided_sub_id, bonus_time) VALUES('LOCAL_PROMO_ON1W', TIMESTAMP '2023-12-01', 1, INTERVAL '1 weeks');
 INSERT INTO promocodes_local(phrase, expiration_date, provided_sub_id, bonus_time) VALUES('LOCAL_PROMO_ON2W', TIMESTAMP '2023-12-01', 2, INTERVAL '2 weeks');
 INSERT INTO promocodes_local(phrase, expiration_date, provided_sub_id, bonus_time) VALUES('LOCAL_PROMO_ON2D', TIMESTAMP '2023-12-01', 3, INTERVAL '2 days');
 
