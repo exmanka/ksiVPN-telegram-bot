@@ -204,6 +204,17 @@ def show_user_info(telegram_id: int):
 
     return cur.fetchone()
 
+def get_user_info_by_clientID(client_id: int):
+    cur.execute('''
+                SELECT name, surname, username, telegram_id, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI') FROM clients
+                WHERE id = %s;
+                ''',
+                (client_id,))
+    
+    conn.commit()
+
+    return cur.fetchone()
+
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
 def is_user_registered(telegram_id: int):
     cur.execute('''
@@ -230,6 +241,19 @@ def show_subscription_info(client_id: int):
     conn.commit()
     
     return cur.fetchall()
+
+# ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
+def get_subscription_info_by_subID(subscription_id):
+    cur.execute('''
+                SELECT id, title, description, price
+                FROM subscriptions
+                WHERE id = %s;
+                ''',
+                (subscription_id,))
+    
+    conn.commit()
+
+    return cur.fetchone()
 
 # ДОПИСАТЬ АСИНХРОННУЮ ФУНКЦИЮ
 def show_configurations_info(client_id: int):
@@ -665,23 +689,14 @@ def insert_client(name: str,
         username = '@' + username
     
     if provided_sub_id is None:
-
-        if used_ref_promo_id is None:
-            provided_sub_id = 2 # добавить глобальную константу
-        else:
-            cur.execute('''
-                        SELECT cs.sub_id
-                        FROM promocodes_ref AS pr
-                        JOIN clients AS c ON pr.client_creator_id = c.id
-                        JOIN clients_subscriptions AS cs ON cs.client_id = c.id
-                        WHERE pr.id = %s;
-                        ''',
-                        (used_ref_promo_id,))
-            
-            provided_sub_id = cur.fetchone()[0]
+        provided_sub_id = 1 # добавить глобальную константу
 
     if bonus_time is None:
         bonus_time = '0 days'
+
+    provided_ref_sub_id = provided_sub_id
+    if provided_sub_id in [3, 4]: # добавить глобальную константу
+        provided_ref_sub_id = 1 # добавить глобальную константу
     
     cur.execute('''
                 INSERT INTO clients (name, surname, username, telegram_id, used_ref_promo_id)
@@ -699,10 +714,10 @@ def insert_client(name: str,
                 (client_id, provided_sub_id, bonus_time))
 
     cur.execute('''
-                INSERT INTO promocodes_ref (client_creator_id)
-                VALUES (%s);
+                INSERT INTO promocodes_ref (client_creator_id, provided_sub_id)
+                VALUES (%s, %s);
                 ''',
-                (client_id,))
+                (client_id, provided_ref_sub_id))
     
     cur.execute('''
                 INSERT INTO sub_notifications_settings (client_id)
@@ -738,6 +753,18 @@ def insert_configuration(client_id: int,
 def get_promo_ref_info(phrase: str):
     cur.execute('''
                 SELECT id, client_creator_id, provided_sub_id, bonus_time
+                FROM promocodes_ref
+                WHERE phrase = %s;
+                ''',
+                (phrase,))
+    
+    conn.commit()
+
+    return cur.fetchone()
+
+def get_promo_ref_info_parsed(phrase: str):
+    cur.execute('''
+                SELECT id, client_creator_id, provided_sub_id, TO_CHAR(bonus_time, 'FMDDD')
                 FROM promocodes_ref
                 WHERE phrase = %s;
                 ''',

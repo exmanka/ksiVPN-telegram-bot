@@ -81,9 +81,21 @@ async def authorization_complete(message: types.Message, state: FSMContext):
 @user_mw.unauthorized_only()
 async def authorization_promo_yes(message: types.Message, state: FSMContext):
     if postgesql_db.is_promo_ref(message.text):
-        await message.answer('Промокод принят!')
         async with state.proxy() as data:
             data['promo'] = message.text
+
+        _, client_creator_id, provided_sub_id, bonus_time = postgesql_db.get_promo_ref_info_parsed(message.text)
+        client_creator_name, _, _, _,_ = postgesql_db.get_user_info_by_clientID(client_creator_id)
+        _, title, description, price = postgesql_db.get_subscription_info_by_subID(provided_sub_id)
+
+        await message.answer(f'Промокод от пользователя {client_creator_name}, дающий {bonus_time} дней бесплатной подписки, принят!\n\n', parse_mode='HTML')
+
+        answer_message = 'Информация о Вашей подписке:\n\n'
+        answer_message += f'<b>{title}</b>\n'
+        answer_message += f'{description}\n\n'
+        answer_message += f'Стоимость: {int(price)}₽ в месяц.'
+
+        await message.answer(answer_message, parse_mode='HTML')
         
         await authorization_complete(message, state)
     else:
