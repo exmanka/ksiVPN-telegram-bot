@@ -17,13 +17,17 @@ async def send_user_info(user: dict, choice: dict, is_new_user: bool):
         answer_message += f"<b>Тэг</b>: @{user['username']}\n"
         answer_message += f"<b>ID</b>: <code>{user['id']}</code>\n"
 
-        if choice['promo'] is not None:
+        if choice['promo'] is None:
+            answer_message += '<b>Пользователь не вводил промокод, конфигурацию можно отправить ТОЛЬКО ПОСЛЕ ОПЛАТЫ ПОДПИСКИ ИЛИ ВВОДА ПРОМОКОДА</b>\n'
+
+        else:
             _, client_creator_id, provided_sub_id, bonus_time = await postgesql_db.get_promo_ref_info_parsed(choice['promo'])
             client_creator_name, client_creator_surname, client_creator_username, client_creator_telegram_id,_ = await postgesql_db.get_user_info_by_clientID(client_creator_id)
             _, _, _, price = await postgesql_db.get_subscription_info_by_subID(provided_sub_id)
 
             answer_message += f"<b>Промокод</b>: <code>{choice['promo']}</code> от пользователя {client_creator_name} {client_creator_surname} {client_creator_username} "
             answer_message += f"<code>{client_creator_telegram_id}</code> на {bonus_time} бесплатных дней по подписке {int(price)}₽/мес.\n"
+
 
         answer_message += f"<b>Конфигурация</b>: {choice['platform'][2:]}, {choice['os_name']}, {choice['chatgpt']} ChatGPT\n\n"
         answer_message += f"<b>Запрос на подключение от нового пользователя!</b>"
