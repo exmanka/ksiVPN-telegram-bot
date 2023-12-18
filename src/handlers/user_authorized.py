@@ -93,6 +93,7 @@ async def sub_renewal(message: types.Message, state: FSMContext, months_number: 
         await postgesql_db.update_payment_successful(payment_id, client_id, months_number)
         await state.set_state(user_authorized_fsm.PaymentMenu.menu)
         await service_functions.notify_admin_payment_success(client_id, months_number)
+        await service_functions.check_referral_reward(client_id)
 
         # try to delete payment message
         try:
@@ -205,6 +206,7 @@ async def sub_renewal_verification(message: types.Message, state: FSMContext):
             await state.set_state(user_authorized_fsm.PaymentMenu.menu)
             await message.answer(f'Оплата по заказу с id {payment_id} найдена!', reply_markup=user_authorized_kb.sub_renewal_kb)
             await service_functions.notify_admin_payment_success(client_id, months_number)
+            await service_functions.check_referral_reward(client_id)
 
             is_payment_found = True
 
@@ -451,7 +453,7 @@ async def account_ref_program_promocode(message: types.Message):
     await message.answer(f'Ваш реферальный промокод: <code>{await postgesql_db.show_referral_promocode(message.from_user.id)}</code>', parse_mode='HTML')
 
 async def send_admin_info_promo_entered(client_id: int, phrase: str, promo_type: str):
-    name, surname, username, telegram_id, _ = await postgesql_db.get_user_info_by_clientID(client_id)
+    name, surname, username, telegram_id, *_ = await postgesql_db.get_client_info_by_clientID(client_id)
     answer_message = f'Пользователем {name} {surname} {username} <code>{telegram_id}</code> был введен '
 
     if promo_type == 'global':
@@ -598,6 +600,7 @@ async def restore_payments(message: types.Message):
 
             await message.answer(f'Ура! Оплата по заказу с id {payment_id} найдена!')
             await service_functions.notify_admin_payment_success(client_id, months_number)
+            await service_functions.check_referral_reward(client_id)
 
             is_payment_found = True
 

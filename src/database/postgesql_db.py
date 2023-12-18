@@ -38,6 +38,15 @@ async def get_telegramID_by_username(username: str):
         ''',
         username)
 
+async def get_telegramID_by_clientID(client_id: str):
+    return await conn.fetchval(
+        '''
+        SELECT telegram_id
+        FROM clients
+        WHERE id = $1;
+        ''',
+        client_id)
+
 async def insert_user_payment(client_id: int, sub_id: int, price: float, months_number: int):
     return await conn.fetchval(
         '''
@@ -161,10 +170,11 @@ async def show_user_info(telegram_id: int):
         ''',
         telegram_id)
 
-async def get_user_info_by_clientID(client_id: int):
+async def get_client_info_by_clientID(client_id: int):
     return await conn.fetchrow(
         '''
-        SELECT name, surname, username, telegram_id, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI') FROM clients
+        SELECT name, surname, username, telegram_id, register_date, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI'), used_ref_promo_id, bot_chatgpt_mode
+        FROM clients
         WHERE id = $1;
         ''',
         client_id)
@@ -664,3 +674,39 @@ async def get_promo_ref_info_parsed(phrase: str):
         WHERE phrase = $1;
         ''',
         phrase)
+
+async def get_ref_promo_info_by_clientCreatorID(client_creator_id: int):
+    return await conn.fetchrow(
+        '''
+        SELECT id, phrase, provided_sub_id, bonus_time, TO_CHAR(bonus_time, 'FMDDD')
+        FROM promocodes_ref
+        WHERE client_creator_id = $1;
+        ''',
+        client_creator_id)
+
+async def get_ref_promo_info(ref_promo_id: int):
+    return await conn.fetchrow(
+        '''
+        SELECT phrase, client_creator_id, provided_sub_id, bonus_time
+        FROM promocodes_ref
+        WHERE id = $1;
+        ''',
+        ref_promo_id)
+
+async def get_clientsSubscriptions_info_by_clientID(client_id: int):
+    return await conn.fetchrow(
+        '''
+        SELECT sub_id, paid_months_counter, expiration_date, TO_CHAR(expiration_date, 'FMDD TMMonth YYYY в HH24:MI')
+        FROM clients_subscriptions
+        WHERE client_id = $1;
+        ''',
+        client_id)
+
+async def add_subscription_time(client_id: int, days: int):
+    await conn.execute(
+        '''
+        UPDATE clients_subscriptions
+        SET expiration_date = expiration_date + make_interval(days => $1)
+        WHERE client_id = $2;
+        ''',
+        days, client_id)

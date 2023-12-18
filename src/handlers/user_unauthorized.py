@@ -11,6 +11,7 @@ from src.handlers.admin import send_user_info
 from src.services.messages import messages_dict
 from src.handlers.user_authorized import already_registered_system
 from src.keyboards.user_authorized_kb import menu_kb
+from src.services import service_functions
 
 
 @user_mw.unauthorized_only()
@@ -85,8 +86,9 @@ async def authorization_promo_yes(message: types.Message, state: FSMContext):
             data['promo'] = message.text
 
         _, client_creator_id, provided_sub_id, bonus_time = await postgesql_db.get_promo_ref_info_parsed(message.text)
-        client_creator_name, _, _, _,_ = await postgesql_db.get_user_info_by_clientID(client_creator_id)
+        client_creator_name, *_ = await postgesql_db.get_client_info_by_clientID(client_creator_id)
         _, title, description, price = await postgesql_db.get_subscription_info_by_subID(provided_sub_id)
+        await service_functions.notify_client_new_referal(client_creator_id, message.from_user.first_name, message.from_user.username)
 
         await message.answer(f'Промокод от пользователя {client_creator_name}, дающий {bonus_time} дней бесплатной подписки, принят!\n\n', parse_mode='HTML')
 
