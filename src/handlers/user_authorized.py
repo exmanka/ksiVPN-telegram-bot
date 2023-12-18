@@ -331,9 +331,9 @@ async def account_configurations_request_chatgpt(message: types.Message, state: 
                             'id': message.from_user.id}, data._data, is_new_user=False)
 
     
-    await message.answer(f'Отлично! Теперь ждем ответа от разработчика: в скором времени он проверит ваши конфигурации и вышлет новую!',
+    await message.answer('Отлично! Теперь ждем ответа от разработчика: в скором времени он проверит ваши конфигурации и вышлет новую!',
                             reply_markup=user_authorized_kb.config_kb)
-    await message.answer(f'Пожалуйста, не забывайте, что он тоже человек, и периодически спит (хотя на самом деле крайне редко)')
+    await message.answer('Пожалуйста, не забывайте, что он тоже человек, и периодически спит (хотя на самом деле крайне редко). Не переживайте, отчет времени истечения подписки начнется только в момент получения конфигурации!')
 
     await state.set_state(user_authorized_fsm.AccountMenu.configs)
 
