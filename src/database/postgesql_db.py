@@ -248,7 +248,7 @@ async def is_subscription_not_started(telegram_id: int) -> bool:
         JOIN clients AS c
         ON cs.client_id = c.id
         WHERE c.telegram_id = $1
-        AND cs.expiration_date < TIMESTAMP 'EPOCH' + INTERVAL '5 years';
+        AND cs.expiration_date < TIMESTAMP 'EPOCH' + INTERVAL '10 years';
         ''',
         telegram_id)
 
@@ -639,11 +639,13 @@ async def insert_configuration(client_id: int,
             ''',
             client_id, protocol_id, location_id, os, file_type, telegram_file_id)
         
+        # execute only for new clients
         await conn.execute(
             '''
             UPDATE clients_subscriptions
             SET expiration_date = NOW() + (expiration_date - 'EPOCH')
-            WHERE client_id = $1;
+            WHERE client_id = $1
+            AND expiration_date < TIMESTAMP 'EPOCH' + INTERVAL '10 years';
             ''',
             client_id)
     
