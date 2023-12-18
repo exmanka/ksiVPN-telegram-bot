@@ -1,6 +1,6 @@
-SET TIMEZONE = ‘Europe/Moscow’;
-SHOW TIMEZONE;
-SELECT TIMEOFDAY();
+--SET TIMEZONE = ‘Europe/Moscow’;
+--SHOW TIMEZONE;
+--SELECT TIMEOFDAY();
 
 DROP TABLE IF EXISTS clients CASCADE;
 DROP TABLE IF EXISTS clients_subscriptions CASCADE;
@@ -487,6 +487,6 @@ INSERT INTO sub_notifications_settings(client_id) VALUES(45);
 INSERT INTO sub_notifications_settings(client_id) VALUES(46);
 
 -- remove all tables query
-SELECT 'DROP TABLE IF EXISTS ' || tablename || ' CASCADE;' 
-FROM pg_tables
-WHERE schemaname = 'public';
+--SELECT 'DROP TABLE IF EXISTS ' || tablename || ' CASCADE;' 
+--FROM pg_tables
+--WHERE schemaname = 'public';

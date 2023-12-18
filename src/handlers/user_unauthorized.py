@@ -19,7 +19,7 @@ async def cm_cancel(message: types.Message, state: FSMContext):
     await message.answer('Возврат в главное меню', reply_markup=user_unauthorized_kb.welcome_kb)
 
 async def authorization_cm_start(message: types.Message):
-    if postgesql_db.is_user_registered(message.from_user.id):
+    if await postgesql_db.is_user_registered(message.from_user.id):
         await already_registered_system(message)
     else:
         await message.answer('Для подключения мне необходимо определить Вашу конфигурацию.\n\n<b>Задам 4 коротких вопроса!</b>', parse_mode='HTML')
@@ -67,9 +67,9 @@ async def authorization_complete(message: types.Message, state: FSMContext):
 
     async with state.proxy() as data:
         if phrase := data['promo']:
-            used_ref_promo_id, _, provided_sub_id, bonus_time = postgesql_db.get_promo_ref_info(phrase)
+            used_ref_promo_id, _, provided_sub_id, bonus_time = await postgesql_db.get_promo_ref_info(phrase)
 
-        postgesql_db.insert_client(user.first_name, user.id, user.last_name, user.username, used_ref_promo_id, provided_sub_id, bonus_time)
+        await postgesql_db.insert_client(user.first_name, user.id, user.last_name, user.username, used_ref_promo_id, provided_sub_id, bonus_time)
         await send_user_info({'fullname': user.full_name, 'username': user.username, 'id': user.id}, data._data, is_new_user=True)
 
     await message.answer(f'Отлично! Теперь ждем ответа от разработчика: в скором времени он проверит Вашу регистрацию и вышлет конфигурацию! А пока вы можете исследовать бота!',
@@ -80,13 +80,13 @@ async def authorization_complete(message: types.Message, state: FSMContext):
 
 @user_mw.unauthorized_only()
 async def authorization_promo_yes(message: types.Message, state: FSMContext):
-    if postgesql_db.is_promo_ref(message.text):
+    if await postgesql_db.is_promo_ref(message.text):
         async with state.proxy() as data:
             data['promo'] = message.text
 
-        _, client_creator_id, provided_sub_id, bonus_time = postgesql_db.get_promo_ref_info_parsed(message.text)
-        client_creator_name, _, _, _,_ = postgesql_db.get_user_info_by_clientID(client_creator_id)
-        _, title, description, price = postgesql_db.get_subscription_info_by_subID(provided_sub_id)
+        _, client_creator_id, provided_sub_id, bonus_time = await postgesql_db.get_promo_ref_info_parsed(message.text)
+        client_creator_name, _, _, _,_ = await postgesql_db.get_user_info_by_clientID(client_creator_id)
+        _, title, description, price = await postgesql_db.get_subscription_info_by_subID(provided_sub_id)
 
         await message.answer(f'Промокод от пользователя {client_creator_name}, дающий {bonus_time} дней бесплатной подписки, принят!\n\n', parse_mode='HTML')
 

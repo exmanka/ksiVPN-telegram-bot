@@ -52,7 +52,7 @@ settings_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('Вернуться'))
 
 async def settings_notifications(client_id: int) -> ReplyKeyboardMarkup:
-    sub_expires_in_1_day, sub_expires_in_3_days, sub_expires_in_7_days = postgesql_db.get_notifications_info(client_id)
+    sub_expires_in_1_day, sub_expires_in_3_days, sub_expires_in_7_days = await postgesql_db.get_notifications_info(client_id)
     settings_notifications_kb = ReplyKeyboardMarkup(resize_keyboard=True)
 
     # if client turned on notifications one day before subscription expires
@@ -84,7 +84,7 @@ async def settings_chatgpt(telegram_id: int) -> ReplyKeyboardMarkup:
     settings_chatgpt_kb = ReplyKeyboardMarkup(resize_keyboard=True)
 
     # if client turned on ChatGPT mode for bot
-    if postgesql_db.get_chatgpt_mode_status(telegram_id)[0]:
+    if await postgesql_db.get_chatgpt_mode_status(telegram_id):
         settings_chatgpt_kb.add(KeyboardButton('Выключить'))
 
     # if client turned off ChatGPT mode for bot

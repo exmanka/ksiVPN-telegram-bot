@@ -18,9 +18,9 @@ async def send_user_info(user: dict, choice: dict, is_new_user: bool):
         answer_message += f"<b>ID</b>: <code>{user['id']}</code>\n"
 
         if choice['promo'] is not None:
-            _, client_creator_id, provided_sub_id, bonus_time = postgesql_db.get_promo_ref_info_parsed(choice['promo'])
-            client_creator_name, client_creator_surname, client_creator_username, client_creator_telegram_id,_ = postgesql_db.get_user_info_by_clientID(client_creator_id)
-            _, _, _, price = postgesql_db.get_subscription_info_by_subID(provided_sub_id)
+            _, client_creator_id, provided_sub_id, bonus_time = await postgesql_db.get_promo_ref_info_parsed(choice['promo'])
+            client_creator_name, client_creator_surname, client_creator_username, client_creator_telegram_id,_ = await postgesql_db.get_user_info_by_clientID(client_creator_id)
+            _, _, _, price = await postgesql_db.get_subscription_info_by_subID(provided_sub_id)
 
             answer_message += f"<b>Промокод</b>: <code>{choice['promo']}</code> от пользователя {client_creator_name} {client_creator_surname} {client_creator_username} "
             answer_message += f"<code>{client_creator_telegram_id}</code> на {bonus_time} бесплатных дней по подписке {int(price)}₽/мес.\n"
@@ -109,7 +109,7 @@ async def notifications_send_message_everyone(message: types.Message, state: FSM
 
         answer_message = ''
         async with state.proxy() as data:
-            for idx, [telegram_id] in enumerate(postgesql_db.get_clients_telegram_ids()):
+            for idx, [telegram_id] in enumerate(await postgesql_db.get_clients_telegram_ids()):
 
                 # if user didn't write to bot
                 try:
@@ -117,7 +117,7 @@ async def notifications_send_message_everyone(message: types.Message, state: FSM
                 
                 # add him to answer_message
                 except ChatNotFound as _t:
-                    name, surname, username, telegram_id, _ = postgesql_db.show_user_info(telegram_id)
+                    name, surname, username, telegram_id, _ = await postgesql_db.show_user_info(telegram_id)
                     answer_message += f'{idx + 1}. {name} {surname} {username} (tg_id: <code>{telegram_id}</code>)\n'
 
         # if some users didn't write to bot
@@ -159,11 +159,11 @@ async def notifications_send_message_selected_list(message: types.Message, state
 
         # if user mentioned by username and exists in db
         if user[0] == '@':
-            if telegram_id := postgesql_db.get_telegramID_by_username(user):
-                selected_telegram_ids.append(telegram_id[0])
+            if telegram_id := await postgesql_db.get_telegramID_by_username(user):
+                selected_telegram_ids.append(telegram_id)
 
         # if user mentioned by telegram_id and exists in db
-        elif postgesql_db.find_clientID_by_telegramID(user):
+        elif await postgesql_db.get_clientID_by_telegramID(user):
             selected_telegram_ids.append(user)
 
     async with state.proxy() as data:
@@ -174,7 +174,7 @@ async def notifications_send_message_selected_list(message: types.Message, state
     # show selected users info
     answer_message = ''
     for idx, telegram_id in enumerate(selected_telegram_ids):
-        name, surname, username, telegram_id, _ = postgesql_db.show_user_info(telegram_id)
+        name, surname, username, telegram_id, _ = await postgesql_db.show_user_info(telegram_id)
         answer_message += f'{idx + 1}. {name} {surname} {username} (tg_id: <code>{telegram_id}</code>)\n'
 
     # if at least 1 user is in db
@@ -207,7 +207,7 @@ async def notifications_send_message_selected(message: types.Message, state: FSM
                 
                 # add him to answer_message
                 except ChatNotFound as _t:
-                    name, surname, username, telegram_id, _ = postgesql_db.show_user_info(telegram_id)
+                    name, surname, username, telegram_id, _ = await postgesql_db.show_user_info(telegram_id)
                     answer_message += f'{idx + 1}. {username} ({name}, {surname}), telegram_id <b>{telegram_id}</b>\n'
 
         # if some users didn't write to bot
@@ -297,11 +297,11 @@ async def show_user_config_sql(message: types.Message):
     client_id = -1
     # if 1st argument is username
     if arguments[0][0] == '@':
-        client_id = postgesql_db.find_clientID_by_username(arguments[0])[0]
+        client_id = await postgesql_db.get_clientID_by_username(arguments)
     
     # if 1st argument is telegram_id
     else:
-        client_id = postgesql_db.find_clientID_by_telegramID(int(arguments[0]))[0]
+        client_id = await postgesql_db.get_clientID_by_telegramID(int(arguments[0]))
 
     protocol_id = -1
     # check 3rd argument as protocol_id
@@ -356,13 +356,13 @@ async def check_user_configs(message: types.Message):
 
     # if user_info is username
     if user_info[0] == '@':
-        client_id = postgesql_db.find_clientID_by_username(user_info)[0]
+        client_id = await postgesql_db.get_clientID_by_username(user_info)
 
     # if user_info is user telegramID
     else:
-        client_id = postgesql_db.find_clientID_by_telegramID(user_info)[0]
+        client_id = await postgesql_db.get_clientID_by_telegramID(user_info)
 
-    configurations_info = postgesql_db.show_configurations_info(client_id)
+    configurations_info = await postgesql_db.show_configurations_info(client_id)
     await message.answer(f'Информация о всех ваших конфигурациях, теперь не нужно искать их по диалогу с ботом!\n\nВсего конфигураций <b>{len(configurations_info)}</b>.',
                          parse_mode='HTML')
 
@@ -513,19 +513,19 @@ async def create_configuration(client_id: int,
     link = None
     if file_type == 'link':
         protocol_id, location_id, os_enum, link = await get_configuration_sql_data(flag_protocol, flag_location, flag_os, flag_link)
-        postgesql_db.insert_configuration(client_id, protocol_id, location_id, os_enum, file_type, link)
+        await postgesql_db.insert_configuration(client_id, protocol_id, location_id, os_enum, file_type, link)
 
     elif file_type == 'document' or 'photo':
         if telegram_file_id is None:
             raise Exception('при попытке создания конфигурации не был указан telegram_file_id!')
         
         protocol_id, location_id, os_enum, _ = await get_configuration_sql_data(flag_protocol, flag_location, flag_os, flag_link)
-        postgesql_db.insert_configuration(client_id, protocol_id, location_id, os_enum, file_type, telegram_file_id)
+        await postgesql_db.insert_configuration(client_id, protocol_id, location_id, os_enum, file_type, telegram_file_id)
 
     else:
         raise Exception('при попытке создания конфигурации был указан неверный file_type!')
             
-    _, date_of_receipt, _, is_chatgpt_available, name, country, city, bandwidth, ping, _ = postgesql_db.show_configurations_info(client_id)[0]
+    _, date_of_receipt, _, is_chatgpt_available, name, country, city, bandwidth, ping, _ = (await postgesql_db.show_configurations_info(client_id))[0]
     configuration_description = await service_functions.create_configuration_description(date_of_receipt, os_enum, is_chatgpt_available, name, country, city, bandwidth, ping, link)
 
     return configuration_description
@@ -535,7 +535,7 @@ async def send_configuration(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         telegram_id = data['telegram_id']
 
-    client_id = postgesql_db.find_clientID_by_telegramID(telegram_id)[0]
+    client_id = await postgesql_db.get_clientID_by_telegramID(telegram_id)
 
     try:
         # if message is text

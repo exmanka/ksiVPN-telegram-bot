@@ -4,7 +4,6 @@ from aiogram.dispatcher.filters import Text
 from src.services.messages import messages_dict
 from src.services.gpt4free import chatgpt_answer
 from src.database.postgesql_db import is_user_registered, is_subscription_active, get_chatgpt_mode_status
-import json, string
 
 
 async def command_help(message: types.Message):
@@ -24,10 +23,10 @@ async def answer_unrecognized_messages(message: types.Message):
     '''
     
     # if client is regstered and client turns on ChatGPT mode for bot
-    if is_user_registered(message.from_user.id) and get_chatgpt_mode_status(message.from_user.id)[0]:
+    if await is_user_registered(message.from_user.id) and await get_chatgpt_mode_status(message.from_user.id):
 
         # is client's subscription is active
-        if is_subscription_active(message.from_user.id):
+        if await is_subscription_active(message.from_user.id):
 
             # use aiogram.utils.chat_action.ChatActionSender in aiogram 3
             await bot.send_chat_action(message.from_user.id, 'typing')
