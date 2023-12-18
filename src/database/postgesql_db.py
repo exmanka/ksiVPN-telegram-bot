@@ -14,7 +14,7 @@ async def get_clientID_by_telegramID(telegram_id: int) -> int:
     telegram_id = int(telegram_id)
 
     return await conn.fetchval('''
-                                   SELECT id
+        SELECT id
         FROM clients
         WHERE telegram_id = $1;
         ''',
@@ -156,7 +156,7 @@ async def update_payment_telegram_message_id(payment_id: int, telegram_message_i
 async def show_user_info(telegram_id: int):
     return await conn.fetchrow(
         '''
-        SELECT name, surname, username, telegram_id, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI') FROM clients
+        SELECT id, name, surname, username, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI') FROM clients
         WHERE telegram_id = $1;
         ''',
         telegram_id)
@@ -170,7 +170,6 @@ async def get_user_info_by_clientID(client_id: int):
         client_id)
 
 async def get_user_parsed_tuple_by_telegramID(telegram_id: int):
-
     return await conn.fetchrow(
         '''
         SELECT id, name, surname, username, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI') FROM clients
@@ -179,7 +178,6 @@ async def get_user_parsed_tuple_by_telegramID(telegram_id: int):
         telegram_id)
 
 async def is_user_registered(telegram_id: int):
-
     return await conn.fetchval(
         '''
         SELECT TRUE

@@ -121,7 +121,7 @@ async def notifications_send_message_everyone(message: types.Message, state: FSM
                 
                 # add him to answer_message
                 except ChatNotFound as _t:
-                    name, surname, username, telegram_id, _ = await postgesql_db.show_user_info(telegram_id)
+                    _, name, surname, username, _ = await postgesql_db.show_user_info(telegram_id)
                     answer_message += f'{idx + 1}. {name} {surname} {username} (tg_id: <code>{telegram_id}</code>)\n'
 
         # if some users didn't write to bot
@@ -178,7 +178,7 @@ async def notifications_send_message_selected_list(message: types.Message, state
     # show selected users info
     answer_message = ''
     for idx, telegram_id in enumerate(selected_telegram_ids):
-        name, surname, username, telegram_id, _ = await postgesql_db.show_user_info(telegram_id)
+        _, name, surname, username, _ = await postgesql_db.show_user_info(telegram_id)
         answer_message += f'{idx + 1}. {name} {surname} {username} (tg_id: <code>{telegram_id}</code>)\n'
 
     # if at least 1 user is in db
@@ -211,7 +211,7 @@ async def notifications_send_message_selected(message: types.Message, state: FSM
                 
                 # add him to answer_message
                 except ChatNotFound as _t:
-                    name, surname, username, telegram_id, _ = await postgesql_db.show_user_info(telegram_id)
+                    _, name, surname, username, _ = await postgesql_db.show_user_info(telegram_id)
                     answer_message += f'{idx + 1}. {username} ({name}, {surname}), telegram_id <b>{telegram_id}</b>\n'
 
         # if some users didn't write to bot

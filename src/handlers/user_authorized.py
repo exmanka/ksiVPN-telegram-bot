@@ -92,6 +92,7 @@ async def sub_renewal(message: types.Message, state: FSMContext, months_number: 
     if client_last_payment_status == 'success':
         await postgesql_db.update_payment_successful(payment_id, client_id, months_number)
         await state.set_state(user_authorized_fsm.PaymentMenu.menu)
+        await service_functions.notify_admin_payment_success(client_id, months_number)
 
         # try to delete payment message
         try:
@@ -101,7 +102,6 @@ async def sub_renewal(message: types.Message, state: FSMContext, months_number: 
         except MessageToDeleteNotFound as _t:
             pass
 
-        # if not already deleted
         finally:
             await message.answer(f'Оплата произведена успешно!\n\nid: {payment_id}', reply_markup=user_authorized_kb.sub_renewal_kb)
 
@@ -204,6 +204,7 @@ async def sub_renewal_verification(message: types.Message, state: FSMContext):
 
             await state.set_state(user_authorized_fsm.PaymentMenu.menu)
             await message.answer(f'Оплата по заказу с id {payment_id} найдена!', reply_markup=user_authorized_kb.sub_renewal_kb)
+            await service_functions.notify_admin_payment_success(client_id, months_number)
 
             is_payment_found = True
 
@@ -217,7 +218,7 @@ async def account_cm_start(message: types.Message):
 
 @user_mw.authorized_only()
 async def account_user_info(message: types.Message):
-    name, surname, username, telegram_id, register_date = await postgesql_db.show_user_info(message.from_user.id)
+    _, name, surname, username, register_date = await postgesql_db.show_user_info(message.from_user.id)
     tmp_string = f'Вот что я о Вас знаю:\n\n'
     tmp_string += f'<b>Имя</b>: {name}\n'
 
@@ -229,7 +230,7 @@ async def account_user_info(message: types.Message):
     if username is not None:
         tmp_string += f'<b>Ник</b>: {username}\n'
 
-    tmp_string += f'<b>Телеграм ID</b>: {telegram_id}\n'
+    tmp_string += f'<b>Телеграм ID</b>: {message.from_user.id}\n'
     tmp_string += f'<b>Дата регистрации</b>: {register_date}'
 
     await message.answer(tmp_string, parse_mode='HTML')
@@ -333,7 +334,7 @@ async def account_configurations_request_chatgpt(message: types.Message, state: 
     
     await message.answer('Отлично! Теперь ждем ответа от разработчика: в скором времени он проверит ваши конфигурации и вышлет новую!',
                             reply_markup=user_authorized_kb.config_kb)
-    await message.answer('Пожалуйста, не забывайте, что он тоже человек, и периодически спит (хотя на самом деле крайне редко). Не переживайте, отчет времени истечения подписки начнется только в момент получения конфигурации!')
+    await message.answer('Пожалуйста, не забывайте, что он тоже человек, и периодически спит (хотя на самом деле крайне редко). Не переживайте, отчет времени истечения подписки начнется только после получения конфигурации!')
 
     await state.set_state(user_authorized_fsm.AccountMenu.configs)
 
@@ -596,6 +597,7 @@ async def restore_payments(message: types.Message):
             await postgesql_db.update_payment_successful(payment_id, client_id, months_number)
 
             await message.answer(f'Ура! Оплата по заказу с id {payment_id} найдена!')
+            await service_functions.notify_admin_payment_success(client_id, months_number)
 
             is_payment_found = True
 

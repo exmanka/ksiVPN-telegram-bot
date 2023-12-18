@@ -1,4 +1,5 @@
-from bot_init import bot
+from bot_init import bot, ADMIN_ID
+from src.database import postgesql_db
 
 async def create_configuration_description(date_of_receipt: str,
                                            os: str,
@@ -59,3 +60,14 @@ async def send_configuration(telegram_id: int,
 
     else:
         raise Exception('указан неверный тип файла')
+    
+async def notify_admin_payment_success(client_id: int, months_number: int):
+    answer_message = f'<b>Успешное продление подписки на {months_number} мес!</b>\n\n'
+    name, surname, username, telegram_id, _ = await postgesql_db.get_user_info_by_clientID(client_id)
+    answer_message += f'<b>Имя</b>: <code>{name}</code>\n'
+    answer_message += f'<b>Фамилия</b>: <code>{surname}</code>\n'
+    answer_message += f'<b>Тег</b>: {username}\n'
+    answer_message += f'<b>Telegram ID:</b> <code>{telegram_id}</code>\n'
+    answer_message += f'<b>Client ID:</b> <code>{client_id}</code>'
+
+    await bot.send_message(ADMIN_ID, answer_message, parse_mode='HTML')
