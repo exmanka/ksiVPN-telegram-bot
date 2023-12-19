@@ -3,16 +3,17 @@ from datetime import datetime, timedelta
 from bot_init import POSTGRES_PW
 
 
+conn: asyncpg.Connection
+
+
 async def sql_start() -> None:
     global conn
-    conn: asyncpg.Connection = await asyncpg.connect(host='localhost', database='tgbot_postgres_db', user='postgres', password=POSTGRES_PW)
+    conn = await asyncpg.connect(host='localhost', database='tgbot_postgres_db', user='postgres', password=POSTGRES_PW)
 
     if conn:
         print('DB is successfully connected!')
 
 async def get_clientID_by_telegramID(telegram_id: int) -> int | None:
-    telegram_id = int(telegram_id)
-
     return await conn.fetchval('''
         SELECT id
         FROM clients
