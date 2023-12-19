@@ -7,7 +7,7 @@ from src.middlewares import admin_mw, user_mw
 from src.services import scheduler
 
 async def on_startup(_):
-    await postgesql_db.sql_start()
+    await postgesql_db.asyncpg_run()
     await scheduler.scheduler_start()
     print('Bot has been successfully launched!')
 

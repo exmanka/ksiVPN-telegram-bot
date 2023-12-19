@@ -48,13 +48,13 @@ async def sub_renewal(message: types.Message, state: FSMContext, months_number: 
     client_id = await postgesql_db.get_clientID_by_telegramID(message.from_user.id)
 
     # get client's sub info
-    sub_id, sub_title, _, sub_price = await postgesql_db.show_subscription_info(client_id)
+    sub_id, sub_title, _, sub_price = await postgesql_db.get_subscription_info_by_clientID(client_id)
 
     # count payment sum
     payment_price = max(sub_price * months_number * (1 - discount), 2)
 
     # create entity in db table payments and getting payment_id
-    payment_id = await postgesql_db.insert_user_payment(client_id, sub_id, payment_price, months_number)
+    payment_id = await postgesql_db.insert_payment(client_id, sub_id, payment_price, months_number)
     
     # use aiomoney for payment link creation
     wallet = YooMoneyWallet(YOOMONEY_TOKEN)
@@ -117,7 +117,7 @@ async def subscription_status(message: types.Message):
     else:
         await message.answer('Подписка деактивирована :/')
     
-    await message.answer(f'Срок окончания действия подписки: {await postgesql_db.show_subscription_expiration_date(message.from_user.id)}.')
+    await message.answer(f'Срок окончания действия подписки: {await postgesql_db.get_subscription_expiration_date(message.from_user.id)}.')
 
 @user_mw.authorized_only()
 async def submenu_cm_cancel(message: types.Message, state: FSMContext = None):
@@ -152,7 +152,7 @@ async def sub_renewal_months_12(message: types.Message, state: FSMContext):
 @user_mw.authorized_only()
 @user_mw.antiflood(rate_limit=2)
 async def sub_renewal_payment_history(message: types.Message):
-    payment_history = await postgesql_db.get_user_payments(await postgesql_db.get_clientID_by_telegramID(message.from_user.id))
+    payment_history = await postgesql_db.get_payments_successful_info(await postgesql_db.get_clientID_by_telegramID(message.from_user.id))
 
     is_payment_found = False
     for payment_id, sub_title, payment_price, payment_months_number, payment_date in payment_history:
@@ -171,7 +171,7 @@ async def sub_renewal_payment_history(message: types.Message):
 async def sub_renewal_submenu_cm_cancel(message: types.Message, state: FSMContext):
 
     # get last user's payment's telegram message id
-    last_payment_message_id = await postgesql_db.get_last_user_payment_message_id(await postgesql_db.get_clientID_by_telegramID(message.from_user.id))
+    last_payment_message_id = await postgesql_db.get_payment_last_message_id(await postgesql_db.get_clientID_by_telegramID(message.from_user.id))
 
     # try to delete payment message
     try:
@@ -192,7 +192,7 @@ async def sub_renewal_verification(message: types.Message, state: FSMContext):
 
     # client's initiated payments for last n minutes
     client_id = await postgesql_db.get_clientID_by_telegramID(message.from_user.id)
-    client_payments_ids = await postgesql_db.get_last_user_payments_ids(client_id, minutes=60)
+    client_payments_ids = await postgesql_db.get_paymentIDs_last(client_id, minutes=60)
     await message.answer('Проверяю все созданные платежи за последний час!')
 
     is_payment_found = False
@@ -220,7 +220,7 @@ async def account_cm_start(message: types.Message):
 
 @user_mw.authorized_only()
 async def account_user_info(message: types.Message):
-    _, name, surname, username, register_date = await postgesql_db.show_user_info(message.from_user.id)
+    _, name, surname, username, _, register_date_parsed, *_ = await postgesql_db.get_client_info_by_telegramID(message.from_user.id)
     tmp_string = f'Вот что я о Вас знаю:\n\n'
     tmp_string += f'<b>Имя</b>: {name}\n'
 
@@ -233,13 +233,13 @@ async def account_user_info(message: types.Message):
         tmp_string += f'<b>Ник</b>: {username}\n'
 
     tmp_string += f'<b>Телеграм ID</b>: {message.from_user.id}\n'
-    tmp_string += f'<b>Дата регистрации</b>: {register_date}'
+    tmp_string += f'<b>Дата регистрации</b>: {register_date_parsed}'
 
     await message.answer(tmp_string, parse_mode='HTML')
 
 @user_mw.authorized_only()
 async def account_subscription_info(message: types.Message):
-    _, title, description, price = await postgesql_db.show_subscription_info(await postgesql_db.get_clientID_by_telegramID(message.from_user.id))
+    _, title, description, price = await postgesql_db.get_subscription_info_by_clientID(await postgesql_db.get_clientID_by_telegramID(message.from_user.id))
     await message.answer(f'<b>{title}</b>\n\n{description}\n\nСтоимость: {int(price)}₽ в месяц.', parse_mode='HTML')
 
 @user_mw.authorized_only()
@@ -273,7 +273,7 @@ async def account_submenu_cm_cancel(message: types.Message, state: FSMContext):
 
 @user_mw.authorized_only()
 async def account_configurations_info(message: types.Message):
-    configurations_info = await postgesql_db.show_configurations_info(await postgesql_db.get_clientID_by_telegramID(message.from_user.id))
+    configurations_info = await postgesql_db.get_configurations_info(await postgesql_db.get_clientID_by_telegramID(message.from_user.id))
     await message.answer(f'Информация о всех ваших конфигурациях, теперь не нужно искать их по диалогу с ботом!\n\nВсего конфигураций <b>{len(configurations_info)}</b>.',
                          parse_mode='HTML')
 
@@ -294,7 +294,7 @@ async def account_configurations_request_cm_start(message: types.Message):
         return
 
     answer_text = 'Понадобиться ответить на 3 вопроса, чтобы запросить новую конфигурацию у администратора!\n\n'
-    answer_text += f'В данный момент у Вас <b>{await postgesql_db.show_configurations_number(await postgesql_db.get_clientID_by_telegramID(message.from_user.id))}</b> конфигураций.'
+    answer_text += f'В данный момент у Вас <b>{await postgesql_db.get_configurations_number(await postgesql_db.get_clientID_by_telegramID(message.from_user.id))}</b> конфигураций.'
     await message.answer(answer_text, parse_mode='HTML')
     
     await user_authorized_fsm.ConfigMenu.platform.set()
@@ -418,8 +418,8 @@ async def account_settings_notifications_7d(message: types.Message):
 
 @user_mw.authorized_only()
 async def account_ref_program_info(message: types.Message):
-    invited_by_user = await postgesql_db.show_invited_by_user_info(message.from_user.id)
-    invited_users_list = await postgesql_db.show_invited_users_list(message.from_user.id)
+    invited_by_user = await postgesql_db.get_invited_by_client_info(message.from_user.id)
+    invited_users_list = await postgesql_db.get_invited_users_list(message.from_user.id)
 
     if invited_by_user:
         if invited_by_user[1]:  # username exists
@@ -443,25 +443,25 @@ async def account_ref_program_info(message: types.Message):
 
 @user_mw.authorized_only()
 async def account_ref_program_invite(message: types.Message):
-    ref_promocode = await postgesql_db.show_referral_promocode(message.from_user.id)
+    ref_promocode = await postgesql_db.get_referral_promocode(message.from_user.id)
     text = choice(messages_dict['ref_program_invites']['text'])
     text = text.replace('<refcode>', '<code>' + ref_promocode + '</code>')
     await message.answer(text, parse_mode='HTML')
 
 @user_mw.authorized_only()
 async def account_ref_program_promocode(message: types.Message):
-    await message.answer(f'Ваш реферальный промокод: <code>{await postgesql_db.show_referral_promocode(message.from_user.id)}</code>', parse_mode='HTML')
+    await message.answer(f'Ваш реферальный промокод: <code>{await postgesql_db.get_referral_promocode(message.from_user.id)}</code>', parse_mode='HTML')
 
 async def send_admin_info_promo_entered(client_id: int, phrase: str, promo_type: str):
     name, surname, username, telegram_id, *_ = await postgesql_db.get_client_info_by_clientID(client_id)
     answer_message = f'Пользователем {name} {surname} {username} <code>{telegram_id}</code> был введен '
 
     if promo_type == 'global':
-        id, _, expiration_date_parsed, _, bonus_time_parsed = await postgesql_db.get_global_promo_parsed_tuple_by_phrase(phrase)
+        id, _, expiration_date_parsed, _, bonus_time_parsed = await postgesql_db.get_global_promo_info(phrase)
         answer_message += f'глобальный промокод с ID {id} на {bonus_time_parsed} дней подписки, заканчивающийся {expiration_date_parsed}.'
 
     elif promo_type == 'local':
-        id, _, expiration_date_parsed, _, bonus_time_parsed, provided_sub_id = await postgesql_db.get_local_promo_parsed_tuple_by_phrase(phrase)
+        id, _, expiration_date_parsed, _, bonus_time_parsed, provided_sub_id = await postgesql_db.get_local_promo_info(phrase)
         answer_message += f'специальный промокод с ID {id} на {bonus_time_parsed} дней подписки, '
 
         # if local promo changes client's subscription
@@ -480,24 +480,24 @@ async def send_admin_info_promo_entered(client_id: int, phrase: str, promo_type:
 async def account_promo_check(message: types.Message, state: FSMContext):
 
     # if promo is referral
-    if await postgesql_db.check_referral_promo(message.text):
+    if await postgesql_db.is_referral_promo(message.text):
         await message.answer('К сожалению, вводить реферальные промокоды можно только при регистрации ;(')
         return
     
     client_id = await postgesql_db.get_clientID_by_telegramID(message.from_user.id)
-    promo_local_id = await postgesql_db.check_local_promo_exists(message.text)
-    promo_global_id = await postgesql_db.check_global_promo_exists(message.text)
+    promo_local_id = await postgesql_db.get_local_promo_id(message.text)
+    promo_global_id = await postgesql_db.get_global_promo_id(message.text)
 
     # if promo is global and exists in system
     if promo_global_id:
 
         # if global promo wasn't entered by user before
         if not await postgesql_db.is_global_promo_already_entered(client_id, promo_global_id):
-            promo_bonus_time = await postgesql_db.check_global_promo_valid(promo_global_id)
+            promo_bonus_time = await postgesql_db.is_global_promo_valid(promo_global_id)
 
             # if global promo didn't expire
             if promo_bonus_time:
-                await postgesql_db.insert_user_entered_global_promo(client_id, promo_global_id, promo_bonus_time[0])
+                await postgesql_db.insert_client_entered_global_promo(client_id, promo_global_id, promo_bonus_time[0])
                 await message.answer(f'Ура! Промокод на {promo_bonus_time[1]} дней бесплатной подписки принят!', reply_markup=user_authorized_kb.account_kb)
                 await send_admin_info_promo_entered(client_id, message.text, 'global')
                 await state.set_state(user_authorized_fsm.AccountMenu.menu)
@@ -517,12 +517,12 @@ async def account_promo_check(message: types.Message, state: FSMContext):
 
             # if local promo wasn't entered by user before
             if not await postgesql_db.is_local_promo_already_entered(client_id, promo_local_id):
-                promo_local_bonus_time = await postgesql_db.check_local_promo_valid(promo_local_id)
+                promo_local_bonus_time = await postgesql_db.is_local_promo_valid(promo_local_id)
 
                 # if local promo didn't expire
                 if promo_local_bonus_time:
                     bonus_time, bonus_time_parsed, provided_sub_id = promo_local_bonus_time
-                    await postgesql_db.insert_user_entered_local_promo(client_id, promo_local_id, bonus_time)
+                    await postgesql_db.insert_client_entered_local_promo(client_id, promo_local_id, bonus_time)
 
                     answer_message = f'Ура! Специальный промокод на {bonus_time_parsed} дней бесплатной подписки принят!'
 
@@ -552,25 +552,25 @@ async def account_promo_check(message: types.Message, state: FSMContext):
 
 @user_mw.authorized_only()
 async def account_promo_info(message: types.Message, state: FSMContext):
-    promo_info = await postgesql_db.show_entered_promos(await postgesql_db.get_clientID_by_telegramID(message.from_user.id))
+    promos_ref, promos_global, promos_local = await postgesql_db.get_client_entered_promos(await postgesql_db.get_clientID_by_telegramID(message.from_user.id))
     await message.answer('Информация о введенных промокодах!')
     tmp_string = ''
 
     # info about entered referral promocode
-    if promo_info['ref']:
-        tmp_string += f"Использованный реферальный промокод:\n<b>{promo_info['ref'][0]}</b> от пользователя {promo_info['ref'][1]}.\n\n"
+    if promos_ref:
+        tmp_string += f"Использованный реферальный промокод:\n<b>{promos_ref[0]}</b> от пользователя {promos_ref[1]}.\n\n"
 
     # info about entered global promocodes
-    if promo_info['global']:
+    if promos_global:
         tmp_string += 'Использованные общедоступные промокоды:\n'
-        for idx, row in enumerate(promo_info['global']):
+        for idx, row in enumerate(promos_global):
             tmp_string += f"{idx + 1}. Промокод <b>{row[0]}</b> на {row[1]} бесплатных дней подписки. Был введен {row[2]}.\n"
         tmp_string += '\n'
 
     # info about entered local promocodes
-    if promo_info['local']:
+    if promos_local:
         tmp_string += 'Использованные специальные промокоды:\n'
-        for idx, row in enumerate(promo_info['local']):
+        for idx, row in enumerate(promos_local):
             tmp_string += f"{idx + 1}. Промокод <b>{row[0]}</b> на {row[1]} бесплатных дней подписки. Был введен {row[2]}.\n"
         tmp_string += '\n'
 
@@ -588,7 +588,7 @@ async def show_project_rules(message: types.Message):
 async def restore_payments(message: types.Message):
     wallet = YooMoneyWallet(YOOMONEY_TOKEN)
     client_id = await postgesql_db.get_clientID_by_telegramID(message.from_user.id)
-    client_payments_ids = await postgesql_db.get_user_payments_ids(client_id)
+    client_payments_ids = await postgesql_db.get_paymentIDs(client_id)
 
     is_payment_found = False
     for [payment_id] in client_payments_ids:

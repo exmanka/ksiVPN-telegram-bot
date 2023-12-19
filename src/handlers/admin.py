@@ -121,7 +121,7 @@ async def notifications_send_message_everyone(message: types.Message, state: FSM
                 
                 # add him to answer_message
                 except ChatNotFound as _t:
-                    _, name, surname, username, _ = await postgesql_db.show_user_info(telegram_id)
+                    _, name, surname, username, *_ = await postgesql_db.get_client_info_by_telegramID(telegram_id)
                     answer_message += f'{idx + 1}. {name} {surname} {username} (tg_id: <code>{telegram_id}</code>)\n'
 
         # if some users didn't write to bot
@@ -178,7 +178,7 @@ async def notifications_send_message_selected_list(message: types.Message, state
     # show selected users info
     answer_message = ''
     for idx, telegram_id in enumerate(selected_telegram_ids):
-        _, name, surname, username, _ = await postgesql_db.show_user_info(telegram_id)
+        _, name, surname, username, *_ = await postgesql_db.get_client_info_by_telegramID(telegram_id)
         answer_message += f'{idx + 1}. {name} {surname} {username} (tg_id: <code>{telegram_id}</code>)\n'
 
     # if at least 1 user is in db
@@ -211,7 +211,7 @@ async def notifications_send_message_selected(message: types.Message, state: FSM
                 
                 # add him to answer_message
                 except ChatNotFound as _t:
-                    _, name, surname, username, _ = await postgesql_db.show_user_info(telegram_id)
+                    _, name, surname, username, *_ = await postgesql_db.get_client_info_by_telegramID(telegram_id)
                     answer_message += f'{idx + 1}. {username} ({name}, {surname}), telegram_id <b>{telegram_id}</b>\n'
 
         # if some users didn't write to bot
@@ -366,7 +366,7 @@ async def check_user_configs(message: types.Message):
     else:
         client_id = await postgesql_db.get_clientID_by_telegramID(user_info)
 
-    configurations_info = await postgesql_db.show_configurations_info(client_id)
+    configurations_info = await postgesql_db.get_configurations_info(client_id)
     await message.answer(f'Информация о всех ваших конфигурациях, теперь не нужно искать их по диалогу с ботом!\n\nВсего конфигураций <b>{len(configurations_info)}</b>.',
                          parse_mode='HTML')
 
@@ -529,7 +529,7 @@ async def create_configuration(client_id: int,
     else:
         raise Exception('при попытке создания конфигурации был указан неверный file_type!')
             
-    _, date_of_receipt, _, is_chatgpt_available, name, country, city, bandwidth, ping, _ = (await postgesql_db.show_configurations_info(client_id))[0]
+    _, date_of_receipt, _, is_chatgpt_available, name, country, city, bandwidth, ping, _ = (await postgesql_db.get_configurations_info(client_id))[0]
     configuration_description = await service_functions.create_configuration_description(date_of_receipt, os_enum, is_chatgpt_available, name, country, city, bandwidth, ping, link)
 
     return configuration_description
