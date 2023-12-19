@@ -5,7 +5,6 @@ from bot_init import POSTGRES_PW
 
 conn: asyncpg.Connection
 
-
 async def asyncpg_run() -> None:
     global conn
     conn = await asyncpg.connect(host='localhost', database='tgbot_postgres_db', user='postgres', password=POSTGRES_PW)
@@ -55,15 +54,6 @@ async def is_referral_promo(phrase: str) -> bool | None:
         ''',
         phrase)
 
-async def is_promo_ref(phrase: str) -> bool | None:
-    return await conn.fetchval(
-        '''
-        SELECT TRUE
-        FROM promocodes_ref
-        WHERE phrase = $1;
-        ''',
-        phrase)
-
 async def is_local_promo_accessible(client_id: int, local_promo_id: int) -> bool | None:
     return await conn.fetchval(
         '''
@@ -74,10 +64,12 @@ async def is_local_promo_accessible(client_id: int, local_promo_id: int) -> bool
         ''',
         local_promo_id, client_id)
 
-async def is_local_promo_already_entered(client_id: int, local_promo_id: int) -> datetime | None:
+async def is_local_promo_already_entered(client_id: int, local_promo_id: int) -> bool | None:
     return await conn.fetchval(
         '''
-        SELECT date_of_entry
+        SELECT CASE
+            WHEN date_of_entry IS NOT NULL THEN TRUE
+        END
         FROM clients_promo_local
         WHERE promocode_id = $1
         AND accessible_client_id = $2;
@@ -94,20 +86,20 @@ async def is_global_promo_already_entered(client_id: int, global_promo_id: int) 
         ''',
         client_id, global_promo_id) 
 
-async def is_local_promo_valid(local_promo_id: int) -> asyncpg.Record | None:
+async def is_local_promo_valid(local_promo_id: int) -> bool | None:
     return await conn.fetchrow(
         '''
-        SELECT bonus_time, TO_CHAR(bonus_time, 'FMDDD'), provided_sub_id
+        SELECT TRUE
         FROM promocodes_local
         WHERE id = $1
         AND expiration_date > NOW();
         ''',
         local_promo_id)
 
-async def is_global_promo_valid(global_promo_id: int) -> asyncpg.Record | None:
+async def is_global_promo_valid(global_promo_id: int) -> bool | None:
     return await conn.fetchrow(
         '''
-        SELECT bonus_time, TO_CHAR(bonus_time, 'FMDDD')
+        SELECT TRUE
         FROM promocodes_global
         WHERE id = $1
         AND expiration_date > NOW();
@@ -149,6 +141,101 @@ async def get_telegramID_by_username(username: str) -> int | None:
         ''',
         username)
 
+async def get_client_info_by_telegramID(telegram_id: int) -> asyncpg.Record | None:
+    return await conn.fetchrow(
+        '''
+        SELECT id, name, surname, username, register_date, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI'), used_ref_promo_id, bot_chatgpt_mode
+        FROM clients
+        WHERE telegram_id = $1;
+        ''',
+        telegram_id)
+
+async def get_client_info_by_clientID(client_id: int) -> asyncpg.Record | None:
+    return await conn.fetchrow(
+        '''
+        SELECT name, surname, username, telegram_id, register_date, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI'), used_ref_promo_id, bot_chatgpt_mode
+        FROM clients
+        WHERE id = $1;
+        ''',
+        client_id)
+
+async def get_chatgpt_mode_status(telegram_id: int) -> bool | None:
+    return await conn.fetchval(
+        '''
+        SELECT bot_chatgpt_mode
+        FROM clients
+        WHERE telegram_id = $1;
+        ''',
+        telegram_id)
+
+async def get_clients_telegram_ids() -> list[asyncpg.Record]:
+    return await conn.fetch(
+        '''
+        SELECT telegram_id
+        FROM clients;
+        ''')
+
+async def get_subscription_info_by_clientID(client_id: int) -> asyncpg.Record | None:
+    return await conn.fetchrow(
+        '''
+        SELECT sub.id, sub.title, sub.description, sub.price
+        FROM clients_subscriptions AS clients_sub
+        JOIN subscriptions AS sub
+        ON sub.id = clients_sub.sub_id
+        WHERE clients_sub.client_id = $1;
+        ''',
+        client_id)
+
+async def get_clients_subscriptions_info_by_clientID(client_id: int) -> asyncpg.Record | None:
+    return await conn.fetchrow(
+        '''
+        SELECT sub_id, paid_months_counter, expiration_date, TO_CHAR(expiration_date, 'FMDD TMMonth YYYY в HH24:MI')
+        FROM clients_subscriptions
+        WHERE client_id = $1;
+        ''',
+        client_id)
+
+async def get_subscription_info_by_subID(subscription_id) -> asyncpg.Record | None:
+    return await conn.fetchrow(
+        '''
+        SELECT id, title, description, price
+        FROM subscriptions
+        WHERE id = $1;
+        ''',
+        subscription_id)
+
+async def get_subscription_expiration_date(telegram_id: int) -> str | None:
+    return await conn.fetchval(
+        '''
+        SELECT TO_CHAR(cs.expiration_date, 'FMDD TMMonth YYYY в HH24:MI')
+        FROM clients_subscriptions AS cs
+        JOIN clients AS c
+        ON cs.client_id = c.id
+        WHERE c.telegram_id = $1;
+        ''',
+        telegram_id)
+
+async def get_configurations_info(client_id: int) -> list[asyncpg.Record]:
+    return await conn.fetch(
+        '''
+        SELECT c.file_type, TO_CHAR(c.date_of_receipt, 'FMDD TMMonth YYYY в HH24:MI'), c.os, cl.is_chatgpt_available, cp.name, cl.country, cl.city, cl.bandwidth, cl.ping, c.telegram_file_id
+        FROM configurations AS c
+        JOIN configurations_protocols AS cp ON c.protocol_id = cp.id
+        JOIN configurations_locations AS cl ON c.location_id = cl.id
+        WHERE c.client_id = $1
+        ORDER BY c.date_of_receipt;
+        ''',
+        client_id)
+
+async def get_configurations_number(client_id: int) -> int | None:
+    return await conn.fetchval(
+        '''
+        SELECT COUNT(*)
+        FROM configurations
+        WHERE client_id = $1;
+        ''',
+        client_id)
+
 async def get_paymentIDs(client_id: int) -> list[asyncpg.Record]:
     '''
     Return all clients's created payments id for all the time
@@ -178,55 +265,6 @@ async def get_paymentIDs_last(client_id: int, minutes: int) -> list[asyncpg.Reco
         ''',
         client_id, minutes)
 
-async def get_client_info_by_telegramID(telegram_id: int) -> asyncpg.Record | None:
-    return await conn.fetchrow(
-        '''
-        SELECT id, name, surname, username, register_date, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI'), used_ref_promo_id, bot_chatgpt_mode
-        FROM clients
-        WHERE telegram_id = $1;
-        ''',
-        telegram_id)
-
-async def get_client_info_by_clientID(client_id: int) -> asyncpg.Record | None:
-    return await conn.fetchrow(
-        '''
-        SELECT name, surname, username, telegram_id, register_date, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI'), used_ref_promo_id, bot_chatgpt_mode
-        FROM clients
-        WHERE id = $1;
-        ''',
-        client_id)
-
-async def get_subscription_info_by_clientID(client_id: int) -> asyncpg.Record | None:
-    return await conn.fetchrow(
-        '''
-        SELECT sub.id, sub.title, sub.description, sub.price
-        FROM clients_subscriptions AS clients_sub
-        JOIN subscriptions AS sub
-        ON sub.id = clients_sub.sub_id
-        WHERE clients_sub.client_id = $1;
-        ''',
-        client_id)
-
-async def get_subscription_info_by_subID(subscription_id) -> asyncpg.Record | None:
-    return await conn.fetchrow(
-        '''
-        SELECT id, title, description, price
-        FROM subscriptions
-        WHERE id = $1;
-        ''',
-        subscription_id)
-
-async def get_subscription_expiration_date(telegram_id: int) -> str | None:
-    return await conn.fetchval(
-        '''
-        SELECT TO_CHAR(cs.expiration_date, 'FMDD TMMonth YYYY в HH24:MI')
-        FROM clients_subscriptions AS cs
-        JOIN clients AS c
-        ON cs.client_id = c.id
-        WHERE c.telegram_id = $1;
-        ''',
-        telegram_id)
-
 async def get_payments_successful_info(client_id: int) -> list[asyncpg.Record]:
     '''
     Return user's created payments info for all the time
@@ -240,26 +278,6 @@ async def get_payments_successful_info(client_id: int) -> list[asyncpg.Record]:
         ON p.sub_id = s.id
         WHERE p.client_id = $1
         AND p.is_successful = TRUE;
-        ''',
-        client_id)
-
-async def get_configurations_info(client_id: int) -> list[asyncpg.Record]:
-    return await conn.fetch(
-        '''
-        SELECT c.file_type, TO_CHAR(c.date_of_receipt, 'FMDD TMMonth YYYY в HH24:MI'), c.os, cl.is_chatgpt_available, cp.name, cl.country, cl.city, cl.bandwidth, cl.ping, c.telegram_file_id
-        FROM configurations AS c
-        JOIN configurations_protocols AS cp ON c.protocol_id = cp.id
-        JOIN configurations_locations AS cl ON c.location_id = cl.id
-        WHERE c.client_id = $1
-        ORDER BY c.date_of_receipt;
-        ''',
-        client_id)
-
-async def get_configurations_number(client_id: int) -> int | None:
-    return await conn.fetchval(
-        '''
-        SELECT COUNT(*) FROM configurations
-        WHERE client_id = $1;
         ''',
         client_id)
 
@@ -296,7 +314,7 @@ async def get_payment_last_message_id(client_id: int) -> asyncpg.Record | None:
         ''',
         client_id)
 
-async def get_referral_promocode(telegram_id: int) -> str | None:
+async def get_referral_promo(telegram_id: int) -> str | None:
     return await conn.fetchval(
         '''
         SELECT pf.phrase
@@ -306,41 +324,6 @@ async def get_referral_promocode(telegram_id: int) -> str | None:
         WHERE c.telegram_id = $1;
         ''',
         telegram_id)    
-
-async def get_invited_by_client_info(telegram_id: int) -> asyncpg.Record | None:
-    return await conn.fetchrow(
-        '''
-        SELECT cc.name, cc.username
-        FROM clients AS c
-        JOIN promocodes_ref AS pr
-        ON c.used_ref_promo_id = pr.id
-        JOIN clients AS cc
-        ON pr.client_creator_id = cc.id
-        WHERE c.telegram_id = $1;
-        ''',
-        telegram_id)    
-
-async def get_invited_users_list(telegram_id: int) -> list[asyncpg.Record]:
-    return await conn.fetch(
-        '''
-        SELECT c.name, c.username
-        FROM clients AS c
-        JOIN promocodes_ref AS pr
-        ON c.used_ref_promo_id = pr.id
-        JOIN clients AS cc
-        ON pr.client_creator_id = cc.id
-        WHERE cc.telegram_id = $1;
-        ''',
-        telegram_id) 
-
-async def get_local_promo_id(phrase: str) -> int | None:
-    return await conn.fetchval(
-        '''
-        SELECT id
-        FROM promocodes_local
-        WHERE phrase = $1;
-        ''',
-        phrase) 
 
 async def get_local_promo_info(phrase: str) -> asyncpg.Record | None:
     return await conn.fetchrow(
@@ -359,15 +342,6 @@ async def get_global_promo_info(phrase: str) -> asyncpg.Record | None:
         WHERE phrase = $1;
         ''',
         phrase)
-
-async def get_global_promo_id(phrase: int) -> int | None:
-    return await conn.fetchval(
-        '''
-        SELECT id
-        FROM promocodes_global
-        WHERE phrase = $1;
-        ''',
-        phrase) 
 
 async def get_client_entered_promos(client_id: int) -> tuple[asyncpg.Record | None]:
     async with conn.transaction():
@@ -410,13 +384,6 @@ async def get_client_entered_promos(client_id: int) -> tuple[asyncpg.Record | No
 
         return (promos_ref, promos_global, promos_local)
 
-async def get_clients_telegram_ids() -> list[asyncpg.Record]:
-    return await conn.fetch(
-        '''
-        SELECT telegram_id
-        FROM clients;
-        ''')
-
 async def get_notifications_info(client_id: int) -> asyncpg.Record | None:
     return await conn.fetchrow(
         '''
@@ -442,34 +409,25 @@ async def get_notifications_status() -> list[asyncpg.Record]:
         ON sns.client_id = cs.client_id;
         ''')
 
-async def get_chatgpt_mode_status(telegram_id: int) -> bool | None:
-    return await conn.fetchval(
-        '''
-        SELECT bot_chatgpt_mode
-        FROM clients
-        WHERE telegram_id = $1;
-        ''',
-        telegram_id)
-
-async def get_promo_ref_info(phrase: str) -> asyncpg.Record | None:
+async def get_refferal_promo_info_by_phrase(phrase: str) -> asyncpg.Record | None:
     return await conn.fetchrow(
         '''
-        SELECT id, client_creator_id, provided_sub_id, bonus_time
+        SELECT id, client_creator_id, provided_sub_id, bonus_time, TO_CHAR(bonus_time, 'FMDDD')
         FROM promocodes_ref
         WHERE phrase = $1;
         ''',
         phrase)
 
-async def get_promo_ref_info_parsed(phrase: str) -> asyncpg.Record | None:
+async def get_refferal_promo_info_by_promoID(ref_promo_id: int) -> asyncpg.Record | None:
     return await conn.fetchrow(
         '''
-        SELECT id, client_creator_id, provided_sub_id, TO_CHAR(bonus_time, 'FMDDD')
+        SELECT phrase, client_creator_id, provided_sub_id, bonus_time, TO_CHAR(bonus_time, 'FMDDD')
         FROM promocodes_ref
-        WHERE phrase = $1;
+        WHERE id = $1;
         ''',
-        phrase)
+        ref_promo_id)
 
-async def get_ref_promo_info_by_clientCreatorID(client_creator_id: int) -> asyncpg.Record | None:
+async def get_refferal_promo_info_by_clientCreatorID(client_creator_id: int) -> asyncpg.Record | None:
     return await conn.fetchrow(
         '''
         SELECT id, phrase, provided_sub_id, bonus_time, TO_CHAR(bonus_time, 'FMDDD')
@@ -478,23 +436,31 @@ async def get_ref_promo_info_by_clientCreatorID(client_creator_id: int) -> async
         ''',
         client_creator_id)
 
-async def get_ref_promo_info(ref_promo_id: int) -> asyncpg.Record | None:
+async def get_invited_by_client_info(telegram_id: int) -> asyncpg.Record | None:
     return await conn.fetchrow(
         '''
-        SELECT phrase, client_creator_id, provided_sub_id, bonus_time
-        FROM promocodes_ref
-        WHERE id = $1;
+        SELECT cc.name, cc.username
+        FROM clients AS c
+        JOIN promocodes_ref AS pr
+        ON c.used_ref_promo_id = pr.id
+        JOIN clients AS cc
+        ON pr.client_creator_id = cc.id
+        WHERE c.telegram_id = $1;
         ''',
-        ref_promo_id)
+        telegram_id)    
 
-async def get_clientsSubscriptions_info_by_clientID(client_id: int) -> asyncpg.Record | None:
-    return await conn.fetchrow(
+async def get_invited_clients_list(telegram_id: int) -> list[asyncpg.Record]:
+    return await conn.fetch(
         '''
-        SELECT sub_id, paid_months_counter, expiration_date, TO_CHAR(expiration_date, 'FMDD TMMonth YYYY в HH24:MI')
-        FROM clients_subscriptions
-        WHERE client_id = $1;
+        SELECT c.name, c.username
+        FROM clients AS c
+        JOIN promocodes_ref AS pr
+        ON c.used_ref_promo_id = pr.id
+        JOIN clients AS cc
+        ON pr.client_creator_id = cc.id
+        WHERE cc.telegram_id = $1;
         ''',
-        client_id)
+        telegram_id) 
 
 async def update_chatgpt_mode(telegram_id: int) -> bool | None:
     return await conn.fetchval(
