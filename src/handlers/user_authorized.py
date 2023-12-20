@@ -11,9 +11,9 @@ from src.database import postgesql_db
 from src.services.messages import messages_dict
 from src.states import user_authorized_fsm
 from src.middlewares import user_mw
-from src.handlers.admin import send_user_info
 from src.services.aiomoney import YooMoneyWallet, PaymentSource
 from src.services import service_functions
+from src.services.service_functions import send_user_info
 
 
 async def autocheck_payment_status(payment_id: int):

@@ -9,43 +9,6 @@ from src.middlewares import admin_mw
 from src.database import postgesql_db
 from src.services import service_functions
 
-
-async def send_user_info(user: dict, choice: dict, is_new_user: bool):
-    if is_new_user:
-        
-        answer_message = f"<b>Имя</b>: <code>{user['fullname']}</code>\n"
-        answer_message += f"<b>Тэг</b>: @{user['username']}\n"
-        answer_message += f"<b>ID</b>: <code>{user['id']}</code>\n"
-
-        if choice['promo'] is None:
-            answer_message += '<b>Пользователь не вводил промокод, конфигурацию можно отправить ТОЛЬКО ПОСЛЕ ОПЛАТЫ ПОДПИСКИ ИЛИ ВВОДА ПРОМОКОДА</b>\n'
-
-        else:
-            _, client_creator_id, provided_sub_id, _, bonus_time_parsed = await postgesql_db.get_refferal_promo_info_by_phrase(choice['promo'])
-            client_creator_name, client_creator_surname, client_creator_username, client_creator_telegram_id, *_  = await postgesql_db.get_client_info_by_clientID(client_creator_id)
-            *_, price = await postgesql_db.get_subscription_info_by_subID(provided_sub_id)
-
-            answer_message += f"<b>Промокод</b>: <code>{choice['promo']}</code> от пользователя {client_creator_name} {client_creator_surname} {client_creator_username} "
-            answer_message += f"<code>{client_creator_telegram_id}</code> на {bonus_time_parsed} бесплатных дней по подписке {int(price)}₽/мес.\n"
-
-
-        answer_message += f"<b>Конфигурация</b>: {choice['platform'][2:]}, {choice['os_name']}, {choice['chatgpt']} ChatGPT\n\n"
-        answer_message += f"<b>Запрос на подключение от нового пользователя!</b>"
-                                
-
-        await bot.send_message(ADMIN_ID, answer_message,
-                               reply_markup=await admin_kb.configuration(user['id']),
-                               parse_mode='HTML')
-        
-    else:
-        await bot.send_message(ADMIN_ID,
-                                f"<b>Имя</b>: <code>{user['fullname']}</code>\n"
-                                f"<b>Тэг</b>: @{user['username']}\n"
-                                f"<b>ID</b>: <code>{user['id']}</code>\n"
-                                f"<b>Конфигурация</b>: {choice['platform'][2:]}, {choice['os_name']}, {choice['chatgpt']} ChatGPT\n\n"
-                                f"<b>Запрос дополнительной конфигурации от пользователя!</b>",
-                                reply_markup=await admin_kb.configuration(user['id']),
-                                parse_mode='HTML')
         
 async def send_message_by_telegram_id(telegram_id: int, message: types.Message):
     # if message is text

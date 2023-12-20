@@ -1,5 +1,9 @@
 from bot_init import bot, ADMIN_ID
 from src.database import postgesql_db
+from aiogram import types
+from aiogram.dispatcher import FSMContext
+from src.keyboards.admin_kb import configuration
+from src.keyboards.user_authorized_kb import menu_kb
 
 async def create_configuration_description(date_of_receipt: str,
                                            os: str,
@@ -115,3 +119,59 @@ async def check_referral_reward(ref_client_id: int):
 
         client_creator_telegram_id = await postgesql_db.get_telegramID_by_clientID(client_creator_id)
         await bot.send_message(client_creator_telegram_id, answer_message, parse_mode='HTML')
+
+async def send_user_info(user: dict, choice: dict, is_new_user: bool):
+    if is_new_user:
+        
+        answer_message = f"<b>Имя</b>: <code>{user['fullname']}</code>\n"
+        answer_message += f"<b>Тэг</b>: @{user['username']}\n"
+        answer_message += f"<b>ID</b>: <code>{user['id']}</code>\n"
+
+        if choice['promo'] is None:
+            answer_message += '<b>Пользователь не вводил промокод, конфигурацию можно отправить ТОЛЬКО ПОСЛЕ ОПЛАТЫ ПОДПИСКИ ИЛИ ВВОДА ПРОМОКОДА</b>\n'
+
+        else:
+            _, client_creator_id, provided_sub_id, _, bonus_time_parsed = await postgesql_db.get_refferal_promo_info_by_phrase(choice['promo'])
+            client_creator_name, client_creator_surname, client_creator_username, client_creator_telegram_id, *_  = await postgesql_db.get_client_info_by_clientID(client_creator_id)
+            *_, price = await postgesql_db.get_subscription_info_by_subID(provided_sub_id)
+
+            answer_message += f"<b>Промокод</b>: <code>{choice['promo']}</code> от пользователя {client_creator_name} {client_creator_surname} {client_creator_username} "
+            answer_message += f"<code>{client_creator_telegram_id}</code> на {bonus_time_parsed} бесплатных дней по подписке {int(price)}₽/мес.\n"
+
+
+        answer_message += f"<b>Конфигурация</b>: {choice['platform'][2:]}, {choice['os_name']}, {choice['chatgpt']} ChatGPT\n\n"
+        answer_message += f"<b>Запрос на подключение от нового пользователя!</b>"
+                                
+
+        await bot.send_message(ADMIN_ID, answer_message,
+                               reply_markup=await configuration(user['id']),
+                               parse_mode='HTML')
+        
+    else:
+        await bot.send_message(ADMIN_ID,
+                                f"<b>Имя</b>: <code>{user['fullname']}</code>\n"
+                                f"<b>Тэг</b>: @{user['username']}\n"
+                                f"<b>ID</b>: <code>{user['id']}</code>\n"
+                                f"<b>Конфигурация</b>: {choice['platform'][2:]}, {choice['os_name']}, {choice['chatgpt']} ChatGPT\n\n"
+                                f"<b>Запрос дополнительной конфигурации от пользователя!</b>",
+                                reply_markup=await configuration(user['id']),
+                                parse_mode='HTML')
+
+async def authorization_complete(message: types.Message, state: FSMContext):
+    used_ref_promo_id = None
+    provided_sub_id = None
+    bonus_time = None
+    user = message.from_user
+
+    async with state.proxy() as data:
+        if phrase := data['promo']:
+            used_ref_promo_id, _, provided_sub_id, bonus_time, _ = await postgesql_db.get_refferal_promo_info_by_phrase(phrase)
+
+        await postgesql_db.insert_client(user.first_name, user.id, user.last_name, user.username, used_ref_promo_id, provided_sub_id, bonus_time)
+        await send_user_info({'fullname': user.full_name, 'username': user.username, 'id': user.id}, data._data, is_new_user=True)
+
+    await message.answer(f'Отлично! Теперь ждем ответа от разработчика: в скором времени он проверит Вашу регистрацию и вышлет конфигурацию! А пока вы можете исследовать бота!',
+                         reply_markup=menu_kb)
+    await message.answer(f'Пожалуйста, не забывайте, что он тоже человек, и периодически спит (хотя на самом деле крайне редко)')
+    
+    await state.finish()
