@@ -1,8 +1,9 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
+from aiogram.types.input_file import InputFile
 from src.database.postgesql_db import get_notifications_status, get_client_info_by_telegramID, get_configurations_info, get_clientID_by_telegramID
 from src.services import service_functions
-from bot_init import bot, ADMIN_ID
+from bot_init import bot, ADMIN_ID, BACKUP_PATH_NAME
 
 
 async def send_subscription_expiration_notifications():
@@ -50,11 +51,14 @@ async def send_subscription_expiration_notifications():
                                    f'Срок действия подписки пользователя {name} {surname} {username} <code>{telegram_id}</code> истекает через 7 дней!',
                                    parse_mode='HTML')
 
+async def send_database_backup():
+    await bot.send_document(ADMIN_ID, InputFile(BACKUP_PATH_NAME), caption=f'Бэкап за {datetime.now().strftime("%d.%m.%y %H:%M")}')
 
 async def scheduler_start():
     global scheduler
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(send_subscription_expiration_notifications, 'interval', minutes=30, next_run_time=datetime.now())
+    scheduler.add_job(send_subscription_expiration_notifications, 'cron', minute='0,30')
+    scheduler.add_job(send_database_backup, 'cron', hour=20, minute=30, timezone='Europe/Moscow')
     scheduler.start()
 
     print('Scheduler has been successfully launched!')
