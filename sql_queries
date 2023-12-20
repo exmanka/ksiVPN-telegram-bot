@@ -220,13 +220,14 @@ CREATE TABLE promocodes_global (
 	id SMALLSERIAL PRIMARY KEY,
 	phrase VARCHAR(32) UNIQUE NOT NULL,
 	expiration_date TIMESTAMP NOT NULL,
+	remaining_activations INT NOT NULL,
 	bonus_time INTERVAL NOT NULL
 );
 
-INSERT INTO promocodes_global(phrase, expiration_date, bonus_time) VALUES('TEST_PROMO_ON_1', TIMESTAMP '2023-12-30', INTERVAL '1 months');
-INSERT INTO promocodes_global(phrase, expiration_date, bonus_time) VALUES('TEST_PROMO_ON_3', TIMESTAMP '2023-12-30', INTERVAL '3 months');
-INSERT INTO promocodes_global(phrase, expiration_date, bonus_time) VALUES('TEST_PROMO_OFF', TIMESTAMP '2023-11-10', INTERVAL '3 months');
-INSERT INTO promocodes_global(phrase, expiration_date, bonus_time) VALUES('TEST_PROMO_ON_24', TIMESTAMP '2023-12-30', INTERVAL '24 months');
+INSERT INTO promocodes_global(phrase, expiration_date, remaining_activations, bonus_time) VALUES('TEST_PROMO_ON_1', TIMESTAMP '2023-12-30', 1, INTERVAL '1 months');
+INSERT INTO promocodes_global(phrase, expiration_date, remaining_activations, bonus_time) VALUES('TEST_PROMO_ON_3', TIMESTAMP '2023-12-30', 2, INTERVAL '3 months');
+INSERT INTO promocodes_global(phrase, expiration_date, remaining_activations, bonus_time) VALUES('TEST_PROMO_OFF', TIMESTAMP '2023-11-10', 1, INTERVAL '3 months');
+INSERT INTO promocodes_global(phrase, expiration_date, remaining_activations, bonus_time) VALUES('TEST_PROMO_ON_24', TIMESTAMP '2023-12-30', 3, INTERVAL '24 months');
 
 
 CREATE TABLE clients_promo_global (
