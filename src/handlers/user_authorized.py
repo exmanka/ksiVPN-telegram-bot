@@ -109,7 +109,7 @@ async def sub_renewal(message: types.Message, state: FSMContext, months_number: 
 @user_mw.authorized_only()
 async def subscription_status(message: types.Message):
     if await postgesql_db.is_subscription_not_started(message.from_user.id):
-        await message.answer('Подписка еще не активирована, так как администратор пока что не прислал конфигурацию!')
+        await message.answer('Подписка еще не активирована, так как администратор пока что не прислал конфигурацию! Не переживайте, отчет времени истечения подписки начнется только после ее получения!')
         return
     
     if await postgesql_db.is_subscription_active(message.from_user.id):
@@ -457,7 +457,7 @@ async def send_admin_info_promo_entered(client_id: int, phrase: str, promo_type:
     answer_message = f'Пользователем {name} {surname} {username} <code>{telegram_id}</code> был введен '
 
     if promo_type == 'global':
-        id, _, expiration_date_parsed, _, bonus_time_parsed = await postgesql_db.get_global_promo_info(phrase)
+        id, _, expiration_date_parsed, *_, bonus_time_parsed = await postgesql_db.get_global_promo_info(phrase)
         answer_message += f'глобальный промокод с ID {id} на {bonus_time_parsed} дней подписки, заканчивающийся {expiration_date_parsed}.'
 
     elif promo_type == 'local':
@@ -490,19 +490,24 @@ async def account_promo_check(message: types.Message, state: FSMContext):
 
     # if promo is global and exists in system
     if promo_global_info:
-        promo_global_id, *_ = promo_global_info
+        promo_global_id, *_, bonus_time, bonus_time_parsed = promo_global_info
 
         # if global promo wasn't entered by user before
         if not await postgesql_db.is_global_promo_already_entered(client_id, promo_global_id):
 
             # if global promo didn't expire
             if await postgesql_db.is_global_promo_valid(promo_global_id):
-                *_, bonus_time, bonus_time_parsed = await postgesql_db.get_global_promo_info(message.text)
+                    
+                    # if global promo still has available activations number
+                    if await postgesql_db.is_global_promo_has_remaining_activations(promo_global_id):
 
-                await postgesql_db.insert_client_entered_global_promo(client_id, promo_global_id, bonus_time)
-                await message.answer(f'Ура! Промокод на {bonus_time_parsed} дней бесплатной подписки принят!', reply_markup=user_authorized_kb.account_kb)
-                await send_admin_info_promo_entered(client_id, message.text, 'global')
-                await state.set_state(user_authorized_fsm.AccountMenu.menu)
+                        await postgesql_db.insert_client_entered_global_promo(client_id, promo_global_id, bonus_time)
+                        await message.answer(f'Ура! Промокод на {bonus_time_parsed} дней бесплатной подписки принят!', reply_markup=user_authorized_kb.account_kb)
+                        await send_admin_info_promo_entered(client_id, message.text, 'global')
+                        await state.set_state(user_authorized_fsm.AccountMenu.menu)
+
+                    else:
+                        await message.answer('К сожалению, число возможных активаций данного промокода исчерпано :(')
 
             else:
                 await message.answer('К сожалению, срок действия промокода истек :(')
@@ -513,7 +518,7 @@ async def account_promo_check(message: types.Message, state: FSMContext):
 
     # if promo is local and exists in system
     elif promo_local_info:
-        promo_local_id, *_ = promo_local_info
+        promo_local_id, *_, bonus_time, bonus_time_parsed, provided_sub_id = promo_local_info
 
         # if local promo accessible
         if await postgesql_db.is_local_promo_accessible(client_id, promo_local_id):
@@ -524,7 +529,6 @@ async def account_promo_check(message: types.Message, state: FSMContext):
                 # if local promo didn't expire
                 if await postgesql_db.is_local_promo_valid(promo_local_id):
 
-                    *_, bonus_time, bonus_time_parsed, provided_sub_id = await postgesql_db.get_local_promo_info(message.text)
                     await postgesql_db.insert_client_entered_local_promo(client_id, promo_local_id, bonus_time)
 
                     answer_message = f'Ура! Специальный промокод на {bonus_time_parsed} дней бесплатной подписки принят!'

@@ -77,25 +77,15 @@ async def is_local_promo_already_entered(client_id: int, local_promo_id: int) ->
     """Check local promocode was already entered by client before."""
     return await conn.fetchval(
         '''
-        SELECT CASE
+        SELECT
+        CASE
             WHEN date_of_entry IS NOT NULL THEN TRUE
         END
         FROM clients_promo_local
         WHERE promocode_id = $1
         AND accessible_client_id = $2;
         ''',
-        local_promo_id, client_id) 
-
-async def is_global_promo_already_entered(client_id: int, global_promo_id: int) -> bool | None:
-    """Check global promocode was already entered by client before."""
-    return await conn.fetchval(
-        '''
-        SELECT TRUE
-        FROM clients_promo_global
-        WHERE client_id = $1
-        AND promocode_id = $2;
-        ''',
-        client_id, global_promo_id) 
+        local_promo_id, client_id)
 
 async def is_local_promo_valid(local_promo_id: int) -> bool | None:
     """Check local promocode didn't expire."""
@@ -107,6 +97,32 @@ async def is_local_promo_valid(local_promo_id: int) -> bool | None:
         AND expiration_date > NOW();
         ''',
         local_promo_id)
+
+async def is_global_promo_has_remaining_activations(global_promo_id: int) -> bool | None:
+    """Check global promocode was entered less than specified number of times."""
+    return await conn.fetchval(
+        '''
+        SELECT
+        CASE
+            WHEN remaining_activations > 0 THEN TRUE
+            ELSE FALSE
+        END
+        FROM promocodes_global
+        WHERE id = $1;
+        ''',
+        global_promo_id
+    )
+
+async def is_global_promo_already_entered(client_id: int, global_promo_id: int) -> bool | None:
+    """Check global promocode was already entered by client before."""
+    return await conn.fetchval(
+        '''
+        SELECT TRUE
+        FROM clients_promo_global
+        WHERE client_id = $1
+        AND promocode_id = $2;
+        ''',
+        client_id, global_promo_id) 
 
 async def is_global_promo_valid(global_promo_id: int) -> bool | None:
     """Check global promocode didn't expire."""
@@ -412,12 +428,13 @@ async def get_global_promo_info(phrase: str) -> asyncpg.Record | None:
     """Return information about global promocode.
 
     :param phrase:
-    :return: asyncgp.Record object having (id, expiration_date, TO_CHAR(expiration_date, 'FMDD TMMonth YYYY в HH24:MI'), bonus_time, TO_CHAR(bonus_time, 'FMDDD'))
+    :return: asyncgp.Record object having (id, expiration_date, TO_CHAR(expiration_date, 'FMDD TMMonth YYYY в HH24:MI'), remaining_activations,
+    bonus_time, TO_CHAR(bonus_time, 'FMDDD'))
     :rtype: asyncpg.Record | None
     """    
     return await conn.fetchrow(
         '''
-        SELECT id, expiration_date, TO_CHAR(expiration_date, 'FMDD TMMonth YYYY в HH24:MI'), bonus_time, TO_CHAR(bonus_time, 'FMDDD')
+        SELECT id, expiration_date, TO_CHAR(expiration_date, 'FMDD TMMonth YYYY в HH24:MI'), remaining_activations, bonus_time, TO_CHAR(bonus_time, 'FMDDD')
         FROM promocodes_global
         WHERE phrase = $1;
         ''',
@@ -709,7 +726,7 @@ async def insert_client_entered_local_promo(client_id: int, local_promo_id: int,
             local_promo_bonus_time, client_id)
 
 async def insert_client_entered_global_promo(client_id: int, global_promo_id: int, global_promo_bonus_time) -> None:
-    """Add information about entered global promocode and change subscription's expiration date for client."""
+    """Add information about entered global promocode, reduce remaining activations of global promo, change subscription's expiration date for client."""
     async with conn.transaction():
         await conn.execute(
             '''
@@ -717,6 +734,14 @@ async def insert_client_entered_global_promo(client_id: int, global_promo_id: in
             VALUES($1, $2);
             ''',
             client_id, global_promo_id)
+        
+        await conn.execute(
+            '''
+            UPDATE promocodes_global
+            SET remaining_activations = remaining_activations - 1
+            WHERE id = $1
+            ''',
+            global_promo_id)
         
         await conn.execute(
             '''
