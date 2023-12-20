@@ -353,6 +353,11 @@ async def show_user_config_sql(message: types.Message):
     await message.answer(answer_text, parse_mode='HTML') 
 
 @admin_mw.admin_only()
+async def show_earnings(message: types.Message):
+    earnings_per_current_month = await postgesql_db.get_earnings_per_month()
+    await message.answer(f'Так-так! Заработок за текущий месяц составляет <b>{earnings_per_current_month}₽</b>! \U00002728 \U00002728', parse_mode='HTML')
+
+@admin_mw.admin_only()
 async def check_user_configs(message: types.Message):
     
     # taking user info (telegramID or username) from text after command
@@ -603,6 +608,7 @@ def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(show_user_config_sql_cm_start, commands=['sql_config'])
     dp.register_message_handler(check_user_configs, state=admin_fsm.FSMConfigInfo.ready, commands=['check_configs'])
     dp.register_message_handler(show_user_config_sql, state=admin_fsm.FSMConfigInfo.ready, content_types=['text', 'photo', 'document'])
+    dp.register_message_handler(show_earnings, Text(equals='* Заработок за месяц'))
     dp.register_message_handler(get_file_id, Text(equals='_узнать_id_файла'), content_types=['text', 'photo', 'document'])
     dp.register_message_handler(get_file_id, commands=['fileid', 'fid'], commands_ignore_caption=False, content_types=['text', 'photo', 'document'])
     dp.register_callback_query_handler(send_configuration_cm_start, lambda call: call.data.isdigit())

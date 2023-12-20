@@ -2,9 +2,9 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 
 
 menu_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton('_узнать_id_файла')).\
-    add(KeyboardButton('_SQL_вставка_пользователя')).insert(KeyboardButton('_SQL_вставка_конфигурации')).\
+    add(KeyboardButton('_SQL_вставка_конфигурации')).insert(KeyboardButton('_SQL_вставка_пользователя')).insert(KeyboardButton('_узнать_id_файла')).\
     add(KeyboardButton('_отправка_сообщений')).\
+    add(KeyboardButton('* Заработок за месяц')).\
     add(KeyboardButton('_сброс_FSM'))
 
 notification_kb = ReplyKeyboardMarkup(resize_keyboard=True).\

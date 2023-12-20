@@ -605,7 +605,18 @@ async def get_invited_clients_list(telegram_id: int) -> list[asyncpg.Record]:
         ON pr.client_creator_id = cc.id
         WHERE cc.telegram_id = $1;
         ''',
-        telegram_id) 
+        telegram_id)
+
+async def get_earnings_per_month() -> float:
+    """Return sum of successful payments' prices per current month. Is used by administrator."""
+    return await conn.fetchval(
+        '''
+        SELECT COALESCE(SUM(price), 0)
+        FROM payments
+        WHERE is_successful = TRUE
+        AND date_of_initiation > date_trunc('month', CURRENT_TIMESTAMP);
+        '''
+    )
 
 async def update_chatgpt_mode(telegram_id: int) -> bool | None:
     """Turn on/off ChatGPT bot mode in DB of client with specified telegram_id."""
