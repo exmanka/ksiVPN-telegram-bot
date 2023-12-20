@@ -16,9 +16,6 @@ from src.services.aiomoney import YooMoneyWallet, PaymentSource
 from src.services import service_functions
 
 
-async def already_registered_system(message: types.Message):
-    await message.answer('Ух ты! Вы уже есть в нашей системе! Телепортируем в личный кабинет!', reply_markup=user_authorized_kb.menu_kb)
-
 async def autocheck_payment_status(payment_id: int):
     wallet = YooMoneyWallet(YOOMONEY_TOKEN)
 

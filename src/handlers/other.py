@@ -4,6 +4,8 @@ from aiogram.dispatcher.filters import Text
 from src.services.messages import messages_dict
 from src.services.gpt4free import chatgpt_answer
 from src.database.postgesql_db import is_user_registered, is_subscription_active, get_chatgpt_mode_status
+from src.keyboards.user_unauthorized_kb import welcome_kb
+from src.keyboards.user_authorized_kb import menu_kb
 
 
 async def command_help(message: types.Message):
@@ -40,6 +42,14 @@ async def answer_unrecognized_messages(message: types.Message):
         await message.reply('Извините, я вас не понимаю \U0001F914\nВы можете дать мне безграничную силу, включив <b>режим ChatGPT</b> в Личном кабинете —> Настройках или введя команду /chatgpt_mode',
                             parse_mode='HTML')
 
+async def command_start(message : types.Message):
+    await bot.send_photo(message.from_user.id, messages_dict['hello_message']['img_id'], messages_dict['hello_message']['text'])
+
+    if not await is_user_registered(message.from_user.id):
+        await message.answer('Стоимость базовой подписки составляет 200₽/мес!', reply_markup=welcome_kb)
+    else:
+        await message.answer('Ух ты! Вы уже есть в нашей системе! Телепортируем в личный кабинет!', reply_markup=menu_kb)
+
 
 def register_handlers_other(dp : Dispatcher):
     dp.register_message_handler(command_help, commands=['help'])
@@ -48,5 +58,6 @@ def register_handlers_other(dp : Dispatcher):
     dp.register_message_handler(command_help, Text(equals='Помощь', ignore_case=True), state='*')
     dp.register_message_handler(show_project_info, Text(equals='О проекте', ignore_case=True))
     dp.register_message_handler(show_project_info, Text(equals='О сервисе', ignore_case=True))
+    dp.register_message_handler(command_start, commands=['start'], state='*')
     dp.register_message_handler(answer_unrecognized_messages)
     dp.register_message_handler(answer_unrecognized_messages, state="*")
