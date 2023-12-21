@@ -1,20 +1,15 @@
-from bot_init import bot, YOOMONEY_TOKEN, ADMIN_ID
 from aiogram import Dispatcher
 from aiogram.types import Message
-from random import choice
-from asyncio import sleep
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.utils.exceptions import MessageToDeleteNotFound
-from src.keyboards import user_authorized_kb
-from src.database import postgesql_db
-from src.services.messages import messages_dict
-from src.states import user_authorized_fsm
+from random import choice
 from src.middlewares import user_mw
-from src.services.aiomoney import YooMoneyWallet, PaymentSource
-from src.services import service_functions
-from src.services.service_functions import send_configuration_request_to_admin, sub_renewal
+from src.keyboards import user_authorized_kb
+from src.states import user_authorized_fsm
+from src.database import postgesql_db
+from src.services import service_functions, messages, aiomoney
+from bot_init import bot, YOOMONEY_TOKEN
 
 
 @user_mw.authorized_only()
@@ -56,21 +51,21 @@ async def sub_renewal_fsm_start(message: Message):
 @user_mw.antiflood(rate_limit=2)
 async def sub_renewal_months_1(message: Message, state: FSMContext):
     """Create subscription renewal payment for 1 month."""
-    await sub_renewal(message, state, months_number=1, discount=0.)
+    await service_functions.sub_renewal(message, state, months_number=1, discount=0.)
 
 
 @user_mw.authorized_only()
 @user_mw.antiflood(rate_limit=2)
 async def sub_renewal_months_3(message: Message, state: FSMContext):
     """Create subscription renewal payment for 3 months."""
-    await sub_renewal(message, state, months_number=3, discount=.1)
+    await service_functions.sub_renewal(message, state, months_number=3, discount=.1)
 
 
 @user_mw.authorized_only()
 @user_mw.antiflood(rate_limit=2)
 async def sub_renewal_months_12(message: Message, state: FSMContext):
     """Create subscription renewal payment for 12 months."""
-    await sub_renewal(message, state, months_number=12, discount=.15)
+    await service_functions.sub_renewal(message, state, months_number=12, discount=.15)
 
 
 @user_mw.authorized_only()
@@ -117,7 +112,7 @@ async def sub_renewal_submenu_fsm_cancel(message: Message, state: FSMContext):
 @user_mw.authorized_only()
 async def sub_renewal_verification(message: Message, state: FSMContext):
     """Verify client's payments (per last hour) are successful according to YooMoney information."""
-    wallet = YooMoneyWallet(YOOMONEY_TOKEN)
+    wallet = aiomoney.YooMoneyWallet(YOOMONEY_TOKEN)
 
     # get client's initiated payments for last n minutes
     client_id = await postgesql_db.get_clientID_by_telegramID(message.from_user.id)
@@ -194,7 +189,7 @@ async def account_configurations_fsm_start(message: Message, state: FSMContext):
 async def account_ref_program_fsm_start(message: Message, state: FSMContext):
     """Start FSM for account referral program menu and show account referral program menu keyboard."""
     await state.set_state(user_authorized_fsm.AccountMenu.ref_program)
-    await message.answer(messages_dict['ref_program']['text'], reply_markup=user_authorized_kb.ref_program_kb, parse_mode='HTML')
+    await message.answer(messages.messages_dict['ref_program']['text'], reply_markup=user_authorized_kb.ref_program_kb, parse_mode='HTML')
 
 
 @user_mw.authorized_only()
@@ -296,8 +291,8 @@ async def account_configurations_request_chatgpt(message: Message, state: FSMCon
         data['chatgpt'] = message.text
 
         # send information about client's new configuration request to admin
-        await send_configuration_request_to_admin({'fullname': message.from_user.full_name, 'username': message.from_user.username,
-                                                   'id': message.from_user.id}, data._data, is_new_user=False)
+        await service_functions.send_configuration_request_to_admin({'fullname': message.from_user.full_name, 'username': message.from_user.username,
+                                                                     'id': message.from_user.id}, data._data, is_new_user=False)
 
     await message.answer('Отлично! Теперь ждем ответа от разработчика: в скором времени он проверит ваши конфигурации и вышлет новую!',
                          reply_markup=user_authorized_kb.config_kb)
@@ -436,7 +431,7 @@ async def account_ref_program_info(message: Message):
 async def account_ref_program_invite(message: Message):
     """Send message with random invite text from messages.py."""
     ref_promocode = await postgesql_db.get_referral_promo(message.from_user.id)
-    text = choice(messages_dict['ref_program_invites']['text'])
+    text = choice(messages.messages_dict['ref_program_invites']['text'])
     text = text.replace('<refcode>', '<code>' + ref_promocode + '</code>')
     await message.answer(text, parse_mode='HTML')
 
@@ -568,7 +563,7 @@ async def account_promo_info(message: Message):
 @user_mw.authorized_only()
 async def show_project_rules(message: Message):
     """Send message with information about project rules."""
-    await message.answer(messages_dict['project_rules']['text'], parse_mode='HTML')
+    await message.answer(messages.messages_dict['project_rules']['text'], parse_mode='HTML')
 
 
 @user_mw.authorized_only()
@@ -576,7 +571,7 @@ async def restore_payments(message: Message):
     """Try to verify client's payments (per whole time) are successful according to YooMoney information."""
 
     # get client's initiated payments for all time
-    wallet = YooMoneyWallet(YOOMONEY_TOKEN)
+    wallet = aiomoney.YooMoneyWallet(YOOMONEY_TOKEN)
     client_id = await postgesql_db.get_clientID_by_telegramID(message.from_user.id)
     client_payments_ids = await postgesql_db.get_paymentIDs(client_id)
 
