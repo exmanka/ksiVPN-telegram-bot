@@ -1,4 +1,5 @@
-from aiogram import types, Dispatcher
+from aiogram import Dispatcher
+from aiogram.types import Message
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from src.middlewares import user_mw
@@ -9,14 +10,14 @@ from src.services import service_functions
 
 
 @user_mw.unauthorized_only()
-async def fsm_cancel(message: types.Message, state: FSMContext):
+async def fsm_cancel(message: Message, state: FSMContext):
     """Cancel FSM state for registration."""
     await state.finish()
     await message.answer('Возврат в главное меню', reply_markup=user_unauthorized_kb.welcome_kb)
 
 
 @user_mw.unauthorized_only()
-async def authorization_fsm_start(message: types.Message):
+async def authorization_fsm_start(message: Message):
     """Start FSM for registration and request user's platform."""
     await message.answer('Для подключения мне необходимо определить Вашу конфигурацию.\n\n<b>Задам 4 коротких вопроса!</b>', parse_mode='HTML')
     await message.answer('Выберите свою платформу', reply_markup=user_unauthorized_kb.reg_platform_kb)
@@ -24,16 +25,16 @@ async def authorization_fsm_start(message: types.Message):
 
 
 @user_mw.unauthorized_only()
-async def authorization_take_platform(message: types.Message, state: FSMContext):
+async def authorization_take_platform(message: Message, state: FSMContext):
     """Change FSM state, save user's platform and request user's OS."""
     async with state.proxy() as data:
         data['platform'] = message.text
     
-    # if user choose smartphone option
+    # if user chooses smartphone option
     if message.text == '\U0001F4F1 Смартфон':
         await message.answer('Укажите операционную систему', reply_markup=user_unauthorized_kb.reg_mobile_os_kb)
 
-    # if user choose pc option
+    # if user chooses pc option
     else:
         await message.answer('Укажите операционную систему', reply_markup=user_unauthorized_kb.reg_desktop_os_kb)
 
@@ -41,7 +42,7 @@ async def authorization_take_platform(message: types.Message, state: FSMContext)
 
 
 @user_mw.unauthorized_only()
-async def authorization_take_os(message: types.Message, state: FSMContext):
+async def authorization_take_os(message: Message, state: FSMContext):
     """Change FSM state, save user's OS and request user's ChatGPT option."""
     async with state.proxy() as data:
         data['os_name'] = message.text
@@ -51,14 +52,14 @@ async def authorization_take_os(message: types.Message, state: FSMContext):
 
 
 @user_mw.unauthorized_only()
-async def authorization_show_info_chatgpt(message: types.Message):
-    """Show information about ChatGPT."""
+async def authorization_show_info_chatgpt(message: Message):
+    """Send message with information about ChatGPT."""
     await message.answer('<b>ChatGPT</b> — нейронная сеть в виде чат-бота, способная отвечать на сложные вопросы и вести осмысленный диалог!',
                          parse_mode='HTML')
 
 
 @user_mw.unauthorized_only()
-async def authorization_take_chatgpt(message: types.Message, state: FSMContext):
+async def authorization_take_chatgpt(message: Message, state: FSMContext):
     """Change FSM state, save user's ChatGPT option and request user's referral promo."""
     async with state.proxy() as data:
         data['chatgpt'] = message.text
@@ -68,9 +69,8 @@ async def authorization_take_chatgpt(message: types.Message, state: FSMContext):
 
 
 @user_mw.unauthorized_only()
-async def authorization_promo_yes(message: types.Message, state: FSMContext):
+async def authorization_promo_yes(message: Message, state: FSMContext):
     """Check entered referral promocode, notify old client about new client used his referral promocode, complete authorization."""
-
     # if referral promocode exists in system
     if await postgesql_db.is_referral_promo(message.text):
         async with state.proxy() as data:
@@ -103,7 +103,7 @@ async def authorization_promo_yes(message: types.Message, state: FSMContext):
 
 
 @user_mw.unauthorized_only()
-async def authorization_promo_no(message: types.Message, state: FSMContext):
+async def authorization_promo_no(message: Message, state: FSMContext):
     """Complete authorization without referral promocode."""
     async with state.proxy() as data:
         data['promo'] = None
@@ -118,17 +118,10 @@ def register_handlers_unauthorized_client(dp: Dispatcher):
                                                                                             user_unauthorized_fsm.RegistrationFSM.os,
                                                                                             user_unauthorized_fsm.RegistrationFSM.chatgpt,
                                                                                             user_unauthorized_fsm.RegistrationFSM.promo])
-    dp.register_message_handler(authorization_fsm_start, Text(
-        equals='\U0001f525 Подключиться!', ignore_case=True))
-    dp.register_message_handler(authorization_take_platform, Text(equals=[
-                                '\U0001F4F1 Смартфон', '\U0001F4BB ПК']), state=user_unauthorized_fsm.RegistrationFSM.platform)
-    dp.register_message_handler(authorization_take_os, Text(equals=[
-                                'Android', 'IOS (IPhone)', 'Windows', 'macOS', 'Linux']), state=user_unauthorized_fsm.RegistrationFSM.os)
-    dp.register_message_handler(authorization_show_info_chatgpt, Text(
-        equals='Что это?', ignore_case=True), state=user_unauthorized_fsm.RegistrationFSM.chatgpt)
-    dp.register_message_handler(authorization_take_chatgpt, Text(equals=[
-                                'Использую', 'Не использую']), state=user_unauthorized_fsm.RegistrationFSM.chatgpt)
-    dp.register_message_handler(authorization_promo_no, Text(
-        equals='Нет промокода'), state=user_unauthorized_fsm.RegistrationFSM.promo)
-    dp.register_message_handler(
-        authorization_promo_yes, state=user_unauthorized_fsm.RegistrationFSM.promo)
+    dp.register_message_handler(authorization_fsm_start, Text(equals='\U0001f525 Подключиться!', ignore_case=True))
+    dp.register_message_handler(authorization_take_platform, Text(equals=['\U0001F4F1 Смартфон', '\U0001F4BB ПК']), state=user_unauthorized_fsm.RegistrationFSM.platform)
+    dp.register_message_handler(authorization_take_os, Text(equals=['Android', 'IOS (IPhone)', 'Windows', 'macOS', 'Linux']), state=user_unauthorized_fsm.RegistrationFSM.os)
+    dp.register_message_handler(authorization_show_info_chatgpt, Text(equals='Что это?', ignore_case=True), state=user_unauthorized_fsm.RegistrationFSM.chatgpt)
+    dp.register_message_handler(authorization_take_chatgpt, Text(equals=['Использую', 'Не использую']), state=user_unauthorized_fsm.RegistrationFSM.chatgpt)
+    dp.register_message_handler(authorization_promo_no, Text(equals='Нет промокода'), state=user_unauthorized_fsm.RegistrationFSM.promo)
+    dp.register_message_handler(authorization_promo_yes, state=user_unauthorized_fsm.RegistrationFSM.promo)

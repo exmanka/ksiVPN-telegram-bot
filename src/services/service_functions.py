@@ -1,9 +1,14 @@
-from bot_init import bot, ADMIN_ID
+from bot_init import bot, ADMIN_ID, YOOMONEY_TOKEN
+from asyncio import sleep
+from aiogram.utils.exceptions import MessageToDeleteNotFound
+from src.services.aiomoney import YooMoneyWallet, PaymentSource
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from src.database import postgesql_db
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from src.keyboards.admin_kb import configuration
-from src.keyboards.user_authorized_kb import menu_kb
+from src.keyboards.user_authorized_kb import menu_kb, sub_renewal_verification_kb, sub_renewal_kb
+from src.states.user_authorized_fsm import PaymentMenu
 
 async def create_configuration_description(date_of_receipt: str,
                                            os: str,
@@ -120,7 +125,7 @@ async def check_referral_reward(ref_client_id: int):
         client_creator_telegram_id = await postgesql_db.get_telegramID_by_clientID(client_creator_id)
         await bot.send_message(client_creator_telegram_id, answer_message, parse_mode='HTML')
 
-async def send_user_info(user: dict, choice: dict, is_new_user: bool):
+async def send_configuration_request_to_admin(user: dict, choice: dict, is_new_user: bool):
     if is_new_user:
         
         answer_message = f"<b>Имя</b>: <code>{user['fullname']}</code>\n"
@@ -168,10 +173,121 @@ async def authorization_complete(message: types.Message, state: FSMContext):
             used_ref_promo_id, _, provided_sub_id, bonus_time, _ = await postgesql_db.get_refferal_promo_info_by_phrase(phrase)
 
         await postgesql_db.insert_client(user.first_name, user.id, user.last_name, user.username, used_ref_promo_id, provided_sub_id, bonus_time)
-        await send_user_info({'fullname': user.full_name, 'username': user.username, 'id': user.id}, data._data, is_new_user=True)
+        await send_configuration_request_to_admin({'fullname': user.full_name, 'username': user.username, 'id': user.id}, data._data, is_new_user=True)
 
     await message.answer(f'Отлично! Теперь ждем ответа от разработчика: в скором времени он проверит Вашу регистрацию и вышлет конфигурацию! А пока вы можете исследовать бота!',
                          reply_markup=menu_kb)
     await message.answer(f'Пожалуйста, не забывайте, что он тоже человек, и периодически спит (хотя на самом деле крайне редко)')
     
     await state.finish()
+
+async def autocheck_payment_status(payment_id: int):
+    wallet = YooMoneyWallet(YOOMONEY_TOKEN)
+
+    # wait for user to redirect to Yoomoney site first 10 seconds
+    await sleep(10)
+
+    # after that check Yoomoney payment status using linear equation
+    k = 0.04
+    b = 1
+    for x in range(100):
+
+        # if user has already checked successful payment and it was added to account subscription
+        if await postgesql_db.get_payment_status(payment_id):
+            return 'already_checked'
+        
+        # if payment was successful according to YooMoney info
+        if await wallet.check_payment_on_successful(payment_id):
+            return 'success'
+        
+        await sleep(k * x + b)
+        
+    return 'failure'
+            
+async def sub_renewal(message: types.Message, state: FSMContext, months_number: int, discount: float):
+
+    # get client_id by telegramID
+    client_id = await postgesql_db.get_clientID_by_telegramID(message.from_user.id)
+
+    # get client's sub info
+    sub_id, sub_title, _, sub_price = await postgesql_db.get_subscription_info_by_clientID(client_id)
+
+    # count payment sum
+    payment_price = max(sub_price * months_number * (1 - discount), 2)
+
+    # create entity in db table payments and getting payment_id
+    payment_id = await postgesql_db.insert_payment(client_id, sub_id, payment_price, months_number)
+    
+    # use aiomoney for payment link creation
+    wallet = YooMoneyWallet(YOOMONEY_TOKEN)
+    payment_form = await wallet.create_payment_form(
+            amount_rub=payment_price,
+            unique_label=payment_id,
+            payment_source=PaymentSource.YOOMONEY_WALLET,
+            success_redirect_url="https://t.me/ksiVPN_bot"
+        )
+
+    # answer with ReplyKeyboardMarkup
+    await message.answer('Ура, жду оплаты подписки', reply_markup=sub_renewal_verification_kb)
+    await state.set_state(PaymentMenu.verification)
+
+    # answer with InlineKeyboardMarkup with link to payment
+    answer_message = f'Подписка: <b>{sub_title}</b>\n'
+    if discount:
+        answer_message += f'Продление на {months_number} месяцев.\n\n'
+        answer_message += f'<b>Сумма к оплате: {payment_price}₽</b> (скидка {sub_price * months_number * discount}₽).\n\n'
+    else:
+        answer_message += f'Продление на {months_number} месяц.\n\n'
+        answer_message += f'<b>Сумма к оплате: {payment_price}₽</b>\n\n'
+    
+    answer_message += f'Уникальный идентификатор платежа: <b>{payment_id}</b>.'
+    message_info = await message.answer(answer_message, parse_mode='HTML',
+                                        reply_markup=InlineKeyboardMarkup().\
+                                            add(InlineKeyboardButton('Оплатить', url=payment_form.link_for_customer)))
+    
+    await postgesql_db.update_payment_telegram_message_id(payment_id, message_info['message_id'])
+    
+    # run payment autochecker for 310 seconds
+    client_last_payment_status = await autocheck_payment_status(payment_id)
+
+    # if autochecker returns successful payment info
+    if client_last_payment_status == 'success':
+        await postgesql_db.update_payment_successful(payment_id, client_id, months_number)
+        await state.set_state(PaymentMenu.menu)
+        await notify_admin_payment_success(client_id, months_number)
+        await check_referral_reward(client_id)
+
+        # try to delete payment message
+        try:
+            await bot.delete_message(message.chat.id, message_info['message_id'])
+
+        # if already deleted
+        except MessageToDeleteNotFound as _t:
+            pass
+
+        finally:
+            await message.answer(f'Оплата произведена успешно!\n\nid: {payment_id}', reply_markup=sub_renewal_kb)
+
+async def send_admin_info_promo_entered(client_id: int, phrase: str, promo_type: str):
+    name, surname, username, telegram_id, *_ = await postgesql_db.get_client_info_by_clientID(client_id)
+    answer_message = f'Пользователем {name} {surname} {username} <code>{telegram_id}</code> был введен '
+
+    if promo_type == 'global':
+        id, _, expiration_date_parsed, *_, bonus_time_parsed = await postgesql_db.get_global_promo_info(phrase)
+        answer_message += f'глобальный промокод с ID {id} на {bonus_time_parsed} дней подписки, заканчивающийся {expiration_date_parsed}.'
+
+    elif promo_type == 'local':
+        id, _, expiration_date_parsed, _, bonus_time_parsed, provided_sub_id = await postgesql_db.get_local_promo_info(phrase)
+        answer_message += f'специальный промокод с ID {id} на {bonus_time_parsed} дней подписки, '
+
+        # if local promo changes client's subscription
+        if provided_sub_id:
+            _, _, _, price = await postgesql_db.get_subscription_info_by_subID(provided_sub_id)
+            answer_message += f'предоставляющий подписку за {int(price)}₽/мес, '
+
+        answer_message += f'заканчивающийся {expiration_date_parsed}'
+
+    else:
+        raise Exception('ввведен неверный тип промокода')
+    
+    await bot.send_message(ADMIN_ID, answer_message, parse_mode='HTML')
