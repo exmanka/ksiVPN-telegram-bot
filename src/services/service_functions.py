@@ -291,3 +291,150 @@ async def send_admin_info_promo_entered(client_id: int, phrase: str, promo_type:
         raise Exception('ввведен неверный тип промокода')
     
     await bot.send_message(ADMIN_ID, answer_message, parse_mode='HTML')
+
+async def send_message_by_telegram_id(telegram_id: int, message: types.Message):
+    # if message is text
+    if text := message.text:
+        await bot.send_message(telegram_id, text, parse_mode='HTML')
+
+    # if message is animation (GIF or H.264/MPEG-4 AVC video without sound)
+    elif animation := message.animation:
+        await bot.send_animation(telegram_id, animation.file_id)
+
+    # if message is audio (audio file to be treated as music)
+    elif audio := message.audio:
+        await bot.send_audio(telegram_id, audio.file_id, caption=message.caption, parse_mode='HTML')
+
+    # if message is document
+    elif document := message.document:
+        await bot.send_document(telegram_id, document.file_id, caption=message.caption, parse_mode='HTML')
+
+    # if message is photo
+    elif photo := message.photo:
+        await bot.send_photo(telegram_id, photo[0].file_id, caption=message.caption, parse_mode='HTML')
+
+    # if message is sticker
+    elif sticker := message.sticker:
+        await bot.send_sticker(telegram_id, sticker.file_id)
+
+    # if message is video
+    elif video := message.video:
+        await bot.send_video(telegram_id, video.file_id, caption=message.caption, parse_mode='HTML')
+
+    # if message is video note
+    elif video_note := message.video_note:
+        await bot.send_video_note(telegram_id, video_note.file_id)
+
+    # if message is voice
+    elif voice := message.voice:
+        await bot.send_voice(telegram_id, voice.file_id, caption=message.caption, parse_mode='HTML')
+
+
+async def get_configuration_sql_data(protocol: str, location: str, os: str, link: str | None = None) -> tuple[int, int, str]:
+    protocol_id = None
+    match protocol.lower():
+        case 'wireguard':
+            protocol_id = 1
+        case 'w':
+            protocol_id = 1
+        case 'wg':
+            protocol_id = 1
+        
+        case 'x':
+            protocol_id = 2
+        case 'xtls':
+            protocol_id = 2
+        case 'reality':
+            protocol_id = 2
+        case 'xtls-reality':
+            protocol_id = 2
+
+        case 's':
+            protocol_id = 3
+        case 'ss':
+            protocol_id = 3
+        case 'shadowsocks':
+            protocol_id = 3
+        
+        case _:
+            raise Exception('неверный ввод протокола (первый аргумент)!')
+        
+    location_id = None
+    match location.lower():
+        case 'n':
+            location_id = 1
+        case 'netherlands':
+            location_id = 1
+
+        case 'l':
+            location_id = 2
+        case 'latvia':
+            location_id = 2
+
+        case 'g':
+            location_id = 3
+        case 'germany':
+            location_id = 3
+
+        case 'u':
+            location_id = 4
+        case 'usa':
+            location_id = 4
+
+        case _:
+            raise Exception('неверный ввод страны (второй аргумент)!')
+        
+    os_enum = None
+    match os.lower():
+        case 'android':
+            os_enum = 'Android'
+
+        case 'ios':
+            os_enum = 'IOS'
+
+        case 'windows':
+            os_enum = 'Windows'
+
+        case 'linux':
+            os_enum = 'Linux'
+
+        case 'mac':
+            os_enum = 'macOS'
+        case 'macos':
+            os_enum = 'macOS'
+
+        case _:
+            raise Exception('неверный ввод ОС (третий аргумент)')
+        
+    if link and not link.startswith('vless://'):
+        raise Exception('неверный ввод vless ссылки (четвертый аргумент)!')
+        
+    return protocol_id, location_id, os_enum, link
+
+async def create_configuration(client_id: int,
+                               file_type: str,
+                               flag_protocol: str,
+                               flag_location: str,
+                               flag_os: str,
+                               flag_link: str | None = None,
+                               telegram_file_id: int | None = None) -> str:
+
+    link = None
+    if file_type == 'link':
+        protocol_id, location_id, os_enum, link = await get_configuration_sql_data(flag_protocol, flag_location, flag_os, flag_link)
+        await postgesql_db.insert_configuration(client_id, protocol_id, location_id, os_enum, file_type, link)
+
+    elif file_type == 'document' or 'photo':
+        if telegram_file_id is None:
+            raise Exception('при попытке создания конфигурации не был указан telegram_file_id!')
+        
+        protocol_id, location_id, os_enum, _ = await get_configuration_sql_data(flag_protocol, flag_location, flag_os, flag_link)
+        await postgesql_db.insert_configuration(client_id, protocol_id, location_id, os_enum, file_type, telegram_file_id)
+
+    else:
+        raise Exception('при попытке создания конфигурации был указан неверный file_type!')
+            
+    _, date_of_receipt, _, is_chatgpt_available, name, country, city, bandwidth, ping, _ = (await postgesql_db.get_configurations_info(client_id))[0]
+    configuration_description = await create_configuration_description(date_of_receipt, os_enum, is_chatgpt_available, name, country, city, bandwidth, ping, link)
+
+    return configuration_description
