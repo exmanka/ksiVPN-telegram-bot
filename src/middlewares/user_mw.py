@@ -7,20 +7,25 @@ from bot_init import dp
 
 
 def unauthorized_only():
+    """Decorator for handlers available only for unauthorized users."""
     def wrapper(func):
         setattr(func, 'unauthorized_only', True)
 
         return func
     return wrapper
 
+
 def authorized_only():
+    """Decorator for handlers available only for authorized clients."""
     def wrapper(func):
         setattr(func, 'authorized_only', True)
 
         return func
     return wrapper
 
+
 def antiflood(rate_limit: int):
+    """Decorator for handlers with antiflood."""
     def wrapper(func):
         setattr(func, 'antiflood', True)
         setattr(func, 'rate_limit', rate_limit)
@@ -32,16 +37,19 @@ def antiflood(rate_limit: int):
 class CheckAuthorized(BaseMiddleware):
     async def on_process_message(self, message: types.Message, data: dict):
         if handler := current_handler.get():
-            only_for_unauthorized_users = getattr(handler, 'unauthorized_only', False)
+            only_for_unauthorized_users = getattr(
+                handler, 'unauthorized_only', False)
             if only_for_unauthorized_users and await is_user_registered(message.from_user.id):
                 await message.answer('Вы уже зарегистрировались!')
                 raise CancelHandler()
-            
-            only_for_authorized_users = getattr(handler, 'authorized_only', False)
+
+            only_for_authorized_users = getattr(
+                handler, 'authorized_only', False)
             if only_for_authorized_users and not await is_user_registered(message.from_user.id):
                 await message.answer('Ууупс! Эта функция доступна только зарегистрированным пользователям!')
                 raise CancelHandler()
-            
+
+
 class Throttling(BaseMiddleware):
     async def on_process_message(self, message: types.Message, data: dict):
         handler = current_handler.get()
@@ -52,6 +60,3 @@ class Throttling(BaseMiddleware):
             except Throttled as _t:
                 await message.answer('Егор (тестировщик), пожалуйста, не спамь запросами!')
                 raise CancelHandler()
-
-
-

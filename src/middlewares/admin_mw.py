@@ -10,7 +10,6 @@ def admin_only():
         setattr(func, 'admin_only', True)
 
         return func
-    
     return wrapper
 
 
