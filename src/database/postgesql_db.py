@@ -393,6 +393,18 @@ async def get_payments_successful_info(client_id: int) -> list[asyncpg.Record]:
         client_id)
 
 
+async def get_payments_successful_number(client_id: int) -> int:
+    """Return number of successful payments initiated by client."""    
+    return await conn.fetchval(
+        '''
+        SELECT COUNT(*)
+        FROM payments
+        WHERE client_id = $1
+        AND is_successful = TRUE;
+        ''',
+        client_id)
+
+
 async def get_payment_status(payment_id: int) -> bool | None:
     """Return TRUE if payment was successful else FALSE."""
     return await conn.fetchval(

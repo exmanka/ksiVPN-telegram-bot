@@ -292,7 +292,7 @@ async def account_configurations_request_chatgpt(message: Message, state: FSMCon
 
         # send information about client's new configuration request to admin
         await service_functions.send_configuration_request_to_admin({'fullname': message.from_user.full_name, 'username': message.from_user.username,
-                                                                     'id': message.from_user.id}, data._data, is_new_user=False)
+                                                                     'id': message.from_user.id}, data._data, is_new_client=False)
 
     await message.answer('Отлично! Теперь ждем ответа от разработчика: в скором времени он проверит ваши конфигурации и вышлет новую!',
                          reply_markup=user_authorized_kb.config_kb)
@@ -472,7 +472,7 @@ async def account_promo_check(message: Message, state: FSMContext):
                 if await postgesql_db.is_global_promo_has_remaining_activations(global_promo_id):
 
                     await postgesql_db.insert_client_entered_global_promo(client_id, global_promo_id, bonus_time)
-                    await service_functions.send_admin_info_promo_entered(client_id, message.text, 'global')
+                    await service_functions.notify_admin_promo_entered(client_id, message.text, 'global')
                     await message.answer(f'Ура! Промокод на {bonus_time_parsed} дней бесплатной подписки принят!', reply_markup=user_authorized_kb.account_kb)
                     await state.set_state(user_authorized_fsm.AccountMenu.menu)
 
@@ -499,7 +499,7 @@ async def account_promo_check(message: Message, state: FSMContext):
                 if await postgesql_db.is_local_promo_valid(local_promo_id):
 
                     await postgesql_db.insert_client_entered_local_promo(client_id, local_promo_id, bonus_time)
-                    await service_functions.send_admin_info_promo_entered(client_id, message.text, 'local')
+                    await service_functions.notify_admin_promo_entered(client_id, message.text, 'local')
                     answer_message = f'Ура! Специальный промокод на {bonus_time_parsed} дней бесплатной подписки принят!'
 
                     # if local promo changes client's subscription

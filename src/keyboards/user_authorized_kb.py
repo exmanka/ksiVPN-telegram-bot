@@ -16,6 +16,9 @@ sub_renewal_verification_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('Проверить оплату')).\
     add(KeyboardButton('Отмена оплаты'))
 
+async def sub_renewal_link_inlkb(link_for_customer: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup().add(InlineKeyboardButton('Оплатить', url=link_for_customer))
+
 account_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('Реферальная программа')).\
     add(KeyboardButton('О пользователе')).insert(KeyboardButton('О подписке')).\
