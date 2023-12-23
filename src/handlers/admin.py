@@ -15,19 +15,19 @@ from bot_init import bot
 async def fsm_reset(message: Message, state: FSMContext):
     """Cancel admin's FSM state and return to menu keyboard regardless of machine state."""
     await state.finish()
-    await message.answer('Сброс машинного состояния и клавиатуры!', reply_markup=admin_kb.menu_kb)
+    await message.answer('Сброс машинного состояния и клавиатуры!', reply_markup=admin_kb.menu)
 
 
 @admin_mw.admin_only()
 async def show_admin_keyboard(message: Message):
     """Send message with information about admin's commands and show admin keyboard."""
-    await message.reply('Для вызова данного меню используйте /admin.\b\bДоступные команды:\n\n/fileid (/fid)\n/sql_user\n/sql_config', reply_markup=admin_kb.menu_kb)
+    await message.reply('Для вызова данного меню используйте /admin.\b\bДоступные команды:\n\n/fileid (/fid)\n/sql_user\n/sql_config', reply_markup=admin_kb.menu)
 
 
 @admin_mw.admin_only()
 async def notifications_menu(message: Message):
     """Show keyboard for sending messages via bot."""
-    await message.answer('Открываю клавиатуру отправки сообщений пользователям!', reply_markup=admin_kb.notification_kb)
+    await message.answer('Открываю клавиатуру отправки сообщений пользователям!', reply_markup=admin_kb.notification)
 
 
 @admin_mw.admin_only()

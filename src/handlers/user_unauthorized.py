@@ -13,14 +13,14 @@ from src.services import service_functions
 async def fsm_cancel(message: Message, state: FSMContext):
     """Cancel FSM state for registration."""
     await state.finish()
-    await message.answer('Возврат в главное меню', reply_markup=user_unauthorized_kb.welcome_kb)
+    await message.answer('Возврат в главное меню', reply_markup=user_unauthorized_kb.welcome)
 
 
 @user_mw.unauthorized_only()
 async def authorization_fsm_start(message: Message):
     """Start FSM for registration and request user's platform."""
     await message.answer('Для подключения мне необходимо определить Вашу конфигурацию.\n\n<b>Задам 4 коротких вопроса!</b>', parse_mode='HTML')
-    await message.answer('Выберите свою платформу', reply_markup=user_unauthorized_kb.reg_platform_kb)
+    await message.answer('Выберите свою платформу', reply_markup=user_unauthorized_kb.reg_platform)
     await user_unauthorized_fsm.RegistrationMenu.platform.set()
 
 
@@ -32,11 +32,11 @@ async def authorization_take_platform(message: Message, state: FSMContext):
     
     # if user chooses smartphone option
     if message.text == '\U0001F4F1 Смартфон':
-        await message.answer('Укажите операционную систему', reply_markup=user_unauthorized_kb.reg_mobile_os_kb)
+        await message.answer('Укажите операционную систему', reply_markup=user_unauthorized_kb.reg_mobile_os)
 
     # if user chooses pc option
     else:
-        await message.answer('Укажите операционную систему', reply_markup=user_unauthorized_kb.reg_desktop_os_kb)
+        await message.answer('Укажите операционную систему', reply_markup=user_unauthorized_kb.reg_desktop_os)
 
     await state.set_state(user_unauthorized_fsm.RegistrationMenu.os)
 
@@ -47,7 +47,7 @@ async def authorization_take_os(message: Message, state: FSMContext):
     async with state.proxy() as data:
         data['os_name'] = message.text
 
-    await message.answer('Используете ли Вы ChatGPT?', reply_markup=user_unauthorized_kb.reg_chatgpt_kb)
+    await message.answer('Используете ли Вы ChatGPT?', reply_markup=user_unauthorized_kb.reg_chatgpt)
     await state.set_state(user_unauthorized_fsm.RegistrationMenu.chatgpt)
 
 
@@ -64,7 +64,7 @@ async def authorization_take_chatgpt(message: Message, state: FSMContext):
     async with state.proxy() as data:
         data['chatgpt'] = message.text
 
-    await message.answer('И последний шаг: введите реферальный промокод, если он имеется', reply_markup=user_unauthorized_kb.reg_ref_promo_kb)
+    await message.answer('И последний шаг: введите реферальный промокод, если он имеется', reply_markup=user_unauthorized_kb.reg_ref_promo)
     await state.set_state(user_unauthorized_fsm.RegistrationMenu.promo)
 
 

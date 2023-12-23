@@ -37,14 +37,14 @@ async def submenu_fsm_cancel(message: Message, state: FSMContext = None):
     """Cancel FSM state for submenu and return to menu keyboard regardless of machine state."""
     if state:
         await state.finish()
-    await message.answer('Возврат в главное меню', reply_markup=user_authorized_kb.menu_kb)
+    await message.answer('Возврат в главное меню', reply_markup=user_authorized_kb.menu)
 
 
 @user_mw.authorized_only()
 async def sub_renewal_fsm_start(message: Message):
     """Start FSM for subscription renewal and show subscription renewal keyboard."""
     await user_authorized_fsm.PaymentMenu.menu.set()
-    await message.answer('Переход в меню продления подписки!', reply_markup=user_authorized_kb.sub_renewal_kb)
+    await message.answer('Переход в меню продления подписки!', reply_markup=user_authorized_kb.sub_renewal)
 
 
 @user_mw.authorized_only()
@@ -106,7 +106,7 @@ async def sub_renewal_submenu_fsm_cancel(message: Message, state: FSMContext):
     finally:
         # update state and keyboard
         await state.set_state(user_authorized_fsm.PaymentMenu.menu)
-        await message.answer('Оплата отменена!', reply_markup=user_authorized_kb.sub_renewal_kb)
+        await message.answer('Оплата отменена!', reply_markup=user_authorized_kb.sub_renewal)
 
 
 @user_mw.authorized_only()
@@ -131,7 +131,7 @@ async def sub_renewal_verification(message: Message, state: FSMContext):
 
             # answer to a client
             await state.set_state(user_authorized_fsm.PaymentMenu.menu)
-            await message.answer(f'Оплата по заказу с id {payment_id} найдена!', reply_markup=user_authorized_kb.sub_renewal_kb)
+            await message.answer(f'Оплата по заказу с id {payment_id} найдена!', reply_markup=user_authorized_kb.sub_renewal)
 
             # notify admin about successful payment and check referral reward for other client
             await service_functions.notify_admin_payment_success(client_id, months_number)
@@ -147,7 +147,7 @@ async def sub_renewal_verification(message: Message, state: FSMContext):
 async def account_fsm_start(message: Message):
     """Start FSM for account menu and show account menu keyboard."""
     await user_authorized_fsm.AccountMenu.menu.set()
-    await message.answer('Переход в личный кабинет!', reply_markup=user_authorized_kb.account_kb)
+    await message.answer('Переход в личный кабинет!', reply_markup=user_authorized_kb.account)
 
 
 @user_mw.authorized_only()
@@ -182,35 +182,35 @@ async def account_subscription_info(message: Message):
 async def account_configurations_fsm_start(message: Message, state: FSMContext):
     """Start FSM for account configurations menu and show account configurations menu keyboard."""
     await state.set_state(user_authorized_fsm.AccountMenu.configs)
-    await message.answer('Меню конфигураций', reply_markup=user_authorized_kb.config_kb)
+    await message.answer('Меню конфигураций', reply_markup=user_authorized_kb.config)
 
 
 @user_mw.authorized_only()
 async def account_ref_program_fsm_start(message: Message, state: FSMContext):
     """Start FSM for account referral program menu and show account referral program menu keyboard."""
     await state.set_state(user_authorized_fsm.AccountMenu.ref_program)
-    await message.answer(messages.messages_dict['ref_program']['text'], reply_markup=user_authorized_kb.ref_program_kb, parse_mode='HTML')
+    await message.answer(messages.messages_dict['ref_program']['text'], reply_markup=user_authorized_kb.ref_program, parse_mode='HTML')
 
 
 @user_mw.authorized_only()
 async def account_promo_fsm_start(message: Message, state: FSMContext):
     """Start FSM for account promocodes menu and show account promocodes menu keyboard."""
     await state.set_state(user_authorized_fsm.AccountMenu.promo)
-    await message.answer('Отлично, теперь введите промокод!', reply_markup=user_authorized_kb.promo_kb)
+    await message.answer('Отлично, теперь введите промокод!', reply_markup=user_authorized_kb.promo)
 
 
 @user_mw.authorized_only()
 async def account_settings_fsm_start(message: Message, state: FSMContext):
     """Start FSM for account settings menu and show account settings menu keyboard."""
     await state.set_state(user_authorized_fsm.AccountMenu.settings)
-    await message.answer('Перехожу в настройки', reply_markup=user_authorized_kb.settings_kb)
+    await message.answer('Перехожу в настройки', reply_markup=user_authorized_kb.settings)
 
 
 @user_mw.authorized_only()
 async def account_submenu_fsm_cancel(message: Message, state: FSMContext):
     """Cancel FSM state for account submenu and return to account menu keyboard."""
     await state.set_state(user_authorized_fsm.AccountMenu.menu)
-    await message.answer('Возврат в личный кабинет', reply_markup=user_authorized_kb.account_kb)
+    await message.answer('Возврат в личный кабинет', reply_markup=user_authorized_kb.account)
 
 
 @user_mw.authorized_only()
@@ -231,7 +231,7 @@ async def account_configurations_info(message: Message):
 async def account_configurations_submenu_fsm_cancel(message: Message, state: FSMContext):
     """Cancel FSM state for account configurations submenu and return to account configurations menu keyboard."""
     await state.set_state(user_authorized_fsm.AccountMenu.configs)
-    await message.answer('Возврат в меню конфигураций', reply_markup=user_authorized_kb.config_kb)
+    await message.answer('Возврат в меню конфигураций', reply_markup=user_authorized_kb.config)
 
 
 @user_mw.authorized_only()
@@ -247,7 +247,7 @@ async def account_configurations_request_fsm_start(message: Message):
     await message.answer(answer_text, parse_mode='HTML')
 
     await user_authorized_fsm.ConfigMenu.platform.set()
-    await message.answer('Выберите свою платформу', reply_markup=user_authorized_kb.config_platform_kb)
+    await message.answer('Выберите свою платформу', reply_markup=user_authorized_kb.config_platform)
 
 
 @user_mw.authorized_only()
@@ -258,11 +258,11 @@ async def account_configurations_request_platform(message: Message, state: FSMCo
 
     # if client chooses smartphone option
     if message.text == '\U0001F4F1 Смартфон':
-        await message.answer('Укажите операционную систему', reply_markup=user_authorized_kb.config_mobile_os_kb)
+        await message.answer('Укажите операционную систему', reply_markup=user_authorized_kb.config_mobile_os)
 
     # if client chooses pc option
     else:
-        await message.answer('Укажите операционную систему', reply_markup=user_authorized_kb.config_desktop_os_kb)
+        await message.answer('Укажите операционную систему', reply_markup=user_authorized_kb.config_desktop_os)
 
     await state.set_state(user_authorized_fsm.ConfigMenu.os)
 
@@ -274,7 +274,7 @@ async def account_configurations_request_os(message: Message, state: FSMContext)
         data['os_name'] = message.text
 
     await state.set_state(user_authorized_fsm.ConfigMenu.chatgpt)
-    await message.answer('Используете ли Вы ChatGPT?', reply_markup=user_authorized_kb.config_chatgpt_kb)
+    await message.answer('Используете ли Вы ChatGPT?', reply_markup=user_authorized_kb.config_chatgpt)
 
 
 @user_mw.authorized_only()
@@ -295,7 +295,7 @@ async def account_configurations_request_chatgpt(message: Message, state: FSMCon
                                                                      'id': message.from_user.id}, data._data, is_new_client=False)
 
     await message.answer('Отлично! Теперь ждем ответа от разработчика: в скором времени он проверит ваши конфигурации и вышлет новую!',
-                         reply_markup=user_authorized_kb.config_kb)
+                         reply_markup=user_authorized_kb.config)
     await message.answer('Пожалуйста, не забывайте, что он тоже человек, и периодически спит (хотя на самом деле крайне редко). Не переживайте, отчет времени истечения подписки начнется только после получения конфигурации!')
     await state.set_state(user_authorized_fsm.AccountMenu.configs)
 
@@ -304,7 +304,7 @@ async def account_configurations_request_chatgpt(message: Message, state: FSMCon
 async def account_settings_submenu_fsm_cancel(message: Message, state: FSMContext):
     """Cancel FSM state for account settings submenu and return to account settings menu keyboard."""
     await state.set_state(user_authorized_fsm.AccountMenu.settings)
-    await message.answer('Возвращаю в настройки', reply_markup=user_authorized_kb.settings_kb)
+    await message.answer('Возвращаю в настройки', reply_markup=user_authorized_kb.settings)
 
 
 @user_mw.authorized_only()
@@ -473,7 +473,7 @@ async def account_promo_check(message: Message, state: FSMContext):
 
                     await postgesql_db.insert_client_entered_global_promo(client_id, global_promo_id, bonus_time)
                     await service_functions.notify_admin_promo_entered(client_id, message.text, 'global')
-                    await message.answer(f'Ура! Промокод на {bonus_time_parsed} дней бесплатной подписки принят!', reply_markup=user_authorized_kb.account_kb)
+                    await message.answer(f'Ура! Промокод на {bonus_time_parsed} дней бесплатной подписки принят!', reply_markup=user_authorized_kb.account)
                     await state.set_state(user_authorized_fsm.AccountMenu.menu)
 
                 else:
@@ -508,7 +508,7 @@ async def account_promo_check(message: Message, state: FSMContext):
                         _, title, _, price = await postgesql_db.get_subscription_info_by_subID(provided_sub_id)
                         answer_message += f'\n\nТип вашей подписки сменен на «<b>{title}</b>» со стоимостью {int(price)}₽/мес!'
 
-                    await message.answer(answer_message, parse_mode='HTML', reply_markup=user_authorized_kb.account_kb)
+                    await message.answer(answer_message, parse_mode='HTML', reply_markup=user_authorized_kb.account)
                     await state.set_state(user_authorized_fsm.AccountMenu.menu)
 
                 else:

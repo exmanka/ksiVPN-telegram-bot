@@ -488,7 +488,7 @@ async def authorization_complete(message: Message, state: FSMContext):
         await send_configuration_request_to_admin({'fullname': client.full_name, 'username': client.username, 'id': client.id}, data._data, is_new_client=True)
 
     await message.answer(f'Отлично! Теперь ждем ответа от разработчика: в скором времени он проверит Вашу регистрацию и вышлет конфигурацию! А пока вы можете исследовать бота!',
-                         reply_markup=user_authorized_kb.menu_kb)
+                         reply_markup=user_authorized_kb.menu)
     await message.answer(f'Пожалуйста, не забывайте, что он тоже человек, и периодически спит (хотя на самом деле крайне редко)')
     await state.finish()
 
@@ -522,7 +522,7 @@ async def sub_renewal(message: Message, state: FSMContext, months_number: int, d
     )
 
     # answer with ReplyKeyboardMarkup
-    await message.answer('Ура, жду оплаты подписки', reply_markup=user_authorized_kb.sub_renewal_verification_kb)
+    await message.answer('Ура, жду оплаты подписки', reply_markup=user_authorized_kb.sub_renewal_verification)
     await state.set_state(user_authorized_fsm.PaymentMenu.verification)
 
     # answer with InlineKeyboardMarkup with link to payment
@@ -536,7 +536,7 @@ async def sub_renewal(message: Message, state: FSMContext, months_number: int, d
 
     answer_message += f'Уникальный идентификатор платежа: <b>{payment_id}</b>.'
     message_info = await message.answer(answer_message, parse_mode='HTML',
-                                        reply_markup=user_authorized_kb.sub_renewal_link_inlkb(payment_form.link_for_customer))
+                                        reply_markup=user_authorized_kb.sub_renewal_link_inline(payment_form.link_for_customer))
 
     # add telegram_id for created payment
     await postgesql_db.update_payment_telegram_message_id(payment_id, message_info['message_id'])
@@ -560,4 +560,4 @@ async def sub_renewal(message: Message, state: FSMContext, months_number: int, d
             pass
 
         finally:
-            await message.answer(f'Оплата произведена успешно!\n\nid: {payment_id}', reply_markup=user_authorized_kb.sub_renewal_kb)
+            await message.answer(f'Оплата произведена успешно!\n\nid: {payment_id}', reply_markup=user_authorized_kb.sub_renewal)

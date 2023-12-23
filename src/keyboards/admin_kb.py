@@ -1,13 +1,13 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
 
-menu_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
+menu = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('_SQL_вставка_конфигурации')).insert(KeyboardButton('_SQL_вставка_пользователя')).insert(KeyboardButton('_узнать_id_файла')).\
     add(KeyboardButton('_отправка_сообщений')).\
     add(KeyboardButton('* Заработок за месяц')).\
     add(KeyboardButton('_сброс_FSM'))
 
-notification_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
+notification = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('_отправить_всем')).insert(KeyboardButton('_отправить_избранным')).\
     add(KeyboardButton('_вернуться'))
 

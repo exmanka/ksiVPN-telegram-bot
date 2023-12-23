@@ -45,11 +45,11 @@ async def command_start(message: Message):
 
     # if user isn't in db
     if not await postgesql_db.is_user_registered(message.from_user.id):
-        await message.answer('Стоимость базовой подписки составляет 200₽/мес!', reply_markup=user_unauthorized_kb.welcome_kb)
+        await message.answer('Стоимость базовой подписки составляет 200₽/мес!', reply_markup=user_unauthorized_kb.welcome)
 
     # if user is already in db
     else:
-        await message.answer('Ух ты! Вы уже есть в нашей системе! Телепортируем в личный кабинет!', reply_markup=user_authorized_kb.menu_kb)
+        await message.answer('Ух ты! Вы уже есть в нашей системе! Телепортируем в личный кабинет!', reply_markup=user_authorized_kb.menu)
 
 
 def register_handlers_other(dp: Dispatcher):
