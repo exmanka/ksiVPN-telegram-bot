@@ -4,7 +4,7 @@ from aiogram.types import Message
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.utils.exceptions import MessageToDeleteNotFound
-from src.middlewares import user_mw
+from src.middlewares import user_mw, throttling_mw
 from src.keyboards import user_authorized_kb
 from src.states import user_authorized_fsm
 from src.database import postgesql_db
@@ -48,28 +48,28 @@ async def sub_renewal_fsm_start(message: Message):
 
 
 @user_mw.authorized_only()
-@user_mw.antiflood(rate_limit=2)
+@throttling_mw.antiflood(rate_limit=2)
 async def sub_renewal_months_1(message: Message, state: FSMContext):
     """Create subscription renewal payment for 1 month."""
     await service_functions.sub_renewal(message, state, months_number=1, discount=0.)
 
 
 @user_mw.authorized_only()
-@user_mw.antiflood(rate_limit=2)
+@throttling_mw.antiflood(rate_limit=2)
 async def sub_renewal_months_3(message: Message, state: FSMContext):
     """Create subscription renewal payment for 3 months."""
     await service_functions.sub_renewal(message, state, months_number=3, discount=.1)
 
 
 @user_mw.authorized_only()
-@user_mw.antiflood(rate_limit=2)
+@throttling_mw.antiflood(rate_limit=2)
 async def sub_renewal_months_12(message: Message, state: FSMContext):
     """Create subscription renewal payment for 12 months."""
     await service_functions.sub_renewal(message, state, months_number=12, discount=.15)
 
 
 @user_mw.authorized_only()
-@user_mw.antiflood(rate_limit=2)
+@throttling_mw.antiflood(rate_limit=2)
 async def sub_renewal_payment_history(message: Message):
     """Send messages with successful payments history."""
     payment_history = await postgesql_db.get_payments_successful_info(await postgesql_db.get_clientID_by_telegramID(message.from_user.id))

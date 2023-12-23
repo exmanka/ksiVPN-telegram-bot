@@ -14,10 +14,14 @@ def admin_only():
 
 
 class CheckAdmin(BaseMiddleware):
+    """Custom class for aiogram middlware for checking administrator-only handlers."""
     async def on_process_message(self, message: Message):
-        handler = current_handler.get()
-        if handler:
+        """Check administrator-only handler on message process."""
+        # if current event was caught by handler
+        if handler := current_handler.get():
             only_for_admin = getattr(handler, 'admin_only', False)
+
+            # if current handler has attribute 'admin_only' and telegram_id of user isn't admin's telegram_id
             if only_for_admin and not message.from_user.id == ADMIN_ID:
                 await message.answer('Ууупс! Эта функция доступна только администратору \U0001F47E')
                 raise CancelHandler()
