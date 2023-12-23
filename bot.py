@@ -1,5 +1,5 @@
 from aiogram.utils import executor
-from src.middlewares import admin_mw, user_mw
+from src.middlewares import admin_mw, user_mw, throttling_mw
 from src.handlers import user_authorized, user_unauthorized, admin, other
 from src.database import postgesql_db
 from src.services import scheduler
@@ -25,7 +25,7 @@ if __name__ == '__main__':
     # registration of middlwares
     dp.middleware.setup(admin_mw.CheckAdmin())
     dp.middleware.setup(user_mw.CheckAuthorized())
-    dp.middleware.setup(user_mw.Throttling())
+    dp.middleware.setup(throttling_mw.Throttling())
 
     # registration of handlers
     user_authorized.register_handlers_authorized_client(dp)
