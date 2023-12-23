@@ -54,7 +54,8 @@ async def send_subscription_expiration_notifications():
 async def send_database_backup():
     await bot.send_document(ADMIN_ID, InputFile(BACKUP_PATH_NAME), caption=f'Бэкап за {datetime.now().strftime("%d.%m.%y %H:%M")}')
 
-async def scheduler_start():
+async def apscheduler_start():
+    """Run apscheduler and add tasks."""
     global scheduler
     scheduler = AsyncIOScheduler()
     scheduler.add_job(send_subscription_expiration_notifications, 'cron', minute='0,30')
@@ -62,3 +63,8 @@ async def scheduler_start():
     scheduler.start()
 
     print('Scheduler has been successfully launched!')
+
+async def apscheduler_finish():
+    """Shut down apscheduler."""
+    scheduler.shutdown(wait=False)
+    print('Scheduler has been successfully shut down!')

@@ -12,7 +12,15 @@ async def asyncpg_run() -> None:
     conn = await asyncpg.connect(host='localhost', database='tgbot_postgres_db', user='postgres', password=POSTGRES_PW)
 
     if conn:
-        print('DB is successfully connected!')
+        print('Database has been successfully connected!')
+
+
+async def asyncpg_close() -> None:
+    """Close asyncpg connection."""
+    await conn.close()
+
+    if conn.is_closed():
+        print('Database has been successfully disconnected!')
 
 
 async def is_user_registered(telegram_id: int) -> bool | None:
@@ -394,7 +402,7 @@ async def get_payments_successful_info(client_id: int) -> list[asyncpg.Record]:
 
 
 async def get_payments_successful_number(client_id: int) -> int:
-    """Return number of successful payments initiated by client."""    
+    """Return number of successful payments initiated by client."""
     return await conn.fetchval(
         '''
         SELECT COUNT(*)
