@@ -1,21 +1,21 @@
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram.types.input_file import InputFile
-from src.database.postgesql_db import get_notifications_status, get_client_info_by_telegramID, get_configurations_info, get_clientID_by_telegramID
+from src.database import postgesql_db
 from src.services import service_functions
 from bot_init import bot, ADMIN_ID, BACKUP_PATH_NAME
 
 
 async def send_subscription_expiration_notifications():
-    clients_notifications_status = await get_notifications_status()
+    clients_notifications_status = await postgesql_db.get_notifications_status()
     for telegram_id, sub_expiration_date, is_sub_expiration_now, is_sub_expiration_in_1d, is_sub_expiration_in_3d, is_sub_expiration_in_7d in clients_notifications_status:
 
         # if client's subscription expires between [CURRENT_TIMESTAMP, CURRENT_TIMESTAMP + INTERVAL '30 minutes')
         if is_sub_expiration_now:
             await bot.send_message(telegram_id, 'Срок действия подписки закончися!')
 
-            _, name, surname, username, *_ = await get_client_info_by_telegramID(telegram_id)
-            configurations_info = await get_configurations_info(await get_clientID_by_telegramID(telegram_id))
+            _, name, surname, username, *_ = await postgesql_db.get_client_info_by_telegramID(telegram_id)
+            configurations_info = await postgesql_db.get_configurations_info(await postgesql_db.get_clientID_by_telegramID(telegram_id))
             answer_message = f'Срок действия подписки пользователя {name} {surname} {username} <code>{telegram_id}</code> истек!\n\n'
             answer_message += f'Отключите его конфигурации (всего их <b>{len(configurations_info)}</b>)!'
             await bot.send_message(ADMIN_ID, answer_message, parse_mode='HTML')
@@ -27,7 +27,7 @@ async def send_subscription_expiration_notifications():
         if is_sub_expiration_in_1d:
             await bot.send_message(telegram_id, f'Уведомляю: cрок действия подписки закончится через 1 сутки, {sub_expiration_date}!')
 
-            _, name, surname, username, *_ = await get_client_info_by_telegramID(telegram_id)
+            _, name, surname, username, *_ = await postgesql_db.get_client_info_by_telegramID(telegram_id)
             await bot.send_message(ADMIN_ID,
                                    f'Срок действия подписки пользователя {name} {surname} {username} <code>{telegram_id}</code> истекает через 1 сутки!',
                                    parse_mode='HTML')
@@ -36,7 +36,7 @@ async def send_subscription_expiration_notifications():
         if is_sub_expiration_in_3d:
             await bot.send_message(telegram_id, f'Уведомляю: срок действия подписки закончится через 3 дня, {sub_expiration_date}!')
 
-            _, name, surname, username, *_ = await get_client_info_by_telegramID(telegram_id)
+            _, name, surname, username, *_ = await postgesql_db.get_client_info_by_telegramID(telegram_id)
             await bot.send_message(ADMIN_ID,
                                    f'Срок действия подписки пользователя {name} {surname} {username} <code>{telegram_id}</code> истекает через 3 дня!',
                                    parse_mode='HTML')
@@ -46,7 +46,7 @@ async def send_subscription_expiration_notifications():
         if is_sub_expiration_in_7d:
             await bot.send_message(telegram_id, f'Уведомляю: срок действия подписки закончится через 7 дней, {sub_expiration_date}!')
 
-            _, name, surname, username, *_ = await get_client_info_by_telegramID(telegram_id)
+            _, name, surname, username, *_ = await postgesql_db.get_client_info_by_telegramID(telegram_id)
             await bot.send_message(ADMIN_ID,
                                    f'Срок действия подписки пользователя {name} {surname} {username} <code>{telegram_id}</code> истекает через 7 дней!',
                                    parse_mode='HTML')

@@ -2,7 +2,7 @@ from aiogram import types
 from aiogram.dispatcher.middlewares import BaseMiddleware
 from aiogram.dispatcher.handler import CancelHandler, current_handler
 from aiogram.utils.exceptions import Throttled
-from src.database.postgesql_db import is_user_registered
+from src.database import postgesql_db
 from bot_init import dp
 
 
@@ -39,13 +39,13 @@ class CheckAuthorized(BaseMiddleware):
         if handler := current_handler.get():
             only_for_unauthorized_users = getattr(
                 handler, 'unauthorized_only', False)
-            if only_for_unauthorized_users and await is_user_registered(message.from_user.id):
+            if only_for_unauthorized_users and await postgesql_db.is_user_registered(message.from_user.id):
                 await message.answer('Вы уже зарегистрировались!')
                 raise CancelHandler()
 
             only_for_authorized_users = getattr(
                 handler, 'authorized_only', False)
-            if only_for_authorized_users and not await is_user_registered(message.from_user.id):
+            if only_for_authorized_users and not await postgesql_db.is_user_registered(message.from_user.id):
                 await message.answer('Ууупс! Эта функция доступна только зарегистрированным пользователям!')
                 raise CancelHandler()
 

@@ -1,12 +1,11 @@
-from asyncio import sleep
+import asyncio
 from aiogram.types import Message
 from aiogram.dispatcher import FSMContext
 from aiogram.utils.exceptions import MessageToDeleteNotFound
+from src.keyboards import user_authorized_kb, admin_kb
+from src.states import user_authorized_fsm
 from src.database import postgesql_db
-from src.states.user_authorized_fsm import PaymentMenu
-from src.keyboards.admin_kb import configuration
-from src.keyboards.user_authorized_kb import menu_kb, sub_renewal_verification_kb, sub_renewal_kb, sub_renewal_link_inlkb
-from src.services.aiomoney import YooMoneyWallet, PaymentSource
+from src.services import aiomoney
 from bot_init import bot, ADMIN_ID, YOOMONEY_TOKEN
 
 
@@ -134,7 +133,7 @@ async def send_configuration_request_to_admin(client: dict, choice: dict, is_new
         answer_message += f"<b>Конфигурация</b>: {choice['platform'][2:]}, {choice['os_name']}, {choice['chatgpt']} ChatGPT\n\n"
         answer_message += f"<b>Запрос на подключение от нового пользователя!</b>"
         await bot.send_message(ADMIN_ID, answer_message,
-                               reply_markup=await configuration(client['id']),
+                               reply_markup=await admin_kb.configuration(client['id']),
                                parse_mode='HTML')
 
     # if request was sended by old client with at least one configuration
@@ -145,7 +144,7 @@ async def send_configuration_request_to_admin(client: dict, choice: dict, is_new
                                f"<b>ID</b>: <code>{client['id']}</code>\n"
                                f"<b>Конфигурация</b>: {choice['platform'][2:]}, {choice['os_name']}, {choice['chatgpt']} ChatGPT\n\n"
                                f"<b>Запрос дополнительной конфигурации от пользователя!</b>",
-                               reply_markup=await configuration(client['id']),
+                               reply_markup=await admin_kb.configuration(client['id']),
                                parse_mode='HTML')
 
 
@@ -446,10 +445,10 @@ async def autocheck_payment_status(payment_id: int) -> str:
     :return: autochecker status, 'success' - payment was successfully finished, 'failure' - payment wasn't successfully finished in 300 seconds,
     'already_checked' - payment was already checked and added to db as successful by other functions
     """
-    wallet = YooMoneyWallet(YOOMONEY_TOKEN)
+    wallet = aiomoney.YooMoneyWallet(YOOMONEY_TOKEN)
 
     # wait for user to redirect to Yoomoney site first 10 seconds
-    await sleep(10)
+    await asyncio.sleep(10)
 
     # after that check Yoomoney payment status using linear equation
     k = 0.04
@@ -464,7 +463,7 @@ async def autocheck_payment_status(payment_id: int) -> str:
         if await wallet.check_payment_on_successful(payment_id):
             return 'success'
 
-        await sleep(k * x + b)
+        await asyncio.sleep(k * x + b)
 
     return 'failure'
 
@@ -489,7 +488,7 @@ async def authorization_complete(message: Message, state: FSMContext):
         await send_configuration_request_to_admin({'fullname': client.full_name, 'username': client.username, 'id': client.id}, data._data, is_new_client=True)
 
     await message.answer(f'Отлично! Теперь ждем ответа от разработчика: в скором времени он проверит Вашу регистрацию и вышлет конфигурацию! А пока вы можете исследовать бота!',
-                         reply_markup=menu_kb)
+                         reply_markup=user_authorized_kb.menu_kb)
     await message.answer(f'Пожалуйста, не забывайте, что он тоже человек, и периодически спит (хотя на самом деле крайне редко)')
     await state.finish()
 
@@ -514,17 +513,17 @@ async def sub_renewal(message: Message, state: FSMContext, months_number: int, d
     payment_id = await postgesql_db.insert_payment(client_id, sub_id, payment_price, months_number)
 
     # use aiomoney for payment link creation
-    wallet = YooMoneyWallet(YOOMONEY_TOKEN)
+    wallet = aiomoney.YooMoneyWallet(YOOMONEY_TOKEN)
     payment_form = await wallet.create_payment_form(
         amount_rub=payment_price,
         unique_label=payment_id,
-        payment_source=PaymentSource.YOOMONEY_WALLET,
+        payment_source=aiomoney.PaymentSource.YOOMONEY_WALLET,
         success_redirect_url="https://t.me/ksiVPN_bot"
     )
 
     # answer with ReplyKeyboardMarkup
-    await message.answer('Ура, жду оплаты подписки', reply_markup=sub_renewal_verification_kb)
-    await state.set_state(PaymentMenu.verification)
+    await message.answer('Ура, жду оплаты подписки', reply_markup=user_authorized_kb.sub_renewal_verification_kb)
+    await state.set_state(user_authorized_fsm.PaymentMenu.verification)
 
     # answer with InlineKeyboardMarkup with link to payment
     answer_message = f'Подписка: <b>{sub_title}</b>\n'
@@ -537,7 +536,7 @@ async def sub_renewal(message: Message, state: FSMContext, months_number: int, d
 
     answer_message += f'Уникальный идентификатор платежа: <b>{payment_id}</b>.'
     message_info = await message.answer(answer_message, parse_mode='HTML',
-                                        reply_markup=sub_renewal_link_inlkb(payment_form.link_for_customer))
+                                        reply_markup=user_authorized_kb.sub_renewal_link_inlkb(payment_form.link_for_customer))
 
     # add telegram_id for created payment
     await postgesql_db.update_payment_telegram_message_id(payment_id, message_info['message_id'])
@@ -548,7 +547,7 @@ async def sub_renewal(message: Message, state: FSMContext, months_number: int, d
     # if autochecker returns successful payment info
     if client_last_payment_status == 'success':
         await postgesql_db.update_payment_successful(payment_id, client_id, months_number)
-        await state.set_state(PaymentMenu.menu)
+        await state.set_state(user_authorized_fsm.PaymentMenu.menu)
         await notify_admin_payment_success(client_id, months_number)
         await check_referral_reward(client_id)
 
@@ -561,4 +560,4 @@ async def sub_renewal(message: Message, state: FSMContext, months_number: int, d
             pass
 
         finally:
-            await message.answer(f'Оплата произведена успешно!\n\nid: {payment_id}', reply_markup=sub_renewal_kb)
+            await message.answer(f'Оплата произведена успешно!\n\nid: {payment_id}', reply_markup=user_authorized_kb.sub_renewal_kb)

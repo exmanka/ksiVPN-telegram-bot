@@ -1,7 +1,7 @@
-from bot_init import ADMIN_ID
 from aiogram.types import Message
 from aiogram.dispatcher.handler import CancelHandler, current_handler
 from aiogram.dispatcher.middlewares import BaseMiddleware
+from bot_init import ADMIN_ID
 
 
 def admin_only():

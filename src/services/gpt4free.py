@@ -1,5 +1,5 @@
-from g4f.Provider import GeekGpt
 from g4f import ChatCompletion, models
+from g4f.Provider import GeekGpt
 
 
 async def chatgpt_answer(prompt: str) -> str:

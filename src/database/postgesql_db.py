@@ -1,5 +1,5 @@
 import asyncpg
-from datetime import timedelta
+import datetime
 from bot_init import POSTGRES_PW
 
 
@@ -692,7 +692,7 @@ async def insert_client(name: str,
                         username: str | None = None,
                         used_ref_promo_id: int | None = None,
                         provided_sub_id: int | None = None,
-                        bonus_time: timedelta | None = None,
+                        bonus_time: datetime.timedelta | None = None,
                         ) -> None:
     """Add new client to DB."""
     if username:
@@ -702,7 +702,7 @@ async def insert_client(name: str,
         provided_sub_id = 1  # добавить глобальную константу
 
     if bonus_time is None:
-        bonus_time = timedelta()    # zero days
+        bonus_time = datetime.timedelta()    # zero days
 
     provided_ref_sub_id = provided_sub_id
     if provided_sub_id in [3, 4]:  # добавить глобальную константу

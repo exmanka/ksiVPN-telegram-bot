@@ -1,4 +1,4 @@
-from random import choice
+import random
 from aiogram import Dispatcher
 from aiogram.types import Message
 from aiogram.dispatcher import FSMContext
@@ -431,7 +431,7 @@ async def account_ref_program_info(message: Message):
 async def account_ref_program_invite(message: Message):
     """Send message with random invite text from messages.py."""
     ref_promocode = await postgesql_db.get_referral_promo(message.from_user.id)
-    text = choice(messages.messages_dict['ref_program_invites']['text'])
+    text: str = random.choice(messages.messages_dict['ref_program_invites']['text'])
     text = text.replace('<refcode>', '<code>' + ref_promocode + '</code>')
     await message.answer(text, parse_mode='HTML')
 
@@ -569,7 +569,6 @@ async def show_project_rules(message: Message):
 @user_mw.authorized_only()
 async def restore_payments(message: Message):
     """Try to verify client's payments (per whole time) are successful according to YooMoney information."""
-
     # get client's initiated payments for all time
     wallet = aiomoney.YooMoneyWallet(YOOMONEY_TOKEN)
     client_id = await postgesql_db.get_clientID_by_telegramID(message.from_user.id)
