@@ -5,7 +5,8 @@ from src.database import postgesql_db
 menu_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('\u2764\uFE0F\u200D\U0001F525 Продлить подписку!')).\
     add(KeyboardButton('Статус подписки')).insert(KeyboardButton('Личный кабинет')).\
-    add(KeyboardButton('Правила')).insert(KeyboardButton('Помощь')).insert(KeyboardButton('О сервисе'))
+    add(KeyboardButton('Правила')).insert(KeyboardButton(
+        'Помощь')).insert(KeyboardButton('О сервисе'))
 
 sub_renewal_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('1 месяц')).insert(KeyboardButton('3 месяца (-10%)')).insert(KeyboardButton('12 месяцев (-15%)')).\
@@ -16,7 +17,9 @@ sub_renewal_verification_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('Проверить оплату')).\
     add(KeyboardButton('Отмена оплаты'))
 
+
 async def sub_renewal_link_inlkb(link_for_customer: str) -> InlineKeyboardMarkup:
+    """Return dynamic inline keyboard with specified payment link as URL for inline button."""
     return InlineKeyboardMarkup().add(InlineKeyboardButton('Оплатить', url=link_for_customer))
 
 account_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
@@ -30,20 +33,24 @@ config_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('Вернуться'))
 
 config_platform_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton('\U0001F4F1 Смартфон')).insert(KeyboardButton('\U0001F4BB ПК')).add(KeyboardButton('Отмена выбора'))
+    add(KeyboardButton('\U0001F4F1 Смартфон')).insert(
+        KeyboardButton('\U0001F4BB ПК')).add(KeyboardButton('Отмена выбора'))
 
 config_mobile_os_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton('Android')).insert(KeyboardButton('IOS (IPhone)')).add(KeyboardButton('Отмена выбора'))
+    add(KeyboardButton('Android')).insert(KeyboardButton(
+        'IOS (IPhone)')).add(KeyboardButton('Отмена выбора'))
 
 config_desktop_os_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton('Windows')).insert(KeyboardButton('macOS')).insert(KeyboardButton('Linux')).add(KeyboardButton('Отмена выбора'))
+    add(KeyboardButton('Windows')).insert(KeyboardButton('macOS')).insert(
+        KeyboardButton('Linux')).add(KeyboardButton('Отмена выбора'))
 
 config_chatgpt_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('Использую')).insert(KeyboardButton('Не использую')).insert(KeyboardButton('Что это?')).\
     add(KeyboardButton('Отмена выбора'))
 
 promo_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton('Использованные промокоды')).add(KeyboardButton('Отмена ввода'))
+    add(KeyboardButton('Использованные промокоды')).add(
+        KeyboardButton('Отмена ввода'))
 
 ref_program_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('Участие в реферальной программе')).\
@@ -54,7 +61,9 @@ settings_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('Режим ChatGPT')).insert(KeyboardButton('Уведомления')).\
     add(KeyboardButton('Вернуться'))
 
+
 async def settings_notifications(client_id: int) -> ReplyKeyboardMarkup:
+    """Return dynamic reply keyboard with current notifications settings for client with specified client_id."""
     sub_expires_in_1_day, sub_expires_in_3_days, sub_expires_in_7_days = await postgesql_db.get_notifications_info(client_id)
     settings_notifications_kb = ReplyKeyboardMarkup(resize_keyboard=True)
 
@@ -83,7 +92,9 @@ async def settings_notifications(client_id: int) -> ReplyKeyboardMarkup:
 
     return settings_notifications_kb
 
+
 async def settings_chatgpt(telegram_id: int) -> ReplyKeyboardMarkup:
+    """Return dynamic reply keyboard with current bot's ChatGPT settings for client with specified telegram_id."""
     settings_chatgpt_kb = ReplyKeyboardMarkup(resize_keyboard=True)
 
     # if client turned on ChatGPT mode for bot

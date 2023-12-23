@@ -11,5 +11,7 @@ notification_kb = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton('_отправить_всем')).insert(KeyboardButton('_отправить_избранным')).\
     add(KeyboardButton('_вернуться'))
 
-async def configuration(telegram_id: int):
+
+async def configuration(telegram_id: int) -> InlineKeyboardMarkup:
+    """Return dynamic inline keyboard with specified telegram_id as callback_data."""
     return InlineKeyboardMarkup().add(InlineKeyboardButton('Ответить', callback_data=telegram_id))
