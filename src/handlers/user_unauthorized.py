@@ -21,7 +21,7 @@ async def authorization_fsm_start(message: Message):
     """Start FSM for registration and request user's platform."""
     await message.answer('Для подключения мне необходимо определить Вашу конфигурацию.\n\n<b>Задам 4 коротких вопроса!</b>', parse_mode='HTML')
     await message.answer('Выберите свою платформу', reply_markup=user_unauthorized_kb.reg_platform_kb)
-    await user_unauthorized_fsm.RegistrationFSM.platform.set()
+    await user_unauthorized_fsm.RegistrationMenu.platform.set()
 
 
 @user_mw.unauthorized_only()
@@ -38,7 +38,7 @@ async def authorization_take_platform(message: Message, state: FSMContext):
     else:
         await message.answer('Укажите операционную систему', reply_markup=user_unauthorized_kb.reg_desktop_os_kb)
 
-    await state.set_state(user_unauthorized_fsm.RegistrationFSM.os)
+    await state.set_state(user_unauthorized_fsm.RegistrationMenu.os)
 
 
 @user_mw.unauthorized_only()
@@ -48,7 +48,7 @@ async def authorization_take_os(message: Message, state: FSMContext):
         data['os_name'] = message.text
 
     await message.answer('Используете ли Вы ChatGPT?', reply_markup=user_unauthorized_kb.reg_chatgpt_kb)
-    await state.set_state(user_unauthorized_fsm.RegistrationFSM.chatgpt)
+    await state.set_state(user_unauthorized_fsm.RegistrationMenu.chatgpt)
 
 
 @user_mw.unauthorized_only()
@@ -65,7 +65,7 @@ async def authorization_take_chatgpt(message: Message, state: FSMContext):
         data['chatgpt'] = message.text
 
     await message.answer('И последний шаг: введите реферальный промокод, если он имеется', reply_markup=user_unauthorized_kb.reg_ref_promo_kb)
-    await state.set_state(user_unauthorized_fsm.RegistrationFSM.promo)
+    await state.set_state(user_unauthorized_fsm.RegistrationMenu.promo)
 
 
 @user_mw.unauthorized_only()
@@ -114,14 +114,14 @@ async def authorization_promo_no(message: Message, state: FSMContext):
 
 def register_handlers_unauthorized_client(dp: Dispatcher):
     dp.register_message_handler(fsm_cancel, Text(equals='Отмена', ignore_case=True), state=[None,
-                                                                                            user_unauthorized_fsm.RegistrationFSM.platform,
-                                                                                            user_unauthorized_fsm.RegistrationFSM.os,
-                                                                                            user_unauthorized_fsm.RegistrationFSM.chatgpt,
-                                                                                            user_unauthorized_fsm.RegistrationFSM.promo])
+                                                                                            user_unauthorized_fsm.RegistrationMenu.platform,
+                                                                                            user_unauthorized_fsm.RegistrationMenu.os,
+                                                                                            user_unauthorized_fsm.RegistrationMenu.chatgpt,
+                                                                                            user_unauthorized_fsm.RegistrationMenu.promo])
     dp.register_message_handler(authorization_fsm_start, Text(equals='\U0001f525 Подключиться!', ignore_case=True))
-    dp.register_message_handler(authorization_take_platform, Text(equals=['\U0001F4F1 Смартфон', '\U0001F4BB ПК']), state=user_unauthorized_fsm.RegistrationFSM.platform)
-    dp.register_message_handler(authorization_take_os, Text(equals=['Android', 'IOS (IPhone)', 'Windows', 'macOS', 'Linux']), state=user_unauthorized_fsm.RegistrationFSM.os)
-    dp.register_message_handler(authorization_show_info_chatgpt, Text(equals='Что это?', ignore_case=True), state=user_unauthorized_fsm.RegistrationFSM.chatgpt)
-    dp.register_message_handler(authorization_take_chatgpt, Text(equals=['Использую', 'Не использую']), state=user_unauthorized_fsm.RegistrationFSM.chatgpt)
-    dp.register_message_handler(authorization_promo_no, Text(equals='Нет промокода'), state=user_unauthorized_fsm.RegistrationFSM.promo)
-    dp.register_message_handler(authorization_promo_yes, state=user_unauthorized_fsm.RegistrationFSM.promo)
+    dp.register_message_handler(authorization_take_platform, Text(equals=['\U0001F4F1 Смартфон', '\U0001F4BB ПК']), state=user_unauthorized_fsm.RegistrationMenu.platform)
+    dp.register_message_handler(authorization_take_os, Text(equals=['Android', 'IOS (IPhone)', 'Windows', 'macOS', 'Linux']), state=user_unauthorized_fsm.RegistrationMenu.os)
+    dp.register_message_handler(authorization_show_info_chatgpt, Text(equals='Что это?', ignore_case=True), state=user_unauthorized_fsm.RegistrationMenu.chatgpt)
+    dp.register_message_handler(authorization_take_chatgpt, Text(equals=['Использую', 'Не использую']), state=user_unauthorized_fsm.RegistrationMenu.chatgpt)
+    dp.register_message_handler(authorization_promo_no, Text(equals='Нет промокода'), state=user_unauthorized_fsm.RegistrationMenu.promo)
+    dp.register_message_handler(authorization_promo_yes, state=user_unauthorized_fsm.RegistrationMenu.promo)

@@ -33,7 +33,7 @@ async def notifications_menu(message: Message):
 @admin_mw.admin_only()
 async def notifications_send_message_everyone_fsm_start(message: Message, state: FSMContext):
     """Start FSM for sending message to every client who wrote bot at least one time."""
-    await state.set_state(admin_fsm.FSMSendMessage.everyone_decision)
+    await state.set_state(admin_fsm.SendMessage.everyone_decision)
     answer_message = 'Активировано машинное состояние! Введите необходимую информацию следующим сообщением, а также приложите файлы при необходимости!\n\n'
     answer_message += 'Введите /perfect, чтобы подтвердить выбор последнего отправленного сообщения!'
     await message.answer(answer_message, parse_mode='HTML')
@@ -83,7 +83,7 @@ async def notifications_send_message_everyone(message: Message, state: FSMContex
 @admin_mw.admin_only()
 async def notifications_send_message_selected_fsm_start(message: Message, state: FSMContext):
     """Start FSM for sending message to selected clients."""
-    await state.set_state(admin_fsm.FSMSendMessage.selected_list)
+    await state.set_state(admin_fsm.SendMessage.selected_list)
     answer_message = 'Активировано машинное состояние! Введите через запятую <b>username</b> или <b>telegram_id</b> пользователей, для которых предназначена рассылка.'
     await message.answer(answer_message, parse_mode='HTML')
 
@@ -110,7 +110,7 @@ async def notifications_send_message_selected_list(message: Message, state: FSMC
     # save selected clients ids
     async with state.proxy() as data:
         data['selected_telegram_ids'] = selected_clients_telegram_ids
-    await state.set_state(admin_fsm.FSMSendMessage.selected_decision)
+    await state.set_state(admin_fsm.SendMessage.selected_decision)
 
     # show selected clients info
     answer_message = ''
@@ -178,7 +178,7 @@ async def notifications_send_message_selected(message: Message, state: FSMContex
 @admin_mw.admin_only()
 async def show_user_info_sql_fsm_start(message: Message):
     """Start FSM for showing SQL query for INSERT of forward message's owner."""
-    await admin_fsm.FSMUserInfo.ready.set()
+    await admin_fsm.UserInfo.ready.set()
     message_answer = 'Активировано состояние для получения SQL-запроса на вставку пользователя! Перешлите мне сообщение, и я выведу всю возможную информацию!\n\n'
     message_answer += 'Кстати, проверить, какие конфигурации доступны пользователю можно командой /check_configs <telegram_id> | <username>'
     await message.reply(message_answer)
@@ -215,7 +215,7 @@ async def show_user_info_sql(message: Message):
 @admin_mw.admin_only()
 async def show_user_config_sql_cm_start(message: Message):
     """Start FSM for showing SQL query for INSERT of configuration provided by admin."""
-    await admin_fsm.FSMConfigInfo.ready.set()
+    await admin_fsm.ConfigInfo.ready.set()
     guide_text = 'Активировано состояние для получения SQL-запроса на вставку конфигурации! Пришлите мне сообщение в формате (вместо переноса строк используются пробелы):\n\n'
     guide_text += '<b>client_id</b> - client_username | client_telegram_id\n'
     guide_text += '<b>protocol_id</b> - <code>w</code> (WireGuard) | <code>x</code> (XTLS-Reality) | <code>s</code> (ShadowSocks)\n'
@@ -365,7 +365,7 @@ async def get_file_id(message: Message):
 @admin_mw.admin_only()
 async def send_configuration_fsm_start(call: CallbackQuery, state: FSMContext):
     """Start FSM for sending configurations for a client after pressing inline button and send instruction."""
-    await admin_fsm.FSMSendConfig.ready.set()
+    await admin_fsm.SendConfig.ready.set()
     async with state.proxy() as data:
         data['telegram_id'] = call.data
 
@@ -448,19 +448,19 @@ def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(show_admin_keyboard, commands=['admin'])
     dp.register_message_handler(notifications_menu, Text(equals='_отправка_сообщений'))
     dp.register_message_handler(notifications_send_message_everyone_fsm_start, Text(equals='_отправить_всем'))
-    dp.register_message_handler(notifications_send_message_everyone, state=admin_fsm.FSMSendMessage.everyone_decision, content_types='any')
+    dp.register_message_handler(notifications_send_message_everyone, state=admin_fsm.SendMessage.everyone_decision, content_types='any')
     dp.register_message_handler(notifications_send_message_selected_fsm_start, Text(equals='_отправить_избранным'))
-    dp.register_message_handler(notifications_send_message_selected_list, state=admin_fsm.FSMSendMessage.selected_list)
-    dp.register_message_handler(notifications_send_message_selected, state=admin_fsm.FSMSendMessage.selected_decision, content_types='any')
+    dp.register_message_handler(notifications_send_message_selected_list, state=admin_fsm.SendMessage.selected_list)
+    dp.register_message_handler(notifications_send_message_selected, state=admin_fsm.SendMessage.selected_decision, content_types='any')
     dp.register_message_handler(show_user_info_sql_fsm_start, Text(equals='_SQL_вставка_пользователя'))
     dp.register_message_handler(show_user_info_sql_fsm_start, commands=['sql_user'])
-    dp.register_message_handler(show_user_info_sql, state=admin_fsm.FSMUserInfo.ready)
+    dp.register_message_handler(show_user_info_sql, state=admin_fsm.UserInfo.ready)
     dp.register_message_handler(show_user_config_sql_cm_start, Text(equals='_SQL_вставка_конфигурации'))
     dp.register_message_handler(show_user_config_sql_cm_start, commands=['sql_config'])
-    dp.register_message_handler(check_user_configs, state=admin_fsm.FSMConfigInfo.ready, commands=['check_configs'])
-    dp.register_message_handler(show_user_config_sql, state=admin_fsm.FSMConfigInfo.ready, content_types=['text', 'photo', 'document'])
+    dp.register_message_handler(check_user_configs, state=admin_fsm.ConfigInfo.ready, commands=['check_configs'])
+    dp.register_message_handler(show_user_config_sql, state=admin_fsm.ConfigInfo.ready, content_types=['text', 'photo', 'document'])
     dp.register_message_handler(show_earnings, Text(equals='* Заработок за месяц'))
     dp.register_message_handler(get_file_id, Text(equals='_узнать_id_файла'), content_types=['text', 'photo', 'document'])
     dp.register_message_handler(get_file_id, commands=['fileid', 'fid'], commands_ignore_caption=False, content_types=['text', 'photo', 'document'])
     dp.register_callback_query_handler(send_configuration_fsm_start, lambda call: call.data.isdigit())
-    dp.register_message_handler(send_configuration, content_types=['text', 'photo', 'document'], state=admin_fsm.FSMSendConfig.ready)
+    dp.register_message_handler(send_configuration, content_types=['text', 'photo', 'document'], state=admin_fsm.SendConfig.ready)
