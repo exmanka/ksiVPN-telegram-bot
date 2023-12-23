@@ -24,7 +24,7 @@ def authorized_only():
 
 class CheckAuthorized(BaseMiddleware):
     """Custom class for aiogram middlware for checking authorized-only clients handlers."""
-    async def on_process_message(self, message: Message):
+    async def on_process_message(self, message: Message, _: dict):
         """Check authorized-only clients handler on message process."""
         # if current event was caught by handler
         if handler := current_handler.get():

@@ -15,7 +15,7 @@ def admin_only():
 
 class CheckAdmin(BaseMiddleware):
     """Custom class for aiogram middlware for checking administrator-only handlers."""
-    async def on_process_message(self, message: Message):
+    async def on_process_message(self, message: Message, _: dict):
         """Check administrator-only handler on message process."""
         # if current event was caught by handler
         if handler := current_handler.get():
