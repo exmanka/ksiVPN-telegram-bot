@@ -536,7 +536,7 @@ async def sub_renewal(message: Message, state: FSMContext, months_number: int, d
 
     answer_message += f'Уникальный идентификатор платежа: <b>{payment_id}</b>.'
     message_info = await message.answer(answer_message, parse_mode='HTML',
-                                        reply_markup=user_authorized_kb.sub_renewal_link_inline(payment_form.link_for_customer))
+                                        reply_markup=await user_authorized_kb.sub_renewal_link_inline(payment_form.link_for_customer))
 
     # add telegram_id for created payment
     await postgesql_db.update_payment_telegram_message_id(payment_id, message_info['message_id'])
