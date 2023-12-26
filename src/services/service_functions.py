@@ -87,16 +87,19 @@ async def send_configuration(telegram_id: int,
 
     # if config was generated as photo
     if configuration_file_type == 'photo':
-        await bot.send_photo(telegram_id, configuration_telegram_file_id, answer_text, parse_mode='HTML', protect_content=True)
+        await bot.send_photo(telegram_id, configuration_telegram_file_id, answer_text, parse_mode='HTML', protect_content=True,
+                             reply_markup=await user_authorized_kb.configuration_instruction_inlkb(configuration_protocol_name, configuration_os))
 
     # if config was generated as document
     elif configuration_file_type == 'document':
-        await bot.send_document(telegram_id, configuration_telegram_file_id, caption=answer_text, parse_mode='HTML', protect_content=True)
+        await bot.send_document(telegram_id, configuration_telegram_file_id, caption=answer_text, parse_mode='HTML', protect_content=True,
+                                reply_markup=await user_authorized_kb.configuration_instruction_inlkb(configuration_protocol_name, configuration_os))
 
     # if config was generated as link
     elif configuration_file_type == 'link':
         answer_text = f'<code>{configuration_telegram_file_id}</code>\n\n' + answer_text
-        await bot.send_message(telegram_id, answer_text, parse_mode='HTML')
+        await bot.send_message(telegram_id, answer_text, parse_mode='HTML',
+                               reply_markup=await user_authorized_kb.configuration_instruction_inlkb(configuration_protocol_name, configuration_os))
 
     else:
         raise Exception('указан неверный тип файла')
@@ -277,8 +280,8 @@ async def create_configuration(client_id: int,
                                flag_location: str,
                                flag_os: str,
                                flag_link: str | None = None,
-                               telegram_file_id: int | None = None) -> str:
-    """Create new configuration in db and return description of created configuration.
+                               telegram_file_id: int | None = None):
+    """Create new configuration in db.
 
     :param client_id:
     :param file_type: file type in ('link', 'document', 'photo')
@@ -289,7 +292,6 @@ async def create_configuration(client_id: int,
     :param telegram_file_id:
     :raises Exception: invalid telegram_file_id
     :raises Exception: invalid file_type
-    :return: description of configurations with HTML-tags
     """
     link = None
     if file_type == 'link':
@@ -307,11 +309,6 @@ async def create_configuration(client_id: int,
     else:
         raise Exception(
             'при попытке создания конфигурации был указан неверный file_type!')
-
-    _, date_of_receipt, _, is_chatgpt_available, name, country, city, bandwidth, ping, _ = (await postgesql_db.get_configurations_info(client_id))[0]
-    configuration_description = await create_configuration_description(date_of_receipt, os_enum, is_chatgpt_available, name, country, city, bandwidth, ping, link)
-
-    return configuration_description
 
 
 async def get_configuration_sql_data(protocol: str, location: str, os: str, link: str | None = None) -> tuple[int, int, str]:

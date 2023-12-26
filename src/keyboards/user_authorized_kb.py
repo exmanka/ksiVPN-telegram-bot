@@ -108,3 +108,8 @@ async def settings_chatgpt(telegram_id: int) -> ReplyKeyboardMarkup:
     settings_chatgpt_kb.add(KeyboardButton('Обратно'))
 
     return settings_chatgpt_kb
+
+
+async def configuration_instruction_inlkb(configuration_protocol_name: str, configuration_os: str) -> InlineKeyboardMarkup:
+    """Return dynamic inline keyboard with specified configuration OS and protocol as callback_data."""
+    return InlineKeyboardMarkup().add(InlineKeyboardButton('Инструкция по установке', callback_data=configuration_protocol_name + '--' + configuration_os))

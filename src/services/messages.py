@@ -1,6 +1,7 @@
 from inspect import cleandoc
 
-messages_dict = \
+
+messages_dict: dict = \
 {
     'hello_message':
     {
@@ -97,6 +98,36 @@ messages_dict = \
             '''
             )
         )
+    },
+
+    'configuration_instruction':
+    {
+        'wireguard':
+        {
+            'android': '<Инструкция по установке WireGuard на Android>',
+            'ios': '<Инструкция по установке WireGuard на IOS>',
+            'windows': '<Инструкция по установке WireGuard на Windows>',
+            'macos': '<Инструкция по установке WireGuard на macOS>',
+            'linux': '<Инструкция по установке WireGuard на Linux>'
+        },
+
+        'xray vless xtls-reality':
+        {
+            'android': '<Инструкция по установке XTLS-Reality на Android>',
+            'ios': '<Инструкция по установке XTLS-Reality на IOS>',
+            'windows': '<Инструкция по установке XTLS-Reality на Windows>',
+            'macos': '<Инструкция по установке XTLS-Reality на macOS>',
+            'linux': '<Инструкция по установке XTLS-Reality на Linux>'
+        },
+
+        'shadowsocks-2022':
+        {
+            'android': '<Инструкция по установке Shadowsocks-2022 на Android>',
+            'ios': '<Инструкция по установке Shadowsocks-2022 на IOS>',
+            'windows': '<Инструкция по установке Shadowsocks-2022 на Windows>',
+            'macos': '<Инструкция по установке Shadowsocks-2022 на macOS>',
+            'linux': '<Инструкция по установке Shadowsocks-2022 на Linux>'
+        }
     }
 
 }

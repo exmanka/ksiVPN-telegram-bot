@@ -319,7 +319,7 @@ async def show_earnings(message: Message):
 
 @admin_mw.admin_only()
 async def check_user_configs(message: Message):
-    """Send messages with configurations of anouther client.
+    """Send messages with configurations of another client.
 
     Used for test.
     """
@@ -383,57 +383,46 @@ async def send_configuration_fsm_start(call: CallbackQuery, state: FSMContext):
 async def send_configuration(message: Message, state: FSMContext):
     """Check configuration sended by admin and send it to client."""
     async with state.proxy() as data:
-        telegram_id = data['telegram_id']
+        telegram_id = int(data['telegram_id'])
     client_id = await postgesql_db.get_clientID_by_telegramID(telegram_id)
 
     try:
         # if message is text
         if text := message.text:
-
-            # get configuration
+            # create configuration
             file_type = 'link'
             flag_protocol, flag_location, flag_os, flag_link = text.split(' ')
-            answer_text = await service_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, flag_link)
-
-            # send message to client, admin and finish FSM for sending configurations
-            await bot.send_message(telegram_id, 'Ура, конфигурация получена!')
-            await bot.send_message(telegram_id, answer_text, parse_mode='HTML')
-            await message.reply('Отлично, конфигурация vless отправлена!')
-            await state.finish()
+            await service_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, flag_link)
+            _, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id = (await postgesql_db.get_configurations_info(client_id))[-1]
 
         # if message is document
         elif document := message.document:
-
-            # get configuration
+            # create configuration
             file_type = 'document'
             flag_protocol, flag_location, flag_os = message.caption.split(' ')
             telegram_file_id = document.file_id
-            answer_text = await service_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, telegram_file_id=telegram_file_id)
-
-            # send message to client, admin and finish FSM for sending configurations
-            await bot.send_message(telegram_id, 'Ура, конфигурация получена!')
-            await bot.send_document(telegram_id, telegram_file_id, caption=answer_text, parse_mode='HTML')
-            await message.reply('Отлично, конфигурация в виде документа отправлена!')
-            await state.finish()
+            await service_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, telegram_file_id=telegram_file_id)
+            file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id = (await postgesql_db.get_configurations_info(client_id))[-1]
 
         # if message is photo
         elif photo := message.photo:
-
-            # get configuration
+            # create configuration
             file_type = 'photo'
             flag_protocol, flag_location, flag_os = message.caption.split(' ')
             telegram_file_id = photo[0].file_id
-            answer_text = await service_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, telegram_file_id=telegram_file_id)
-
-            # send message to client, admin and finish FSM for sending configurations
-            await bot.send_message(telegram_id, 'Ура, конфигурация получена!')
-            await bot.send_photo(telegram_id, telegram_file_id, caption=answer_text, parse_mode='HTML')
-            await message.reply('Отлично, конфигурация в виде фото отправлена!')
-            await state.finish()
+            await service_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, telegram_file_id=telegram_file_id)
+            file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id = (await postgesql_db.get_configurations_info(client_id))[-1]
 
         # other cases
         else:
             await message.reply('Вы предоставили неверный тип вложения!')
+            return
+        
+        # send message to client, admin and finish FSM for sending configurations
+        await bot.send_message(telegram_id, 'Ура, конфигурация получена!')
+        await service_functions.send_configuration(telegram_id, file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id)
+        await message.reply(f'Отлично, конфигурация типа <b>{file_type}</b> отправлена!', parse_mode='HTML')
+        await state.finish()
 
     # catch create_configuration() exceptions
     except ValueError as ve:

@@ -1,10 +1,16 @@
 from aiogram import Dispatcher
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
 from aiogram.dispatcher.filters import Text
 from src.keyboards import user_authorized_kb, user_unauthorized_kb
 from src.database import postgesql_db
 from src.services import messages, gpt4free
 from bot_init import bot
+
+
+async def configuration_instruction(call: CallbackQuery):
+    configuration_protocol_name, configuration_os = call.data.split('--')
+    await call.message.answer(messages.messages_dict['configuration_instruction'][configuration_protocol_name.lower()][configuration_os.lower()])
+    await call.answer()
 
 
 async def command_help(message: Message):
@@ -53,6 +59,7 @@ async def command_start(message: Message):
 
 
 def register_handlers_other(dp: Dispatcher):
+    dp.register_callback_query_handler(configuration_instruction, lambda call: '--' in call.data)
     dp.register_message_handler(command_help, commands=['help'])
     dp.register_message_handler(command_help, commands=['help'], state='*')
     dp.register_message_handler(command_help, Text(equals='Помощь', ignore_case=True))
