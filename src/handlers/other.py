@@ -8,14 +8,14 @@ from bot_init import bot
 
 
 async def configuration_instruction(call: CallbackQuery):
+    """Send message with instruction for configuration specified by inline button."""
     configuration_protocol_name, configuration_os = call.data.split('--')
-    await call.message.answer(messages.messages_dict['configuration_instruction'][configuration_protocol_name.lower()][configuration_os.lower()])
+    await call.message.reply(messages.messages_dict['configuration_instruction'][configuration_protocol_name.lower()][configuration_os.lower()])
     await call.answer()
 
 
 async def command_help(message: Message):
     """Send message with information about provided help."""
-    # ОТВЕТ ВРЕМЕННЫЙ
     await message.answer('Информация о ТП: @exmanka.\nЕсли не работает команда, пропишите "Отмена".')
 
 
@@ -59,7 +59,7 @@ async def command_start(message: Message):
 
 
 def register_handlers_other(dp: Dispatcher):
-    dp.register_callback_query_handler(configuration_instruction, lambda call: '--' in call.data)
+    dp.register_callback_query_handler(configuration_instruction, lambda call: '--' in call.data, state='*')
     dp.register_message_handler(command_help, commands=['help'])
     dp.register_message_handler(command_help, commands=['help'], state='*')
     dp.register_message_handler(command_help, Text(equals='Помощь', ignore_case=True))

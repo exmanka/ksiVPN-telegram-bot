@@ -451,5 +451,5 @@ def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(show_earnings, Text(equals='* Заработок за месяц'))
     dp.register_message_handler(get_file_id, Text(equals='_узнать_id_файла'), content_types=['text', 'photo', 'document'])
     dp.register_message_handler(get_file_id, commands=['fileid', 'fid'], commands_ignore_caption=False, content_types=['text', 'photo', 'document'])
-    dp.register_callback_query_handler(send_configuration_fsm_start, lambda call: call.data.isdigit())
+    dp.register_callback_query_handler(send_configuration_fsm_start, lambda call: call.data.isdigit(), state='*')
     dp.register_message_handler(send_configuration, content_types=['text', 'photo', 'document'], state=admin_fsm.SendConfig.ready)
