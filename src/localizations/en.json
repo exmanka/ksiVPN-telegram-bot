@@ -1,0 +1,9 @@
+{
+    "user_unauthorized_messeges": {
+
+        "return_to_main_menu": "<i>Returning to the main menu</i>",
+        "ask_four_questions": "To connect, I need to define your configuration.\n\n<b>I will ask 4 short questions!</b>",
+        "choose_your_platform": "<b>Choose your platform</b>",
+        "choose_your_os": "<b>Specify the operating system</b>"
+    }
+}
