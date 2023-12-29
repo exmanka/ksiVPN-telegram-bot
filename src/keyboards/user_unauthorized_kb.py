@@ -3,25 +3,25 @@ from src.services import localization as loc
 
 
 welcome = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton(loc.btns.unauth['join'])).\
-    add(KeyboardButton(loc.btns.unauth['project_info']))
+    add(KeyboardButton(loc.unauth.btns['join'])).\
+    add(KeyboardButton(loc.unauth.btns['project_info']))
 
 reg_platform = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton(loc.btns.unauth['smartphone'])).insert(KeyboardButton(loc.btns.unauth['pc'])).\
-    add(KeyboardButton(loc.btns.unauth['cancel']))
+    add(KeyboardButton(loc.unauth.btns['smartphone'])).insert(KeyboardButton(loc.unauth.btns['pc'])).\
+    add(KeyboardButton(loc.unauth.btns['cancel']))
 
 reg_mobile_os = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton(loc.btns.unauth['android'])).insert(KeyboardButton(loc.btns.unauth['ios'])).\
-    add(KeyboardButton(loc.btns.unauth['cancel']))
+    add(KeyboardButton(loc.unauth.btns['android'])).insert(KeyboardButton(loc.unauth.btns['ios'])).\
+    add(KeyboardButton(loc.unauth.btns['cancel']))
 
 reg_desktop_os = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton(loc.btns.unauth['windows'])).insert(KeyboardButton(loc.btns.unauth['macos'])).insert(KeyboardButton(loc.btns.unauth['linux'])).\
-    add(KeyboardButton(loc.btns.unauth['cancel']))
+    add(KeyboardButton(loc.unauth.btns['windows'])).insert(KeyboardButton(loc.unauth.btns['macos'])).insert(KeyboardButton(loc.unauth.btns['linux'])).\
+    add(KeyboardButton(loc.unauth.btns['cancel']))
 
 reg_chatgpt = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton(loc.btns.unauth['use_chatgpt'])).insert(KeyboardButton(loc.btns.unauth['dont_use_chatgpt'])).insert(KeyboardButton(loc.btns.unauth['what_is_chatgpt'])).\
-    add(KeyboardButton(loc.btns.unauth['cancel']))
+    add(KeyboardButton(loc.unauth.btns['use_chatgpt'])).insert(KeyboardButton(loc.unauth.btns['dont_use_chatgpt'])).insert(KeyboardButton(loc.unauth.btns['what_is_chatgpt'])).\
+    add(KeyboardButton(loc.unauth.btns['cancel']))
 
 reg_ref_promo = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton(loc.btns.unauth['no_promo'])).\
-    add(KeyboardButton(loc.btns.unauth['cancel']))
+    add(KeyboardButton(loc.unauth.btns['no_promo'])).\
+    add(KeyboardButton(loc.unauth.btns['cancel']))
