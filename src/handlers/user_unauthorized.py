@@ -116,7 +116,7 @@ def register_handlers_unauthorized_client(dp: Dispatcher):
                                                                                                       user_unauthorized_fsm.RegistrationMenu.chatgpt,
                                                                                                       user_unauthorized_fsm.RegistrationMenu.promo])
     dp.register_message_handler(authorization_fsm_start, Text(loc.unauth.btns['join'], ignore_case=True))
-    dp.register_message_handler(authorization_take_platform, Text([[loc.unauth.btns[key] for key in ('smartphone', 'pc')]]),
+    dp.register_message_handler(authorization_take_platform, Text([loc.unauth.btns[key] for key in ('smartphone', 'pc')]),
                                 state=user_unauthorized_fsm.RegistrationMenu.platform)
     dp.register_message_handler(authorization_take_os, Text([loc.unauth.btns[key] for key in ('android', 'ios', 'windows', 'macos', 'linux')]),
                                 state=user_unauthorized_fsm.RegistrationMenu.os)

@@ -1,6 +1,6 @@
 import random
 from aiogram import Dispatcher
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.utils.exceptions import MessageToDeleteNotFound
@@ -530,8 +530,6 @@ async def account_promo_info(message: Message):
     """Send message with information about entered by client promocodes."""
     ref_promos, global_promos, local_promos = await postgesql_db.get_client_entered_promos(await postgesql_db.get_clientID_by_telegramID(message.from_user.id))
 
-    answer_message = ''
-
     # information about entered referral promocode
     ref_promo_str = ''
     if ref_promos:
@@ -562,6 +560,14 @@ async def account_promo_info(message: Message):
 
     else:
         await message.answer(ref_promo_str + global_promos_str + local_promos_str, parse_mode='HTML')
+
+
+@user_mw.authorized_only()
+async def configuration_instruction(call: CallbackQuery):
+    """Send message with instruction for configuration specified by inline button."""
+    configuration_protocol_name, configuration_os = call.data.split('--')
+    await call.message.reply(messages.messages_dict['configuration_instruction'][configuration_protocol_name.lower()][configuration_os.lower()])
+    await call.answer()
 
 
 @user_mw.authorized_only()
@@ -657,6 +663,7 @@ def register_handlers_authorized_client(dp: Dispatcher):
     dp.register_message_handler(account_settings_notifications_1d, Text([loc.auth.btns[key] for key in ('1d_on', '1d_off')]), state=user_authorized_fsm.SettingsMenu.notifications)
     dp.register_message_handler(account_settings_notifications_3d, Text([loc.auth.btns[key] for key in ('3d_on', '3d_off')]), state=user_authorized_fsm.SettingsMenu.notifications)
     dp.register_message_handler(account_settings_notifications_7d, Text([loc.auth.btns[key] for key in ('7d_on', '7d_off')]), state=user_authorized_fsm.SettingsMenu.notifications)
+    dp.register_callback_query_handler(configuration_instruction, lambda call: '--' in call.data, state='*')
     dp.register_message_handler(show_project_rules, Text(loc.auth.btns['rules']))
     dp.register_message_handler(show_project_rules, commands=['rules'], state='*')
     dp.register_message_handler(restore_payments, commands=['restore_payments'], state='*')

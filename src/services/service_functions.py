@@ -9,6 +9,15 @@ from src.services import aiomoney, localization as loc
 from bot_init import bot, ADMIN_ID, YOOMONEY_TOKEN
 
 
+async def convert_none_to_string(obj: str | None) -> str:
+    """Return empty string if argument is None, else return specified string with whitespace at the beginning.
+
+    :param string_none: None object or string
+    :return: empty string of specified string with whitespace at the beginning
+    """    
+    return '' if obj is None else ' ' + obj
+
+
 async def send_message_by_telegram_id(telegram_id: int, message: Message):
     """Send specified message by provided telegram_id.
 
@@ -54,7 +63,7 @@ async def send_message_by_telegram_id(telegram_id: int, message: Message):
 
     # other cases
     else:
-        raise Exception('нераспознанный тип сообщения')
+        raise Exception('unrecognized message type')
 
 
 async def send_configuration(telegram_id: int,
@@ -102,7 +111,7 @@ async def send_configuration(telegram_id: int,
                                reply_markup=await user_authorized_kb.configuration_instruction_inlkb(configuration_protocol_name, configuration_os))
 
     else:
-        raise Exception('указан неверный тип файла')
+        raise Exception('wrong file type')
 
 
 async def send_configuration_request_to_admin(client: dict, choice: dict, is_new_client: bool):
@@ -115,13 +124,10 @@ async def send_configuration_request_to_admin(client: dict, choice: dict, is_new
 
     # if request was sended by new client with zero configurations
     if is_new_client:
-        answer_message = f"<b>Имя</b>: <code>{client['fullname']}</code>\n"
-        answer_message += f"<b>Тэг</b>: @{client['username']}\n"
-        answer_message += f"<b>ID</b>: <code>{client['id']}</code>\n"
 
         # if client didn't enter referral promocode during registration
         if choice['promo'] is None:
-            answer_message += '<b>Пользователь не вводил промокод, конфигурацию можно отправить ТОЛЬКО ПОСЛЕ ОПЛАТЫ ПОДПИСКИ ИЛИ ВВОДА ПРОМОКОДА</b>\n'
+            ref_promo_str = loc.srvc.msgs['config_request_new_client_no_ref_promo_str']
 
         # if client entered referral promocode during registration
         else:
@@ -130,23 +136,20 @@ async def send_configuration_request_to_admin(client: dict, choice: dict, is_new
             _, client_creator_id, provided_sub_id, _, bonus_time_parsed = await postgesql_db.get_refferal_promo_info_by_phrase(choice['promo'])
             client_creator_name, client_creator_surname, client_creator_username, client_creator_telegram_id, *_ = await postgesql_db.get_client_info_by_clientID(client_creator_id)
             *_, price = await postgesql_db.get_subscription_info_by_subID(provided_sub_id)
-            answer_message += f"<b>Промокод</b>: <code>{choice['promo']}</code> от пользователя {client_creator_name} {client_creator_surname} {client_creator_username} "
-            answer_message += f"<code>{client_creator_telegram_id}</code> на {bonus_time_parsed} бесплатных дней по подписке {int(price)}₽/мес.\n"
+            ref_promo_str = loc.srvc.msgs['config_request_new_client_ref_promo_str'].\
+                format(choice['promo'], client_creator_name, client_creator_surname, client_creator_username, client_creator_telegram_id, bonus_time_parsed, price)
 
-        answer_message += f"<b>Конфигурация</b>: {choice['platform'][2:]}, {choice['os_name']}, {choice['chatgpt']} ChatGPT\n\n"
-        answer_message += f"<b>Запрос на подключение от нового пользователя!</b>"
-        await bot.send_message(ADMIN_ID, answer_message,
+        await bot.send_message(ADMIN_ID,
+                               loc.srvc.msgs['config_request_new_client'].\
+                                format(client['fullname'], client['username'], client['id'], choice['platform'][2:], choice['os_name'], choice['chatgpt'], ref_promo_str=ref_promo_str),
                                reply_markup=await admin_kb.configuration(client['id']),
                                parse_mode='HTML')
 
     # if request was sended by old client with at least one configuration
     else:
         await bot.send_message(ADMIN_ID,
-                               f"<b>Имя</b>: <code>{client['fullname']}</code>\n"
-                               f"<b>Тэг</b>: @{client['username']}\n"
-                               f"<b>ID</b>: <code>{client['id']}</code>\n"
-                               f"<b>Конфигурация</b>: {choice['platform'][2:]}, {choice['os_name']}, {choice['chatgpt']} ChatGPT\n\n"
-                               f"<b>Запрос дополнительной конфигурации от пользователя!</b>",
+                               loc.srvc.msgs['config_request_old_client'].\
+                                format(client['fullname'], client['username'], client['id'], choice['platform'][2:], choice['os_name'], choice['chatgpt']),
                                reply_markup=await admin_kb.configuration(client['id']),
                                parse_mode='HTML')
 
@@ -157,30 +160,31 @@ async def notify_admin_promo_entered(client_id: int, promo_phrase: str, promo_ty
     :param client_id:
     :param promo_phrase: phrase of entered promocode
     :param promo_type: type of promocode as string ('global', 'local')
-    :raises Exception: the wrong type of promo code was entered
+    :raises Exception: wrong type of promo code was entered
     """
     name, surname, username, telegram_id, *_ = await postgesql_db.get_client_info_by_clientID(client_id)
-    answer_message = f'Пользователем {name} {surname} {username} <code>{telegram_id}</code> был введен '
 
+    promo_str = ''
     if promo_type == 'global':
         id, _, expiration_date_parsed, *_, bonus_time_parsed = await postgesql_db.get_global_promo_info(promo_phrase)
-        answer_message += f'глобальный промокод с ID {id} на {bonus_time_parsed} дней подписки, заканчивающийся {expiration_date_parsed}.'
+        promo_str = loc.srvc.msgs['admin_promo_was_entered_global_promo_str'].format(id, bonus_time_parsed, expiration_date_parsed)
 
     elif promo_type == 'local':
         id, _, expiration_date_parsed, _, bonus_time_parsed, provided_sub_id = await postgesql_db.get_local_promo_info(promo_phrase)
-        answer_message += f'специальный промокод с ID {id} на {bonus_time_parsed} дней подписки, '
 
         # if local promo changes client's subscription
+        new_sub_str = ''
         if provided_sub_id:
             _, _, _, price = await postgesql_db.get_subscription_info_by_subID(provided_sub_id)
-            answer_message += f'предоставляющий подписку за {int(price)}₽/мес, '
+            new_sub_str = loc.srvc.msgs['admin_promo_was_etnered_local_promo_new_sub_str'].format(price)
 
-        answer_message += f'заканчивающийся {expiration_date_parsed}'
+        promo_str = loc.srvc.msgs['admin_promo_was_entered_local_promo_str'].format(id, bonus_time_parsed, expiration_date_parsed, new_sub_str=new_sub_str)
 
     else:
-        raise Exception('введен неверный тип промокода')
+        raise Exception('wrong promo type was entered')
 
-    await bot.send_message(ADMIN_ID, answer_message, parse_mode='HTML')
+    await bot.send_message(ADMIN_ID, loc.srvc.msgs['admin_promo_was_entered'].format(name, surname, username, telegram_id, promo_str=promo_str),
+                           parse_mode='HTML')
 
 
 async def notify_admin_payment_success(client_id: int, months_number: int):
@@ -189,15 +193,9 @@ async def notify_admin_payment_success(client_id: int, months_number: int):
     :param client_id:
     :param months_number: number of month client paid for
     """
-    answer_message = f'<b>Успешное продление подписки на {months_number} мес!</b>\n\n'
     name, surname, username, telegram_id, *_ = await postgesql_db.get_client_info_by_clientID(client_id)
-    answer_message += f'<b>Имя</b>: <code>{name}</code>\n'
-    answer_message += f'<b>Фамилия</b>: <code>{surname}</code>\n'
-    answer_message += f'<b>Тег</b>: {username}\n'
-    answer_message += f'<b>Telegram ID:</b> <code>{telegram_id}</code>\n'
-    answer_message += f'<b>Client ID:</b> <code>{client_id}</code>'
-
-    await bot.send_message(ADMIN_ID, answer_message, parse_mode='HTML')
+    await bot.send_message(ADMIN_ID, loc.srvc.msgs['admin_successful_payment'].format(months_number, name, surname, username, telegram_id, client_id),
+                           parse_mode='HTML')
 
 
 async def notify_client_new_referal(client_creator_id: int, referal_client_name: str, referal_client_username: str | None = None):
@@ -208,27 +206,20 @@ async def notify_client_new_referal(client_creator_id: int, referal_client_name:
     :param referal_client_username: username of new referral client, defaults to None
     :type referal_client_username: str | None, optional
     """
-    answer_message = ''
+    # convert client's username
+    referal_client_username = await convert_none_to_string(referal_client_username)
 
-    # if client's username is specified
-    if referal_client_username is not None:
-
-        # if client's username doesn't start from '@'
-        if referal_client_username[0] != '@':
-            referal_client_username = '@' + referal_client_username
-
-        answer_message += f'<b>Ух-ты! Пользователь {referal_client_name} {referal_client_username} использовал Ваш реферальный промокод при регистрации!</b>\n\n'
-
-    # if client's username isn't specified
-    else:
-        answer_message += f'<b>Ух-ты! Пользователь {referal_client_name} использовал Ваш реферальный промокод при регистрации!</b>\n\n'
+    # if client's username is specified and doesn't start from '@'
+    if referal_client_username != '' and referal_client_username[0] != '@':
+        referal_client_username = '@' + referal_client_username
 
     # get information about referral bonus
     *_, bonus_time_parsed = await postgesql_db.get_refferal_promo_info_by_clientCreatorID(client_creator_id)
-    answer_message += f'После того, как он внесет первую плату, вы получите {bonus_time_parsed} дней подписки бесплатно!'
 
     client_creator_telegram_id = await postgesql_db.get_telegramID_by_clientID(client_creator_id)
-    await bot.send_message(client_creator_telegram_id, answer_message, parse_mode='HTML')
+    await bot.send_message(client_creator_telegram_id,
+                           loc.srvc.msgs['ref_promo_was_entered'].format(referal_client_name, referal_client_username, bonus_time_parsed),
+                           parse_mode='HTML')
 
 
 async def create_configuration_description(configuration_date_of_receipt: str,
@@ -262,11 +253,11 @@ async def create_configuration_description(configuration_date_of_receipt: str,
 
     # creating answer text with ChatGPT option
     if configuration_is_chatgpt_available:
-        platform_str = f'<b>Платформа</b>: {configuration_os} с доступом к ChatGPT\n'
+        platform_str = loc.srvc.msgs['platform_str_chatgpt'].format(configuration_os)
 
     # creating answer text without ChatGPT option
     else:
-        platform_str = f'<b>Платформа</b>: {configuration_os}\n'
+        platform_str = loc.srvc.msgs['platform_str_no_chatgpt'].format(configuration_os)
 
     return loc.srvc.msgs['config_info'].format(configuration_date_of_receipt, configuration_protocol_name, server_country, server_city, server_bandwidth, server_ping,
                                                link_str=link_str, platform_str=platform_str)
@@ -298,15 +289,13 @@ async def create_configuration(client_id: int,
 
     elif file_type == 'document' or 'photo':
         if telegram_file_id is None:
-            raise Exception(
-                'при попытке создания конфигурации не был указан telegram_file_id!')
+            raise Exception(loc.srvc.msgs['error_no_telegram_file_id'])
 
         protocol_id, location_id, os_enum, _ = await get_configuration_sql_data(flag_protocol, flag_location, flag_os, flag_link)
         await postgesql_db.insert_configuration(client_id, protocol_id, location_id, os_enum, file_type, telegram_file_id)
 
     else:
-        raise Exception(
-            'при попытке создания конфигурации был указан неверный file_type!')
+        raise Exception(loc.srvc.msgs['error_bad_file_type'])
 
 
 async def get_configuration_sql_data(protocol: str, location: str, os: str, link: str | None = None) -> tuple[int, int, str]:
@@ -348,7 +337,7 @@ async def get_configuration_sql_data(protocol: str, location: str, os: str, link
             protocol_id = 3
 
         case _:
-            raise Exception('неверный ввод протокола (первый аргумент)!')
+            raise Exception(loc.srvc.msgs['error_bad_protocol'])
 
     location_id = None
     match location.lower():
@@ -373,7 +362,7 @@ async def get_configuration_sql_data(protocol: str, location: str, os: str, link
             location_id = 4
 
         case _:
-            raise Exception('неверный ввод страны (второй аргумент)!')
+            raise Exception(loc.srvc.msgs['error_bad_country'])
 
     os_enum = None
     match os.lower():
@@ -395,10 +384,10 @@ async def get_configuration_sql_data(protocol: str, location: str, os: str, link
             os_enum = 'macOS'
 
         case _:
-            raise Exception('неверный ввод ОС (третий аргумент)')
+            raise Exception(loc.srvc.msgs['error_bad_os'])
 
     if link and not link.startswith('vless://'):
-        raise Exception('неверный ввод vless ссылки (четвертый аргумент)!')
+        raise Exception(loc.srvc.msgs['error_bad_link'])
 
     return protocol_id, location_id, os_enum, link
 
@@ -418,19 +407,12 @@ async def check_referral_reward(ref_client_id: int):
         _, client_creator_id, *_ = await postgesql_db.get_refferal_promo_info_by_promoID(used_ref_promo_id)
         await postgesql_db.add_subscription_time(client_creator_id, days=30)
 
-        # create answer message for old client to notify him about new bonus
-        answer_message = ''
-
-        # if old client's nickname is specified
-        if ref_client_username is not None:
-            answer_message += f'Вау! Пользователь {ref_client_name} {ref_client_username}, присоединившийся к проекту по Вашему реферальному промокоду, впервые оплатил подписку!\n\n'
-
-        # if old client's nickname isn't specified
-        else:
-            answer_message += f'Вау! Пользователь {ref_client_name}, присоединившийся к проекту по Вашему реферальному промокоду, впервые оплатил подписку!\n\n'
-        answer_message += '<b>Вы получаете месяц подписки бесплатно!</b>'
+        # notify old client about new bonus
+        ref_client_username = await convert_none_to_string(ref_client_username)
         client_creator_telegram_id = await postgesql_db.get_telegramID_by_clientID(client_creator_id)
-        await bot.send_message(client_creator_telegram_id, answer_message, parse_mode='HTML')
+        await bot.send_message(client_creator_telegram_id,
+                               loc.srvc.msgs['ref_client_paid_for_sub'].format(ref_client_name, ref_client_username),
+                               parse_mode='HTML')
 
 
 async def autocheck_payment_status(payment_id: int) -> str:
@@ -482,9 +464,8 @@ async def authorization_complete(message: Message, state: FSMContext):
         await postgesql_db.insert_client(client.first_name, client.id, client.last_name, client.username, used_ref_promo_id, provided_sub_id, bonus_time)
         await send_configuration_request_to_admin({'fullname': client.full_name, 'username': client.username, 'id': client.id}, data._data, is_new_client=True)
 
-    await message.answer(f'Отлично! Теперь ждем ответа от разработчика: в скором времени он проверит Вашу регистрацию и вышлет конфигурацию! А пока вы можете исследовать бота!',
-                         reply_markup=user_authorized_kb.menu)
-    await message.answer(f'Пожалуйста, не забывайте, что он тоже человек, и периодически спит (хотя на самом деле крайне редко)')
+    await message.answer(loc.srvc.msgs['wait_for_admin_answer'], reply_markup=user_authorized_kb.menu)
+    await message.answer(loc.auth.msgs['i_wanna_sleep'])
     await state.finish()
 
 
@@ -523,7 +504,7 @@ async def sub_renewal(message: Message, state: FSMContext, months_number: int, d
     # answer with InlineKeyboardMarkup with link to payment
     discount_str = ''
     if discount:
-        discount_str = '(скидка {0:g}₽)'.format(sub_price * months_number * discount)
+        discount_str = loc.srvc.msgs['discount_str'].format(sub_price * months_number * discount)
 
     message_info = await message.answer(loc.srvc.msgs['payment_form'].format(sub_title, months_number, payment_price, payment_id, discount_str=discount_str),
                                         parse_mode='HTML', reply_markup=await user_authorized_kb.sub_renewal_link_inline(payment_form.link_for_customer))
@@ -550,4 +531,4 @@ async def sub_renewal(message: Message, state: FSMContext, months_number: int, d
             pass
 
         finally:
-            await message.answer(f'Оплата произведена успешно!\n\nid: {payment_id}', reply_markup=user_authorized_kb.sub_renewal)
+            await message.answer(loc.srvc.msgs['payment_successful'].format(payment_id), reply_markup=user_authorized_kb.sub_renewal)

@@ -404,7 +404,7 @@ async def send_configuration(message: Message, state: FSMContext):
             return
         
         # send message to client, admin and finish FSM for sending configurations
-        await bot.send_message(telegram_id, loc.auth.msgs['config_was_received'])
+        await bot.send_message(telegram_id, loc.auth.msgs['config_was_received'], parse_mode='HTML')
         await service_functions.send_configuration(telegram_id, file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id)
         await message.reply(loc.admn.msgs['config_was_sent'].format(file_type), parse_mode='HTML')
         await state.finish()
