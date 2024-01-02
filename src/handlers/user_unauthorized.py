@@ -110,45 +110,19 @@ async def authorization_promo_no(message: Message, state: FSMContext):
 
 
 def register_handlers_unauthorized_client(dp: Dispatcher):
-    dp.register_message_handler(fsm_cancel,
-                                Text(equals=loc.unauth.btns['cancel'],
-                                     ignore_case=True),
-                                state=[None,
-                                       user_unauthorized_fsm.RegistrationMenu.platform,
-                                       user_unauthorized_fsm.RegistrationMenu.os,
-                                       user_unauthorized_fsm.RegistrationMenu.chatgpt,
-                                       user_unauthorized_fsm.RegistrationMenu.promo])
-
-    dp.register_message_handler(authorization_fsm_start,
-                                Text(equals=loc.unauth.btns['join'],
-                                     ignore_case=True))
-    
-    dp.register_message_handler(authorization_take_platform,
-                                Text(equals=[loc.unauth.btns['smartphone'],
-                                             loc.unauth.btns['pc']]),
+    dp.register_message_handler(fsm_cancel, Text(loc.unauth.btns['cancel'], ignore_case=True), state=[None,
+                                                                                                      user_unauthorized_fsm.RegistrationMenu.platform,
+                                                                                                      user_unauthorized_fsm.RegistrationMenu.os,
+                                                                                                      user_unauthorized_fsm.RegistrationMenu.chatgpt,
+                                                                                                      user_unauthorized_fsm.RegistrationMenu.promo])
+    dp.register_message_handler(authorization_fsm_start, Text(loc.unauth.btns['join'], ignore_case=True))
+    dp.register_message_handler(authorization_take_platform, Text([[loc.unauth.btns[key] for key in ('smartphone', 'pc')]]),
                                 state=user_unauthorized_fsm.RegistrationMenu.platform)
-    
-    dp.register_message_handler(authorization_take_os,
-                                Text(equals=[loc.unauth.btns['android'],
-                                             loc.unauth.btns['ios'],
-                                             loc.unauth.btns['windows'],
-                                             loc.unauth.btns['macos'],
-                                             loc.unauth.btns['linux']]),
+    dp.register_message_handler(authorization_take_os, Text([loc.unauth.btns[key] for key in ('android', 'ios', 'windows', 'macos', 'linux')]),
                                 state=user_unauthorized_fsm.RegistrationMenu.os)
-    
-    dp.register_message_handler(authorization_show_info_chatgpt,
-                                Text(equals=loc.unauth.btns['what_is_chatgpt'],
-                                     ignore_case=True),
+    dp.register_message_handler(authorization_show_info_chatgpt, Text(loc.unauth.btns['what_is_chatgpt'], ignore_case=True),
                                 state=user_unauthorized_fsm.RegistrationMenu.chatgpt)
-    
-    dp.register_message_handler(authorization_take_chatgpt,
-                                Text(equals=[loc.unauth.btns['use_chatgpt'],
-                                             loc.unauth.btns['dont_use_chatgpt']]),
+    dp.register_message_handler(authorization_take_chatgpt, Text([loc.unauth.btns[key] for key in ('use_chatgpt', 'dont_use_chatgpt')]),
                                 state=user_unauthorized_fsm.RegistrationMenu.chatgpt)
-    
-    dp.register_message_handler(authorization_promo_no,
-                                Text(equals=loc.unauth.btns['no_promo']),
-                                state=user_unauthorized_fsm.RegistrationMenu.promo)
-    
-    dp.register_message_handler(authorization_promo_yes,
-                                state=user_unauthorized_fsm.RegistrationMenu.promo)
+    dp.register_message_handler(authorization_promo_no, Text(loc.unauth.btns['no_promo']), state=user_unauthorized_fsm.RegistrationMenu.promo)
+    dp.register_message_handler(authorization_promo_yes, state=user_unauthorized_fsm.RegistrationMenu.promo)
