@@ -3,7 +3,7 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.dispatcher.filters import Text
 from src.keyboards import user_authorized_kb, user_unauthorized_kb
 from src.database import postgesql_db
-from src.services import messages, gpt4free
+from src.services import messages, gpt4free, localization as loc
 from bot_init import bot
 
 
@@ -62,10 +62,10 @@ def register_handlers_other(dp: Dispatcher):
     dp.register_callback_query_handler(configuration_instruction, lambda call: '--' in call.data, state='*')
     dp.register_message_handler(command_help, commands=['help'])
     dp.register_message_handler(command_help, commands=['help'], state='*')
-    dp.register_message_handler(command_help, Text(equals='Помощь', ignore_case=True))
-    dp.register_message_handler(command_help, Text(equals='Помощь', ignore_case=True), state='*')
-    dp.register_message_handler(show_project_info, Text(equals='О проекте', ignore_case=True))
-    dp.register_message_handler(show_project_info, Text(equals='О сервисе', ignore_case=True))
+    dp.register_message_handler(command_help, Text(equals=loc.other.btns['help'], ignore_case=True))
+    dp.register_message_handler(command_help, Text(equals=loc.other.btns['help'], ignore_case=True), state='*')
+    dp.register_message_handler(show_project_info, Text(equals=loc.other.btns['about_project'], ignore_case=True))
+    dp.register_message_handler(show_project_info, Text(equals=loc.other.btns['about_service'], ignore_case=True))
     dp.register_message_handler(command_start, commands=['start'], state='*')
     dp.register_message_handler(answer_unrecognized_messages)
     dp.register_message_handler(answer_unrecognized_messages, state="*")

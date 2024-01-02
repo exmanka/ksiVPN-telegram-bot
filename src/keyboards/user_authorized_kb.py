@@ -1,65 +1,65 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from src.database import postgesql_db
+from src.services import localization as loc
 
 
 menu = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton('\u2764\uFE0F\u200D\U0001F525 Продлить подписку!')).\
-    add(KeyboardButton('Статус подписки')).insert(KeyboardButton('Личный кабинет')).\
-    add(KeyboardButton('Правила')).insert(KeyboardButton(
-        'Помощь')).insert(KeyboardButton('О сервисе'))
+    add(KeyboardButton(loc.auth.btns['sub_renewal'])).\
+    add(KeyboardButton(loc.auth.btns['sub_status'])).insert(KeyboardButton(loc.auth.btns['personal_account'])).\
+    add(KeyboardButton(loc.auth.btns['rules'])).insert(KeyboardButton(loc.other.btns['help'])).insert(KeyboardButton(loc.other.btns['about_service']))
 
 sub_renewal = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton('1 месяц')).insert(KeyboardButton('3 месяца (-10%)')).insert(KeyboardButton('12 месяцев (-15%)')).\
-    add(KeyboardButton('История оплаты')).\
-    add(KeyboardButton('Возврат в главное меню'))
+    add(KeyboardButton(loc.auth.btns['payment_1mnth'])).insert(KeyboardButton(loc.auth.btns['payment_3mnth'])).insert(KeyboardButton(loc.auth.btns['payment_12mnth'])).\
+    add(KeyboardButton(loc.auth.btns['payment_history'])).\
+    add(KeyboardButton(loc.auth.btns['return_main_menu']))
 
 sub_renewal_verification = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton('Проверить оплату')).\
-    add(KeyboardButton('Отмена оплаты'))
+    add(KeyboardButton(loc.auth.btns['payment_check'])).\
+    add(KeyboardButton(loc.auth.btns['payment_cancel']))
 
 
 async def sub_renewal_link_inline(link_for_customer: str) -> InlineKeyboardMarkup:
     """Return dynamic inline keyboard with specified payment link as URL for inline button."""
-    return InlineKeyboardMarkup().add(InlineKeyboardButton('Оплатить', url=link_for_customer))
+    return InlineKeyboardMarkup().add(InlineKeyboardButton(loc.auth.btns['pay'], url=link_for_customer))
 
 account = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton('Реферальная программа')).\
-    add(KeyboardButton('О пользователе')).insert(KeyboardButton('О подписке')).\
-    add(KeyboardButton('Конфигурации')).insert(KeyboardButton('Ввести промокод')).insert(KeyboardButton('Настройки')).\
-    add(KeyboardButton('Возврат в главное меню'))
+    add(KeyboardButton(loc.auth.btns['ref_program'])).\
+    add(KeyboardButton(loc.auth.btns['configs'])).insert(KeyboardButton(loc.auth.btns['promo'])).\
+    add(KeyboardButton(loc.auth.btns['about_client'])).insert(KeyboardButton(loc.auth.btns['about_sub'])).insert(KeyboardButton(loc.auth.btns['settings'])).\
+    add(KeyboardButton(loc.auth.btns['return_main_menu']))
 
 config = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton('Текущие конфигурации')).insert(KeyboardButton('Запросить новую конфигурацию')).\
-    add(KeyboardButton('Вернуться'))
+    add(KeyboardButton(loc.auth.btns['current_configs'])).insert(KeyboardButton(loc.auth.btns['request_config'])).\
+    add(KeyboardButton(loc.auth.btns['return_to_account_menu_1']))
 
 config_platform = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton('\U0001F4F1 Смартфон')).insert(
-        KeyboardButton('\U0001F4BB ПК')).add(KeyboardButton('Отмена выбора'))
+    add(KeyboardButton(loc.unauth.btns['smartphone'])).insert(KeyboardButton(loc.unauth.btns['pc'])).\
+    add(KeyboardButton(loc.auth.btns['return_to_configs_menu']))
 
 config_mobile_os = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton('Android')).insert(KeyboardButton(
-        'IOS (IPhone)')).add(KeyboardButton('Отмена выбора'))
+    add(KeyboardButton(loc.unauth.btns['android'])).insert(KeyboardButton(loc.unauth.btns['ios'])).\
+    add(KeyboardButton(loc.auth.btns['return_to_configs_menu']))
 
 config_desktop_os = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton('Windows')).insert(KeyboardButton('macOS')).insert(
-        KeyboardButton('Linux')).add(KeyboardButton('Отмена выбора'))
+    add(KeyboardButton(loc.unauth.btns['windows'])).insert(KeyboardButton(loc.unauth.btns['macos'])).insert(KeyboardButton(loc.unauth.btns['linux'])).\
+    add(KeyboardButton(loc.auth.btns['return_to_configs_menu']))
 
 config_chatgpt = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton('Использую')).insert(KeyboardButton('Не использую')).insert(KeyboardButton('Что это?')).\
-    add(KeyboardButton('Отмена выбора'))
+    add(KeyboardButton(loc.unauth.btns['use_chatgpt'])).insert(KeyboardButton(loc.unauth.btns['dont_use_chatgpt'])).insert(KeyboardButton(loc.unauth.btns['what_is_chatgpt'])).\
+    add(KeyboardButton(loc.auth.btns['return_to_configs_menu']))
 
 promo = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton('Использованные промокоды')).add(
-        KeyboardButton('Отмена ввода'))
+    add(KeyboardButton(loc.auth.btns['used_promos'])).add(
+        KeyboardButton(loc.auth.btns['return_to_account_menu_2']))
 
 ref_program = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton('Участие в реферальной программе')).\
-    add(KeyboardButton('Сгенерировать приглашение *')).insert(KeyboardButton('Показать реферальный промокод')).\
-    add(KeyboardButton('Вернуться'))
+    add(KeyboardButton(loc.auth.btns['ref_program_participation'])).\
+    add(KeyboardButton(loc.auth.btns['generate_invite'])).insert(KeyboardButton(loc.auth.btns['show_ref_code'])).\
+    add(KeyboardButton(loc.auth.btns['return_to_account_menu_1']))
 
 settings = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton('Режим ChatGPT')).insert(KeyboardButton('Уведомления')).\
-    add(KeyboardButton('Вернуться'))
+    add(KeyboardButton(loc.auth.btns['settings_chatgpt_mode'])).insert(KeyboardButton(loc.auth.btns['settings_notifications'])).\
+    add(KeyboardButton(loc.auth.btns['return_to_account_menu_1']))
 
 
 async def settings_notifications(client_id: int) -> ReplyKeyboardMarkup:
@@ -69,26 +69,26 @@ async def settings_notifications(client_id: int) -> ReplyKeyboardMarkup:
 
     # if client turned on notifications one day before subscription expires
     if sub_expires_in_1_day:
-        settings_notifications_kb.add(KeyboardButton('Выключить за 1 день'))
+        settings_notifications_kb.add(KeyboardButton(loc.auth.btns['1d_off']))
     # if client turned off notifications one day before subscription expires
     else:
-        settings_notifications_kb.add(KeyboardButton('Включить за 1 день'))
+        settings_notifications_kb.add(KeyboardButton(loc.auth.btns['1d_on']))
 
     # if client turned on notifications 3 days before subscription expires
     if sub_expires_in_3_days:
-        settings_notifications_kb.insert(KeyboardButton('Выключить за 3 дня'))
+        settings_notifications_kb.insert(KeyboardButton(loc.auth.btns['3d_off']))
     # if client turned off notifications 3 days before subscription expires
     else:
-        settings_notifications_kb.insert(KeyboardButton('Включить за 3 дня'))
+        settings_notifications_kb.insert(KeyboardButton(loc.auth.btns['3d_on']))
 
     # if client turned on notifications 7 days before subscription expires
     if sub_expires_in_7_days:
-        settings_notifications_kb.insert(KeyboardButton('Выключить за 7 дней'))
+        settings_notifications_kb.insert(KeyboardButton(loc.auth.btns['7d_off']))
     # if client turned off notifications 7 days before subscription expires
     else:
-        settings_notifications_kb.insert(KeyboardButton('Включить за 7 дней'))
+        settings_notifications_kb.insert(KeyboardButton(loc.auth.btns['7d_on']))
 
-    settings_notifications_kb.add(KeyboardButton('Обратно'))
+    settings_notifications_kb.add(KeyboardButton(loc.auth.btns['return_to_settings']))
 
     return settings_notifications_kb
 
@@ -99,17 +99,17 @@ async def settings_chatgpt(telegram_id: int) -> ReplyKeyboardMarkup:
 
     # if client turned on ChatGPT mode for bot
     if await postgesql_db.get_chatgpt_mode_status(telegram_id):
-        settings_chatgpt_kb.add(KeyboardButton('Выключить'))
+        settings_chatgpt_kb.add(KeyboardButton(loc.auth.btns['chatgpt_off']))
 
     # if client turned off ChatGPT mode for bot
     else:
-        settings_chatgpt_kb.add(KeyboardButton('Включить'))
+        settings_chatgpt_kb.add(KeyboardButton(loc.auth.btns['chatgpt_on']))
 
-    settings_chatgpt_kb.add(KeyboardButton('Обратно'))
+    settings_chatgpt_kb.add(KeyboardButton(loc.auth.btns['return_to_settings']))
 
     return settings_chatgpt_kb
 
 
 async def configuration_instruction_inlkb(configuration_protocol_name: str, configuration_os: str) -> InlineKeyboardMarkup:
     """Return dynamic inline keyboard with specified protocol and configuration OS as callback_data."""
-    return InlineKeyboardMarkup().add(InlineKeyboardButton('Инструкция по установке', callback_data=configuration_protocol_name + '--' + configuration_os))
+    return InlineKeyboardMarkup().add(InlineKeyboardButton(loc.auth.btns['installation_instruction'], callback_data=configuration_protocol_name + '--' + configuration_os))

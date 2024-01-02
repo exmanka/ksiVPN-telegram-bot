@@ -5,7 +5,7 @@ from aiogram.utils.exceptions import MessageToDeleteNotFound
 from src.keyboards import user_authorized_kb, admin_kb
 from src.states import user_authorized_fsm
 from src.database import postgesql_db
-from src.services import aiomoney
+from src.services import aiomoney, localization as loc
 from bot_init import bot, ADMIN_ID, YOOMONEY_TOKEN
 
 
@@ -254,24 +254,22 @@ async def create_configuration_description(configuration_date_of_receipt: str,
     :return: description of configurations with HTML-tags
     :rtype: str
     """
-    answer_text = ''
+    link_str = ''
 
     # if configurations contains vless link
     if link is not None:
-        answer_text += f'<code>{link}</code>\n\n'
-    answer_text += f'<b>Создана</b>: {configuration_date_of_receipt}\n'
+        link_str = f'<code>{link}</code>\n\n'
 
     # creating answer text with ChatGPT option
     if configuration_is_chatgpt_available:
-        answer_text += f'<b>Платформа</b>: {configuration_os} с доступом к ChatGPT\n'
+        platform_str = f'<b>Платформа</b>: {configuration_os} с доступом к ChatGPT\n'
 
     # creating answer text without ChatGPT option
     else:
-        answer_text += f'<b>Платформа</b>: {configuration_os}\n'
-    answer_text += f'<b>Протокол</b>: {configuration_protocol_name}\n'
-    answer_text += f'<b>Локация VPN</b>: {server_country}, {server_city}, скорость до {server_bandwidth} Мбит/с, ожидаемый пинг {server_ping} мс.'
+        platform_str = f'<b>Платформа</b>: {configuration_os}\n'
 
-    return answer_text
+    return loc.srvc.msgs['config_info'].format(configuration_date_of_receipt, configuration_protocol_name, server_country, server_city, server_bandwidth, server_ping,
+                                               link_str=link_str, platform_str=platform_str)
 
 
 async def create_configuration(client_id: int,
@@ -519,21 +517,16 @@ async def sub_renewal(message: Message, state: FSMContext, months_number: int, d
     )
 
     # answer with ReplyKeyboardMarkup
-    await message.answer('Ура, жду оплаты подписки', reply_markup=user_authorized_kb.sub_renewal_verification)
+    await message.answer(loc.srvc.msgs['wait_payment'], parse_mode='HTML', reply_markup=user_authorized_kb.sub_renewal_verification)
     await state.set_state(user_authorized_fsm.PaymentMenu.verification)
 
     # answer with InlineKeyboardMarkup with link to payment
-    answer_message = f'Подписка: <b>{sub_title}</b>\n'
+    discount_str = ''
     if discount:
-        answer_message += f'Продление на {months_number} месяцев.\n\n'
-        answer_message += f'<b>Сумма к оплате: {payment_price}₽</b> (скидка {sub_price * months_number * discount}₽).\n\n'
-    else:
-        answer_message += f'Продление на {months_number} месяц.\n\n'
-        answer_message += f'<b>Сумма к оплате: {payment_price}₽</b>\n\n'
+        discount_str = '(скидка {0:g}₽)'.format(sub_price * months_number * discount)
 
-    answer_message += f'Уникальный идентификатор платежа: <b>{payment_id}</b>.'
-    message_info = await message.answer(answer_message, parse_mode='HTML',
-                                        reply_markup=await user_authorized_kb.sub_renewal_link_inline(payment_form.link_for_customer))
+    message_info = await message.answer(loc.srvc.msgs['payment_form'].format(sub_title, months_number, payment_price, payment_id, discount_str=discount_str),
+                                        parse_mode='HTML', reply_markup=await user_authorized_kb.sub_renewal_link_inline(payment_form.link_for_customer))
 
     # add telegram_id for created payment
     await postgesql_db.update_payment_telegram_message_id(payment_id, message_info['message_id'])
