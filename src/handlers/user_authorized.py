@@ -647,7 +647,7 @@ def register_handlers_authorized_client(dp: Dispatcher):
     dp.register_message_handler(account_configurations_request_chatgpt_info, Text(loc.unauth.btns['what_is_chatgpt'], ignore_case=True),
                                 state=user_authorized_fsm.ConfigMenu.chatgpt)
     dp.register_message_handler(account_configurations_request_chatgpt, Text([loc.unauth.btns[key] for key in ('use_chatgpt', 'dont_use_chatgpt')]),
-                                                                             state=user_authorized_fsm.ConfigMenu.chatgpt)
+                                state=user_authorized_fsm.ConfigMenu.chatgpt)
     dp.register_message_handler(account_settings_submenu_fsm_cancel, Text(equals='Обратно'), state=[None,
                                                                                                     user_authorized_fsm.SettingsMenu.chatgpt,
                                                                                                     user_authorized_fsm.SettingsMenu.notifications])
