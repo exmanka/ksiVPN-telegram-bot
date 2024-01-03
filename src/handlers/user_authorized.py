@@ -8,7 +8,7 @@ from src.middlewares import user_mw, throttling_mw
 from src.keyboards import user_authorized_kb
 from src.states import user_authorized_fsm
 from src.database import postgesql_db
-from src.services import service_functions, messages, aiomoney, localization as loc
+from src.services import service_functions, aiomoney, localization as loc
 from bot_init import bot, YOOMONEY_TOKEN
 
 
@@ -562,7 +562,7 @@ async def account_promo_info(message: Message):
 async def configuration_instruction(call: CallbackQuery):
     """Send message with instruction for configuration specified by inline button."""
     configuration_protocol_name, configuration_os = call.data.split('--')
-    await call.message.reply(messages.messages_dict['configuration_instruction'][configuration_protocol_name.lower()][configuration_os.lower()])
+    await call.message.reply(loc.srvc.msgs['instructions'][configuration_protocol_name.lower()][configuration_os.lower()])
     await call.answer()
 
 
@@ -650,9 +650,9 @@ def register_handlers_authorized_client(dp: Dispatcher):
                                 state=user_authorized_fsm.ConfigMenu.chatgpt)
     dp.register_message_handler(account_configurations_request_chatgpt, Text([loc.unauth.btns[key] for key in ('use_chatgpt', 'dont_use_chatgpt')]),
                                 state=user_authorized_fsm.ConfigMenu.chatgpt)
-    dp.register_message_handler(account_settings_submenu_fsm_cancel, Text(equals='Обратно'), state=[None,
-                                                                                                    user_authorized_fsm.SettingsMenu.chatgpt,
-                                                                                                    user_authorized_fsm.SettingsMenu.notifications])
+    dp.register_message_handler(account_settings_submenu_fsm_cancel, Text(loc.auth.btns['return_to_settings']), state=[None,
+                                                                                                                       user_authorized_fsm.SettingsMenu.chatgpt,
+                                                                                                                       user_authorized_fsm.SettingsMenu.notifications])
     dp.register_message_handler(account_settings_chatgpt, Text(loc.auth.btns['settings_chatgpt_mode']), state=user_authorized_fsm.AccountMenu.settings)
     dp.register_message_handler(account_settings_chatgpt_mode, Text([loc.auth.btns[key] for key in ('chatgpt_on', 'chatgpt_off')]), state=user_authorized_fsm.SettingsMenu.chatgpt)
     dp.register_message_handler(account_settings_notifications, Text(loc.auth.btns['settings_notifications']), state=user_authorized_fsm.AccountMenu.settings)

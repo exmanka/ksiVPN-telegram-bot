@@ -1,9 +1,307 @@
 {
-    "user_unauthorized_messeges": {
+    "user_unauthorized":
+    {
+        "messages": {
+            "return_to_main_menu": "<i>Returning to the main menu</i>",
+            "need_define_config": "To connect, I need to define your configuration",
+            "ask_four_questions": "I will ask 4 short questions!",
+            "choose_your_platform": "<b>Choose your platform</b>",
+            "choose_your_os": "<b>Specify the operating system</b>",
+            "choose_chatgpt_option": "<b>Do you use ChatGPT?</b>",
+            "chatgpt_info": "<b>ChatGPT</b> is a neural network in the form of a chatbot capable of answering complex questions and conducting a meaningful dialogue!",
+            "enter_ref_promo": "<b>And the last step: enter the referral promo code, if available</b>",
+            "ref_promo_accepted": "Wow! A promo code has been accepted from <b>client {0}</b>, giving <b>{1} days</b> of free subscription!",
+            "sub_info": "🌟 Connected <b>{0}</b> with <b>cost {1:g}</b>₽ per month.",
+            "invalid_promo": "There is no such promo code! Try to enter it again",
+            "need_renew_sub": "❗️ <b>To get the configuration, you need to renew your subscription!</b>"
+        },
 
-        "return_to_main_menu": "<i>Returning to the main menu</i>",
-        "ask_four_questions": "To connect, I need to define your configuration.\n\n<b>I will ask 4 short questions!</b>",
-        "choose_your_platform": "<b>Choose your platform</b>",
-        "choose_your_os": "<b>Specify the operating system</b>"
+        "keyboard_buttons": {
+            "join": "🔥 Connect!",
+            "project_info": "About project",
+            "smartphone": "📱 Smartphone",
+            "pc": "💻 PC",
+            "cancel": "Cancel",
+            "android": "Android",
+            "ios": "IOS (iPhone)",
+            "windows": "Windows",
+            "macos": "macOS",
+            "linux": "Linux",
+            "use_chatgpt": "Using",
+            "dont_use_chatgpt": "Not using",
+            "what_is_chatgpt": "What is it?",
+            "no_promo": "No promo code"
+        },
+
+        "telegram_file_ids": {
+
+        }
+    },
+
+    "user_authorized":
+    {
+        "messages": {
+            "rules": "<b>When working with the service, it is mandatory:</b>\n\n1. It is forbidden to share configurations (QR codes for smartphones or <code>*.conf</code> files for PCs) with other people. One configuration can only be used for one of your devices. At the same time, you can request an unlimited number of additional configurations for your use.\n\n2. It is forbidden to download files via torrent clients. However, the <code>*.torrent</code> extension files themselves can be downloaded.\n<i>Example: You want to download the movie, but the website hosting the files is not available from Russia. You turn on the VPN, go to the website and download the filmexample.torrent file. Next, you turn off the VPN and start downloading the movie itself in your torrent client.</i>\n\n\n<b>When working with the service, it is recommended:</b>\n\n1. Do not use a VPN at times when you do not need it. Thanks to this, you will not experience problems with your applications.",
+            "sub_isnt_active": "The subscription has not been activated yet, as the administrator has not yet sent the configuration! Don't worry, the subscription expiration time report will start only after you receive it!",
+            "sub_active": "🔥 <b>The subscription is active!</b>",
+            "sub_inactive": "😒 <b>The subscription has been deactivated!</b>",
+            "sub_expiration_date": "Subscription expiration date: <b>{0}</b>.",
+            "return_to_main_menu": "<i>Returning to the main menu</i>",
+            "go_sub_renewal_menu": "<i>Going to the subscription renewal menu</i>",
+            "payment_history_message": "🌟 <b>{0}</b> was extended for {1} months for {2:g}₽.\n\n<b>Payment date</b>: {3}\n\nPayment identifier: #{4}",
+            "cant_find_payments": "Alas! I could not find information about successful payments",
+            "restore_payments": "To restore long-standing payments, use the \n/restore_payments command",
+            "cant_find_payments_restore": "Unfortunately, I could not find the paid payments, perhaps the payment has not been completed yet, or information about it is still on the way!\n\nIf you are sure that the payment was completed successfully, please contact the help section /help",
+            "cancel_payment": "<i>Payment canceled</i>",
+            "check_payment_hour": "Checking all created payments in the last hour!",
+            "payment_found": "Payment for an order with a unique identifier <b>#{0}</b> found!",
+            "go_personal_account": "<i>Going to personal account</i>",
+            "client_info_surname_str": "<b>Last name</b>: {0}\n",
+            "client_info_username_str": "<b>Nickname</b>: {0}\n",
+            "client_info": "👾 That's what I know:\n\n{username_str}<b>Name</b>: {0}\n{surname_str}<b>Telegram ID</b>: {1}\n<b>Registration date</b>: {2}",
+            "subscription_info": "🌟 Subscription information:\n\n<b>{0}</b>\n{1}\n\n<b>Cost</b>: {2:g}₽ per month.",
+            "go_config_menu": "<i>Going to the configuration menu</i>",
+            "ref_program_info": "<b>Wow! We have a referral program!</b>\n\nWriting-referral-program-in-development",
+            "go_promo_menu": "<i>Going to the promo codes menu</i>",
+            "enter_promo": "<b>🎟 Send me the promo code by message!</b>",
+            "go_settings": "<i>Going to settings</i>",
+            "return_to_personal_account": "<i>Returning to personal account</i>",
+            "configs_info": "Information about all your configurations, now you do not need to search for them through the dialogue with the bot!\n\n All configurations <b>{0}</b>.",
+            "configs_rules": "<b>I remind you of the basic rules /rules:\n\n1. One device is one configuration.\n2. Sharing configurations with other people is prohibited!</b>",
+            "return_to_configs_menu": "<i>Returning to the configuration menu</i>",
+            "cant_request_config": "To request a new configuration, you need to renew your subscription!",
+            "ask_three_questions": "You will need to answer 3 questions to request a new configuration from the administrator!\n\nMore of your configurations: <b>{0}</b>",
+            "wait_for_admin": "Great! Now we are waiting for a response from the developer: soon he will check your current configurations and send a new one!",
+            "i_wanna_sleep": "Please do not forget that he is also a human being, and periodically sleeps (although in fact extremely rarely)",
+            "return_to_settings": "<i>Returning to the settings</i>",
+            "go_settings_chatgpt": "<i>Going to the ChatGPT mode settings</i>",
+            "chatgpt_on": "<b>ChatGPT mode is enabled for the bot</b>",
+            "chatgpt_off": "<b>ChatGPT mode is disabled for the bot</b>",
+            "go_settings_notifications": "<i>Going to the notification settings</i>",
+            "1d_on": "<b>Sending a notification 1 day before the subscription expiration date is enabled</b>",
+            "1d_off": "<b>Sending a notification 1 day before the subscription expiration date is disabled</b>",
+            "3d_on": "<b>Sending a notification 3 days before the subscription expiration date is enabled</b>",
+            "3d_off": "<b>Sending a notification 3 days before the subscription expiration date is disabled</b>",
+            "7d_on": "<b>Sending a notification 7 days before the subscription expiration date is enabled</b>",
+            "7d_off": "<b>Sending a notification 7 days before the subscription expiration date is disabled</b>",
+            "invited_by": "🚀 You were invited <b>by client {0}{1}</b>",
+            "invited_by_nobody": "Wow! You found out about the existence of this project yourself and registered without an invitation from another client!",
+            "who_was_invited_str": "{0}. User <b>{1}{2}</b>\n",
+            "who_was_invited": "🕊 The users you invited who joined the project:\n\n{invited_str}",
+            "nobody_was_invited": "You haven't invited any users yet. Tell your friends about our project and get free months of subscription!",
+            "ref_program_invites_texts": [
+                "Darova, Father. I'm throwing you an invite to a very cool VPN project (go to the tg bot https://t.me/ksiVPN_bot )!\nWhen registering, go there, enter my referral promo code <code>{0}</code>. You will get a month of use for free!",
+                "Uh, Brother SubhanaLlah. Are you using a VPN? In any case, go to the tg bot https://t.me/ksiVPN_bot and register!First, enter my referral promo code <code>{0}</code>. You will use the VPN for free for a whole month!",
+                "Are you guys kidding me? I understand that you just want to go on Instagram and enjoy life. But why do you use such terrible VPN services?I am recruiting a team of guys, we will make a cache on foreign services: https://t.me/ksiVPN_bot.\n\nПри after registration, enter my referral promo code <code>{0}</code> and you will get a month of use for free!",
+                "In short, Marked, I saved you and I will not play nobility: you will register in the service https://t.me/ksiVPN_bot – and we're even.At the same time, let's see how quickly your head clears up after using free VPNs. And I will try to find out about referral promo codes.Who knows why you gave up this month of free subscription, but I'm not meddling in other people's business, if you want to use my referral promo code <code>{0}</code>, then there's something...",
+                "A man is being asked:\n- What do you like?\n- I love Instagrammer! Instagrammer I love pussy..ec! I would sit in the insta bl.t 24 hours a day, I would just look at all the rils of the world, I love rils already, I can't live without rils, I love instagramchik pussy..ec!\n- Hmm, I see. And what else do you like?\n- I love ChatGPT! ChatGPT I love pussy..ec! Dr.. I would chill him for days, d.. I would, d.. I would, etc..I would like to get into the OpenAI staff, just so that my head sticks out!\n- Uh.. And why the head?\n- I like to watch Rils..ec!\n\nThe panecdote is provided by the service https://t.me/ksiVPN_bot .\nEnter my referral promo code <code>{0}</code> and get a month of use for free upon registration!"
+            ],
+            "your_ref_code": "🕊 Your referral promo code: <b><code>{0}</code></b>",
+            "error_promo_entered_ref_code": "Unfortunately, you can only enter referral promo codes when registering 😪",
+            "error_promo_limit_activations": "Unfortunately, the number of possible activations of this promo code exhausted 🤧",
+            "error_promo_expired": "Unfortunately, the promo code has expired 🤧",
+            "error_promo_already_entered": "You have already entered this promo code earlier!",
+            "error_promo_inaccessible": "Unfortunately, you cannot use this special promo code 😪",
+            "error_promo_not_exist": "There is no such promo code! Try to enter it again",
+            "global_promo_accepted": "✨ Hooray! Promo code for <b>{0} days</b> free subscription accepted!",
+            "new_sub_str": "\n\n«<b>{0}</b>» — Your new subscription type with a cost of {1:g}₽ per month",
+            "loсal_promo_accepted": "✨ Hooray! Special promo code for <b>{0} days</b> free subscription accepted!{new_sub_str}",
+            "ref_promo_str": "<b>🕊 Used referral promo code</b>:\n<code>{0}</code> from client {1}.\n\n",
+            "global_promos_str": "<b>📣 Used public promo codes</b>:\n{global_promo_row_str}\n",
+            "global_promo_row_str": "{0}. <code>{1}</code> for {2} days of subscription.\nLED {3}.\n",
+            "local_promos_str": "<b>💎 Used special promo codes</b>:\n{local_promo_row_str}\n",
+            "local_promo_row_str": "{0}. <code>{1}</code> for {2} days of subscription.\nLED {3}.\n",
+            "no_promo_entered": "You have not entered any promo codes yet. Follow the news! 🚀",
+            "config_was_received": "✨ <b>Hooray, the configuration is received!</b>"
+        },
+
+        "keyboard_buttons": {
+            "sub_renewal": "❤️‍🔥 Renew subscription!",
+            "sub_status": "Subscription status",
+            "personal_account": "Personal account",
+            "rules": "Rules",
+            "payment_1mnth": "1 month",
+            "payment_3mnth": "3 months (-10%)",
+            "payment_12mnth": "12 months (-15%)",
+            "payment_history": "Payment history",
+            "return_main_menu": "Return to main menu",
+            "payment_check": "Check payment",
+            "payment_cancel": "Cancel payment",
+            "pay": "Pay",
+            "ref_program": "🕊 Referral program",
+            "about_client": "About client",
+            "about_sub": "About subscription",
+            "configs": "Configurations",
+            "promo": "Promo Codes",
+            "settings": "Settings",
+            "current_configs": "My configurations",
+            "request_config": "New configuration",
+            "return_to_account_menu_1": "Return",
+            "return_to_account_menu_2": "Cancel input",
+            "return_to_configs_menu": "Cancel selection",
+            "used_promos": "Used promo codes",
+            "ref_program_participation": "Participation in referral program",
+            "generate_invite": "Generate an invitation *",
+            "show_ref_code": "Referral promo code",
+            "settings_chatgpt_mode": "ChatGPT mode",
+            "settings_notifications": "Notifications",
+            "1d_off": "Turn off in 1 day",
+            "1d_on": "Turn on in 1 day",
+            "3d_off": "Turn off in 3 days",
+            "3d_on": "Turn on in 3 days",
+            "7d_off": "Turn off in 7 days",
+            "7d_on": "Turn on in 7 days",
+            "return_to_settings": "Back",
+            "chatgpt_off": "Disable",
+            "chatgpt_on": "Enable",
+            "installation_instruction": "Installation instructions"
+        },
+
+        "telegram_file_ids": {
+
+        }
+    },
+
+    "admin":
+    {
+        "messages": {
+            "reset_fsm_keyboard": "<i>Reset the machine state and keyboard</i>",
+            "fsm_start": "<i>The machine state is activated</i>",
+            "admin_kb_info": "To open this menu, use /admin.\b\b Available commands:\n\n/fileid (/fid)\n/sql_user\n/sql_config",
+            "go_send_message_menu": "<i>Going to the menu for sending messages to clients</i>",
+            "message_everyone_info": "Enter the necessary information with the following message, and attach files if necessary!\n\nEnter /perfect to confirm the selection of the last sent message!",
+            "clients_row_str": "{0}. {1} {2} {3} <code>{4}</code>\n",
+            "message_everyone_was_sent": "<b>Okay, the message has been sent!</b>",
+            "message_everyone_everybody_received": "<b>Hooray, all clients of the service will receive the message!</b>",
+            "message_everyone_somebody_didnt_recieve": "<b>Users who did not receive the message</b>:\n{ignored_clients_str}",
+            "how_message_looks": "This is how your message will look like:",
+            "message_selected_info": "Enter a comma separated <i><b>username</b></i> or <i><b>telegram_id</b></i> of the clients for whom the newsletter is intended.",
+            "message_selected_somebody_received": "<b>The message will be sent to the clients</b>:\n\n {selected_clients_str}",
+            "message_selected_nobody_received": "You made a mistake when entering clients! The message will not reach anyone!",
+            "message_selected_enter_message_info": "Now enter the necessary information with the following message, and also attach files if necessary!\n\nEnter /perfect to confirm the selection of the last sent message!",
+            "sql_insert_client_info": "Forward the message to me and I will output all possible information!",
+            "cant_read_user": "Unfortunately, I cannot read the user information 😭",
+            "sql_insert_config_info": "Send me a message in the format (spaces are used instead of line breaks):\n\n<b>client_id</b> - client_username | client_telegram_id\n<b>protocol_id</b> - <code>w</code> (WireGuard) | <code>x</code> (XTLS-Reality) | <code>s</code> (ShadowSocks)\n<b>location_id</b> - <code>n</code> (Netherlands) | <code>l</code> (Latvia) | <code>g</code> (Germany) | <code>u</code> (USA)\n<b>os</b> - <code>Android</code> | <code>IOS</code> | <code>Windows</code> | <code>Linux</code>\n<b>date_of_receipt</b> - date of receipt of the configuration in the format <code>YYYY-MM-DD HH-MI</code>\n<b>link</b> - if instead of a photo or a *.conf file, you need a link for XTLS/SS for PC\n\n<b>Do not forget to attach the file if required!</b>",
+            "sql_insert_config_check_config_info": "By the way, you can check which configurations are available to the client with the command \n/check_configs <i>telegram_id</i> | <i>username</i>",
+            "error_not_enough_flags": "The flags are entered incorrectly, there are too few of them!",
+            "error_bad_attachment": "You didn't attach the file, or you added the wrong attachment type!",
+            "error_too_many_flags": "Flags entered incorrectly, there are too many of them!",
+            "error_bad_protocol": "Protocol entered incorrectly!",
+            "error_bad_location": "Location entered incorrectly!",
+            "show_earnings": "So-so! Earnings for the current month are <b>{0:g}</b>₽!",
+            "file_id_photo": "<b>file_id photo</b>:\n<code>{0}</code>",
+            "file_id_document": "<b>document file_id</b>:\n<code>{0}</code>",
+            "error_no_file_for_file_id": "The file was not attached along with the /fileid (/fid) command call!",
+            "send_configuration_info": "Send me a message in the format (use spaces instead of line breaks):\n\n<b>protocol</b> — <code>wireguard/wg/w</code> | <code>xtls-reality/xtls/reality/x</code> | <code>shadosocks/ss/s</code>\n<b>location</b> — <code>netherlands/n</code> | <code>latvia/l</code> | <code>germany/g</code> | <code>usa/u</code>\n<b>os</b> — <code>android</code> | <code>ios</code> | <code>windows</code> | <code>macos/mac</code> | <code>linux</code>\n<b>link</b> — if instead of a photo or a *.conf file, you need a link for XTLS/SS for PC\n\n<b>Do not forget to attach the file if required!</b>",
+            "config_was_sent": "Excellent, configuration type <b>{0}</b> has been sent!",
+            "error_bad_flags_number": "Error: {0}\nMost likely, you specified the wrong number of flags!",
+            "error_unrecognized": "Error: {0}"
+        },
+
+        "keyboard_buttons": {
+            "sql_insert_config": "SQL config\n👾",
+            "sql_insert_client": "SQL client\n👾",
+            "get_file_id": "File ID\n👾",
+            "send_message": "Send message\n👾",
+            "show_earnings": "Earnings\n👾",
+            "reset_fsm_1": "Reset FSM\n👾",
+            "send_message_everyone": "Send to all\n👾",
+            "send_message_selected": "Send to favorites\n👾",
+            "reset_fsm_2": "Return\n👾",
+            "config_answer_inline": "Reply\n👾"
+        },
+
+        "telegram_file_ids": {
+
+        }
+    },
+
+    "other":
+    {
+        "messages": {
+            "help": "You can easily write to my creator if you have any problems, as well as if you have ideas to improve my work!",
+            "project_info": "Unlimited, fast and completely secure service that allows you to establish a VPN connection in various countries of the world through your own VPS for 200₽ per month.",
+            "chatgpt_only_for_active_sub": "ChatGPT mode is available only to clients with an active subscription!",
+            "unrecognized_message": "<b>Sorry, I don't understand you</b> 🤔\n\n<tg-spoiler><i>You can give me unlimited power by enabling ChatGPT mode in the settings or by entering the command /chatgpt_mode</i></tg-spoiler>",
+            "hello_message": "Welcome-message-in-development",
+            "price_info": "The cost of a basic subscription is 200₽/month!",
+            "already_registered": "✨ Wow! You are already in our system! I'm teleporting to my personal account!"
+        },
+
+        "keyboard_buttons": {
+            "help": "Help",
+            "about_project": "About project",
+            "about_service": "About service"
+        },
+
+        "telegram_file_ids": {
+            "project_info": "AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ",
+            "hello_message": "AgACAgIAAxkBAAIBZWT4pf2JcOWwWqzq6BrDBplE_LefAALD0TEba5XBSwtXi502wnAvAQADAgADcwADMAQ"
+        }
+    },
+
+    "service_functions":
+    {
+        "messages": {
+            "wait_payment": "<b>Waiting for the subscription payment!</b>",
+            "payment_form": "💳 Payment information:\n\n<b>Subscription type</b>: {0}\n<b>Amount to be paid</b>: {2:g}₽ {discount_str}\n<b>Extension for the period</b>: {1} months.\n\nPayment identifier: #{3}",
+            "config_info": "{link_str}<b>Created</b>: {0}\n{platform_str}<b>Protocol</b>: {1}\n<b>VPN location</b>: {2}, {3}, the speed is up to {4} Mbit/s, the expected ping is {5} ms.",
+            "config_request_new_client": "👾 <b>Connection request from a new client!</b>\n\n<b>Client ID</b>: <code>{6}</code>\n<b>Telegram INFO</b>:{1} <code>{0}</code> <code>{2}</code>\n<b>Configuration</b>: {3}, {4}, {5} ChatGPT\n<b>Referral promo code</b>: {ref_promo_str}",
+            "config_request_new_client_no_ref_promo_str": "The client did not use the promo code, the configuration can be sent <b>ONLY AFTER PAYING FOR THE SUBSCRIPTION OR ENTERING the PROMO CODE</b>\n",
+            "config_request_new_client_ref_promo_str": "<code>{0}</code> from client{3} <code>{1}{2}</code> <code>{4}</code> for {5} free days by subscription {6:g}₽/month.\n",
+            "config_request_old_client": "👾 <b>Request additional configuration from the client!</b>\n\n<b>Client ID</b>: <code>{6}</code>\n<b>Telegram INFO</b>:{1} <code>{0}</code> <code>{2}</code>\n<b>Configuration</b>: {3}, {4}, {5} ChatGPT",
+            "admin_promo_was_etnered_local_promo_new_sub_str": "providing subscription for {0:g}₽/month,",
+            "admin_promo_was_entered": "👾 <b>A promo code has been entered!</b>\n\n<b>Client ID</b>: <code>{0}</code>\n<b>Telegram INFO</b>:{1} <code>{2}{3}</code> <code>{4}</code>\n<b>About the promo code</b>: {5} with id {6} for {7} subscription days{new_sub_str} ending {8}",
+            "admin_successful_payment": "👾 <b>Successful subscription renewal for {0} months!</b>\n\n<b>Client ID</b>: <code>{1}</code>\n<b>Telegram INFO</b>:{2} <code>{3}{4}</code> <code>{5}</code>",
+            "ref_promo_was_entered": "Wow! User {0}{1} used your referral promo code when registering!\n\n<b>After he pays for the subscription for the first time, you will receive {2} days of subscription for free!</b>",
+            "platform_str_chatgpt": "<b>Platform</b>: {0} with access to ChatGPT\n",
+            "platform_str_no_chatgpt": "<b>Platform</b>: {0}\n",
+            "error_no_telegram_file_id": "when trying to create a configuration, the telegram_file_id was not specified!",
+            "error_bad_file_type": "when trying to create a configuration, an invalid file_type was specified!",
+            "error_bad_protocol": "incorrect protocol input (first argument)!",
+            "error_bad_country": "incorrect country input (second argument)!",
+            "error_bad_os": "incorrect OS input (third argument)!",
+            "error_bad_link": "incorrect vless link input (fourth argument)!",
+            "ref_client_paid_for_sub": "🕊 Wow! The client {0}{1} who joined the project using your referral promo code has paid for the subscription for the first time!\n\n<b>You get a month of subscription for free!</b>",
+            "wait_for_admin_answer": "Great! Now we are waiting for a response from the developer: soon he will check your registration and send you the configuration! In the meantime, you can explore the bot!",
+            "discount_str": "(discount {0:g}₽)",
+            "payment_successful": "The payment was made successfully!\n\nPayment identifier: #{0}",
+            "instructions": {
+                "wireguard":
+                {
+                    "android": "<Instructions for installing WireGuard on Android>",
+                    "ios": "<Instructions for installing WireGuard on iOS>",
+                    "windows": "<Instructions for installing WireGuard on Windows>",
+                    "macos": "<Instructions for installing WireGuard on macOS>",
+                    "linux": "<Instructions for installing WireGuard on Linux>"
+                },
+        
+                "xray vless xtls-reality":
+                {
+                    "android": "<Instructions for installing XTLS-Reality on Android>",
+                    "ios": "<Instructions for installing XTLS-Reality on iOS>",
+                    "windows": "<Instructions for installing XTLS-Reality on Windows>",
+                    "macos": "<Instructions for installing XTLS-Reality on macOS>",
+                    "linux": "<Instructions for installing XTLS-Reality on Linux>"
+                },
+        
+                "shadowsocks-2022":
+                {
+                    "android": "<Instructions for installing Shadowsocks-2022 on Android>",
+                    "ios": "<Instructions for installing Shadowsocks-2022 on iOS>",
+                    "windows": "<Instructions for installing Shadowsocks-2022 on Windows>",
+                    "macos": "<Instructions for installing Shadowsocks-2022 on macOS>",
+                    "linux": "<Instructions for installing Shadowsocks-2022 on Linux>"
+                }
+            }
+        },
+
+        "keyboard_buttons": {
+
+        },
+
+        "telegram_file_ids": {
+
+        }
     }
 }
