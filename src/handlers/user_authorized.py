@@ -23,11 +23,11 @@ async def subscription_status(message: Message):
 
     # if subscription is acive
     if await postgesql_db.is_subscription_active(message.from_user.id):
-        await message.answer(loc.auth.msgs['sub_active'])
+        await message.answer(loc.auth.msgs['sub_active'], parse_mode='HTML')
 
     # if subsctiption is inactive
     else:
-        await message.answer(loc.auth.msgs['sub_inactive'])
+        await message.answer(loc.auth.msgs['sub_inactive'], parse_mode='HTML')
 
     await message.answer(loc.auth.msgs['sub_expiration_date'].format(await postgesql_db.get_subscription_expiration_date(message.from_user.id)),
                          parse_mode='HTML')
@@ -157,15 +157,15 @@ async def account_client_info(message: Message):
     """Send message with information about client."""
     _, name, surname, username, _, register_date_parsed, *_ = await postgesql_db.get_client_info_by_telegramID(message.from_user.id)
 
-    # if user has surname
+    # if client has surname
     surname_str = ''
     if surname is not None:
-        surname_str = f'<b>Фамилия</b>: {surname}\n'
+        surname_str = loc.auth.msgs['client_info_surname_str'].format(surname)
 
-    # if user has username
+    # if client has username
     username_str = ''
     if username is not None:
-        username_str = f'<b>Ник</b>: {username}\n'
+        username_str = loc.auth.msgs['client_info_username_str'].format(username)
 
     await message.answer(loc.auth.msgs['client_info'].format(name, message.from_user.id, register_date_parsed, surname_str=surname_str, username_str=username_str),
                          parse_mode='HTML')
@@ -246,7 +246,7 @@ async def account_configurations_request_fsm_start(message: Message):
     await message.answer(loc.auth.msgs['ask_three_questions'].format(configs_number), parse_mode='HTML')
 
     await user_authorized_fsm.ConfigMenu.platform.set()
-    await message.answer(loc.auth.msgs['choose_your_platform'], parse_mode='HTML', reply_markup=user_authorized_kb.config_platform)
+    await message.answer(loc.unauth.msgs['choose_your_platform'], parse_mode='HTML', reply_markup=user_authorized_kb.config_platform)
 
 
 @user_mw.authorized_only()
@@ -256,12 +256,12 @@ async def account_configurations_request_platform(message: Message, state: FSMCo
         data['platform'] = message.text
 
     # if client chooses smartphone option
-    if message.text == '\U0001F4F1 Смартфон':
-        await message.answer(loc.auth.msgs['choose_your_os'], parse_mode='HTML', reply_markup=user_authorized_kb.config_mobile_os)
+    if message.text == loc.unauth.btns['smartphone']:
+        await message.answer(loc.unauth.msgs['choose_your_os'], parse_mode='HTML', reply_markup=user_authorized_kb.config_mobile_os)
 
     # if client chooses pc option
     else:
-        await message.answer(loc.auth.msgs['choose_your_os'], parse_mode='HTML', reply_markup=user_authorized_kb.config_desktop_os)
+        await message.answer(loc.unauth.msgs['choose_your_os'], parse_mode='HTML', reply_markup=user_authorized_kb.config_desktop_os)
 
     await state.set_state(user_authorized_fsm.ConfigMenu.os)
 
@@ -273,13 +273,13 @@ async def account_configurations_request_os(message: Message, state: FSMContext)
         data['os_name'] = message.text
 
     await state.set_state(user_authorized_fsm.ConfigMenu.chatgpt)
-    await message.answer(loc.auth.msgs['choose_chatgpt_option'], parse_mode='HTML', reply_markup=user_authorized_kb.config_chatgpt)
+    await message.answer(loc.unauth.msgs['choose_chatgpt_option'], parse_mode='HTML', reply_markup=user_authorized_kb.config_chatgpt)
 
 
 @user_mw.authorized_only()
 async def account_configurations_request_chatgpt_info(message: Message):
     """Send message with information about ChatGPT."""
-    await message.answer(loc.auth.msgs['chatgpt_info'], parse_mode='HTML')
+    await message.answer(loc.unauth.msgs['chatgpt_info'], parse_mode='HTML')
 
 
 @user_mw.authorized_only()
@@ -398,11 +398,9 @@ async def account_ref_program_info(message: Message):
         name, username = who_invited_client
 
         # if someone has username
-        username_str = ''
-        if username is not None:
-            username_str = username
+        username_str = await service_functions.format_none_string(username)
         
-        await message.answer(loc.auth.msgs['invited_by'].format(name, username_str=username_str), parse_mode='HTML')
+        await message.answer(loc.auth.msgs['invited_by'].format(name, username_str), parse_mode='HTML')
 
     # if nobody invited client into project
     else:
@@ -413,12 +411,10 @@ async def account_ref_program_info(message: Message):
         invited_str = ''
         for idx, (name, username) in enumerate(who_was_invited_by_client):
 
-            # if invited client has username
-            username_str = ''
-            if username is not None:
-                username_str = username
+            # if someone has username
+            username_str = await service_functions.format_none_string(username)
             
-            invited_str += loc.auth.msgs['who_was_invited_str'].format(idx + 1, name, username_str=username_str)
+            invited_str += loc.auth.msgs['who_was_invited_str'].format(idx + 1, name, username_str)
 
         await message.answer(loc.auth.msgs['who_was_invited'].format(invited_str=invited_str), parse_mode='HTML')
 

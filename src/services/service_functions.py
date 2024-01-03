@@ -9,13 +9,17 @@ from src.services import aiomoney, localization as loc
 from bot_init import bot, ADMIN_ID, YOOMONEY_TOKEN
 
 
-async def convert_none_to_string(obj: str | None) -> str:
-    """Return empty string if argument is None, else return specified string with whitespace at the beginning.
+async def format_none_string(string: str | None, prefix: str = ' ', postfix: str = '') -> str:
+    """Return empty string '' if specified object is None, else return specified specified string with prefix and postfix.
+    
+    Use for fast object conversion before str.format method usage.
 
-    :param string_none: None object or string
-    :return: empty string of specified string with whitespace at the beginning
+    :param string: object that needs to be formatted
+    :param prefix: prefix added to specified string if it's not None, defaults to ' '
+    :param postfix: prefix added to specified string if it's not None, defaults to ''
+    :return: empty string or prefix + string + postfix
     """    
-    return '' if obj is None else ' ' + obj
+    return '' if string is None else prefix + string + postfix
 
 
 async def send_message_by_telegram_id(telegram_id: int, message: Message):
@@ -121,6 +125,11 @@ async def send_configuration_request_to_admin(client: dict, choice: dict, is_new
     :param choice: dict with information about client's choice ('platform', 'os_name', 'chatgpt', 'promo')
     :param is_new_client: if client is new TRUE else FALSE
     """
+    # convert username for beautiful formatting
+    username_str = await format_none_string(client['username'], prefix=' @')
+
+    # get client_id from db
+    client_id, *_ = await postgesql_db.get_client_info_by_telegramID(client['id'])
 
     # if request was sended by new client with zero configurations
     if is_new_client:
@@ -136,12 +145,16 @@ async def send_configuration_request_to_admin(client: dict, choice: dict, is_new
             _, client_creator_id, provided_sub_id, _, bonus_time_parsed = await postgesql_db.get_refferal_promo_info_by_phrase(choice['promo'])
             client_creator_name, client_creator_surname, client_creator_username, client_creator_telegram_id, *_ = await postgesql_db.get_client_info_by_clientID(client_creator_id)
             *_, price = await postgesql_db.get_subscription_info_by_subID(provided_sub_id)
+
+            # convert surname and username for beautiful formatting
+            client_creator_surname_str = await format_none_string(client_creator_surname)
+            client_creator_username_str = await format_none_string(client_creator_username)
             ref_promo_str = loc.srvc.msgs['config_request_new_client_ref_promo_str'].\
-                format(choice['promo'], client_creator_name, client_creator_surname, client_creator_username, client_creator_telegram_id, bonus_time_parsed, price)
+                format(choice['promo'], client_creator_name, client_creator_surname_str, client_creator_username_str, client_creator_telegram_id, bonus_time_parsed, price)
 
         await bot.send_message(ADMIN_ID,
                                loc.srvc.msgs['config_request_new_client'].\
-                                format(client['fullname'], client['username'], client['id'], choice['platform'][2:], choice['os_name'], choice['chatgpt'], ref_promo_str=ref_promo_str),
+                                format(client['fullname'], username_str, client['id'], choice['platform'][2:], choice['os_name'], choice['chatgpt'], client_id, ref_promo_str=ref_promo_str),
                                reply_markup=await admin_kb.configuration(client['id']),
                                parse_mode='HTML')
 
@@ -149,7 +162,7 @@ async def send_configuration_request_to_admin(client: dict, choice: dict, is_new
     else:
         await bot.send_message(ADMIN_ID,
                                loc.srvc.msgs['config_request_old_client'].\
-                                format(client['fullname'], client['username'], client['id'], choice['platform'][2:], choice['os_name'], choice['chatgpt']),
+                                format(client['fullname'], username_str, client['id'], choice['platform'][2:], choice['os_name'], choice['chatgpt'], client_id),
                                reply_markup=await admin_kb.configuration(client['id']),
                                parse_mode='HTML')
 
@@ -164,26 +177,28 @@ async def notify_admin_promo_entered(client_id: int, promo_phrase: str, promo_ty
     """
     name, surname, username, telegram_id, *_ = await postgesql_db.get_client_info_by_clientID(client_id)
 
-    promo_str = ''
+    # convert surname and username for beautiful formatting
+    surname_str = await format_none_string(surname)
+    username_str = await format_none_string(username)
+
+    new_sub_str = ''
     if promo_type == 'global':
         id, _, expiration_date_parsed, *_, bonus_time_parsed = await postgesql_db.get_global_promo_info(promo_phrase)
-        promo_str = loc.srvc.msgs['admin_promo_was_entered_global_promo_str'].format(id, bonus_time_parsed, expiration_date_parsed)
 
     elif promo_type == 'local':
         id, _, expiration_date_parsed, _, bonus_time_parsed, provided_sub_id = await postgesql_db.get_local_promo_info(promo_phrase)
 
         # if local promo changes client's subscription
-        new_sub_str = ''
         if provided_sub_id:
-            _, _, _, price = await postgesql_db.get_subscription_info_by_subID(provided_sub_id)
+            *_, price = await postgesql_db.get_subscription_info_by_subID(provided_sub_id)
             new_sub_str = loc.srvc.msgs['admin_promo_was_etnered_local_promo_new_sub_str'].format(price)
-
-        promo_str = loc.srvc.msgs['admin_promo_was_entered_local_promo_str'].format(id, bonus_time_parsed, expiration_date_parsed, new_sub_str=new_sub_str)
 
     else:
         raise Exception('wrong promo type was entered')
 
-    await bot.send_message(ADMIN_ID, loc.srvc.msgs['admin_promo_was_entered'].format(name, surname, username, telegram_id, promo_str=promo_str),
+    await bot.send_message(ADMIN_ID,
+                           loc.srvc.msgs['admin_promo_was_entered'].\
+                            format(client_id, username_str, name, surname_str, telegram_id, promo_type, id, bonus_time_parsed, expiration_date_parsed, new_sub_str=new_sub_str),
                            parse_mode='HTML')
 
 
@@ -194,11 +209,15 @@ async def notify_admin_payment_success(client_id: int, months_number: int):
     :param months_number: number of month client paid for
     """
     name, surname, username, telegram_id, *_ = await postgesql_db.get_client_info_by_clientID(client_id)
-    await bot.send_message(ADMIN_ID, loc.srvc.msgs['admin_successful_payment'].format(months_number, name, surname, username, telegram_id, client_id),
+
+    # convert surname and username for beautiful formatting
+    surname_str = await format_none_string(surname)
+    username_str = await format_none_string(username)
+    await bot.send_message(ADMIN_ID, loc.srvc.msgs['admin_successful_payment'].format(months_number, client_id, username_str, name, surname_str, telegram_id),
                            parse_mode='HTML')
 
 
-async def notify_client_new_referal(client_creator_id: int, referal_client_name: str, referal_client_username: str | None = None):
+async def notify_client_new_referal(client_creator_id: int, referral_client_name: str, referral_client_username: str | None = None):
     """Send message for client with information about new client registered by his referral promocode.
 
     :param client_creator_id: system id of client who own promocode
@@ -206,19 +225,15 @@ async def notify_client_new_referal(client_creator_id: int, referal_client_name:
     :param referal_client_username: username of new referral client, defaults to None
     :type referal_client_username: str | None, optional
     """
-    # convert client's username
-    referal_client_username = await convert_none_to_string(referal_client_username)
-
-    # if client's username is specified and doesn't start from '@'
-    if referal_client_username != '' and referal_client_username[0] != '@':
-        referal_client_username = '@' + referal_client_username
+    # convert username for beautiful formatting
+    referral_client_username_str = await format_none_string(referral_client_username, prefix=' @')
 
     # get information about referral bonus
     *_, bonus_time_parsed = await postgesql_db.get_refferal_promo_info_by_clientCreatorID(client_creator_id)
 
     client_creator_telegram_id = await postgesql_db.get_telegramID_by_clientID(client_creator_id)
     await bot.send_message(client_creator_telegram_id,
-                           loc.srvc.msgs['ref_promo_was_entered'].format(referal_client_name, referal_client_username, bonus_time_parsed),
+                           loc.srvc.msgs['ref_promo_was_entered'].format(referral_client_name, referral_client_username_str, bonus_time_parsed),
                            parse_mode='HTML')
 
 
@@ -245,11 +260,8 @@ async def create_configuration_description(configuration_date_of_receipt: str,
     :return: description of configurations with HTML-tags
     :rtype: str
     """
-    link_str = ''
-
-    # if configurations contains vless link
-    if link is not None:
-        link_str = f'<code>{link}</code>\n\n'
+    # convert vless link if exists
+    link_str = await format_none_string(link, prefix='<code>', postfix='</code>\n\n')
 
     # creating answer text with ChatGPT option
     if configuration_is_chatgpt_available:
@@ -400,7 +412,7 @@ async def check_referral_reward(ref_client_id: int):
     successful_payments_number = await postgesql_db.get_payments_successful_number(ref_client_id)
     ref_client_name, _, ref_client_username, *_, used_ref_promo_id, _ = await postgesql_db.get_client_info_by_clientID(ref_client_id)
 
-    # if client paid for subscription for the first time and used referral pormo
+    # if client paid for subscription for the first time and used referral promo
     if successful_payments_number == 1 and used_ref_promo_id:
 
         # add subscription bonus time (30 days) for old client
@@ -408,10 +420,11 @@ async def check_referral_reward(ref_client_id: int):
         await postgesql_db.add_subscription_time(client_creator_id, days=30)
 
         # notify old client about new bonus
-        ref_client_username = await convert_none_to_string(ref_client_username)
+        # if client's username exists (add whitespace for good string formatting)
+        ref_client_username_str = await format_none_string(ref_client_username)
         client_creator_telegram_id = await postgesql_db.get_telegramID_by_clientID(client_creator_id)
         await bot.send_message(client_creator_telegram_id,
-                               loc.srvc.msgs['ref_client_paid_for_sub'].format(ref_client_name, ref_client_username),
+                               loc.srvc.msgs['ref_client_paid_for_sub'].format(ref_client_name, ref_client_username_str),
                                parse_mode='HTML')
 
 
