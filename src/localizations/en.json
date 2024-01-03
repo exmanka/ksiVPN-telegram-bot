@@ -219,7 +219,7 @@
     "other":
     {
         "messages": {
-            "help": "You can easily write to my creator if you have any problems, as well as if you have ideas to improve my work!",
+            "help": "You can easily write to my creator if you have any problems, as well as if you have ideas to improve my work!\n\n<b>If I do not perceive button clicks, reset my state using the /start command</b>",
             "project_info": "Unlimited, fast and completely secure service that allows you to establish a VPN connection in various countries of the world through your own VPS for 200₽ per month.",
             "chatgpt_only_for_active_sub": "ChatGPT mode is available only to clients with an active subscription!",
             "unrecognized_message": "<b>Sorry, I don't understand you</b> 🤔\n\n<tg-spoiler><i>You can give me unlimited power by enabling ChatGPT mode in the settings or by entering the command /chatgpt_mode</i></tg-spoiler>",

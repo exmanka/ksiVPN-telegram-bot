@@ -1,6 +1,7 @@
 from aiogram import Dispatcher
 from aiogram.types import Message
 from aiogram.utils import markdown
+from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from src.keyboards import user_authorized_kb, user_unauthorized_kb
 from src.database import postgesql_db
@@ -38,7 +39,7 @@ async def answer_unrecognized_messages(message: Message):
         await message.reply(loc.other.msgs['unrecognized_message'], parse_mode='HTML')
 
 
-async def command_start(message: Message):
+async def command_start(message: Message, state: FSMContext = None):
     """Send message when user press /start."""
     await bot.send_photo(message.from_user.id, loc.other.tfids['hello_message'], loc.other.msgs['hello_message'])
 
@@ -48,6 +49,8 @@ async def command_start(message: Message):
 
     # if user is already in db
     else:
+        if state:
+            await state.finish()
         await message.answer(loc.other.msgs['already_registered'], reply_markup=user_authorized_kb.menu)
 
 
