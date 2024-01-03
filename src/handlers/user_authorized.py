@@ -1,4 +1,5 @@
 import random
+from decimal import Decimal
 from aiogram import Dispatcher
 from aiogram.types import Message, CallbackQuery
 from aiogram.dispatcher import FSMContext
@@ -76,7 +77,7 @@ async def sub_renewal_payment_history(message: Message):
     is_payment_found = False
 
     # send message for every successful payment
-    payment_price: float
+    payment_price: Decimal
     for payment_id, sub_title, payment_price, payment_months_number, payment_date in payment_history:
         await message.answer(loc.auth.msgs['payment_history_message'].format(sub_title, payment_months_number, float(payment_price), payment_date, payment_id),
                              parse_mode='HTML')

@@ -1,5 +1,6 @@
 import asyncpg
 import datetime
+from decimal import Decimal
 from bot_init import POSTGRES_PW
 
 
@@ -670,7 +671,7 @@ async def get_invited_clients_list(telegram_id: int) -> list[asyncpg.Record]:
         telegram_id)
 
 
-async def get_earnings_per_month() -> float:
+async def get_earnings_per_month() -> Decimal:
     """Return sum of successful payments' prices per current month. Is used by administrator."""
     return await conn.fetchval(
         '''
