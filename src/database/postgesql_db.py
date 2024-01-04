@@ -1,9 +1,11 @@
 import asyncpg
 import datetime
+import logging
 from decimal import Decimal
 from bot_init import POSTGRES_PW
 
 
+logger = logging.getLogger(__name__)
 conn: asyncpg.Connection
 
 
@@ -13,7 +15,7 @@ async def asyncpg_run() -> None:
     conn = await asyncpg.connect(host='localhost', database='tgbot_postgres_db', user='postgres', password=POSTGRES_PW)
 
     if conn:
-        print('Database has been successfully connected!')
+        logger.info('Database has been successfully connected!')
 
 
 async def asyncpg_close() -> None:
@@ -21,7 +23,7 @@ async def asyncpg_close() -> None:
     await conn.close()
 
     if conn.is_closed():
-        print('Database has been successfully disconnected!')
+        logger.info('Database has been successfully disconnected!')
 
 
 async def is_user_registered(telegram_id: int) -> bool | None:

@@ -16,7 +16,6 @@ from bot_init import bot, YOOMONEY_TOKEN
 @user_mw.authorized_only()
 async def subscription_status(message: Message):
     """Send message with subscription status."""
-
     # if admin hasn't still sent client's first configuration
     if await postgesql_db.is_subscription_not_started(message.from_user.id):
         await message.answer(loc.auth.msgs['sub_isnt_active'])
