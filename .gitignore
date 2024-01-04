@@ -14,3 +14,6 @@ script_tg
 
 # SQL queries for adding existing clients
 sql_queries
+
+# Log files
+*.log
