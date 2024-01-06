@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  telebot:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - db
+    networks:
+      - botnet
+
+  db:
+    image: postgres:14.9
+    restart: always
+    environment:
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'test'
+      POSTGRES_DB: 'tgbot_postgres_db'
+    networks:
+      - botnet
+
+networks:
+  botnet:
+    driver: bridge
