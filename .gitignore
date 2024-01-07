@@ -12,6 +12,9 @@ __pycache__/
 # Docker compose environment variables file
 .env
 
+# Docker compose postgres init database file
+init-database.sql
+
 # Starting telegram bot script with environment variables
 script_tg
 
