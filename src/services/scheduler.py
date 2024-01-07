@@ -28,6 +28,7 @@ async def apscheduler_finish():
 
 async def send_subscription_expiration_notifications():
     """Send messages to clients with expiring subscription."""
+    logger.info('Messages are being sent to clients with an expiring subscription period')
     clients_notifications_status = await postgesql_db.get_notifications_status()
 
     # for every client in db
@@ -89,4 +90,5 @@ async def send_subscription_expiration_notifications():
 
 async def send_database_backup():
     """Send document to admin with database backup."""
+    logger.info('A database backup is being sent')
     await bot.send_document(ADMIN_ID, InputFile(BACKUP_PATH_NAME), caption=f'Бэкап за {datetime.now().strftime("%d.%m.%y %H:%M")}')
