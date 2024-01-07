@@ -240,7 +240,7 @@
         }
     },
 
-    "service_functions":
+    "internal_functions":
     {
         "messages": {
             "wait_payment": "<b>Ожидаю оплаты подписки!</b>",

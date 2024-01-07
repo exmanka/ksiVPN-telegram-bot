@@ -7,8 +7,8 @@ from aiogram.utils.exceptions import ChatNotFound
 from src.middlewares import admin_mw
 from src.keyboards import admin_kb
 from src.states import admin_fsm
-from src.database import postgesql_db
-from src.services import service_functions, localization as loc
+from src.database import postgres_dbms
+from src.services import internal_functions, localization as loc
 from bot_init import bot
 
 
@@ -48,15 +48,15 @@ async def notifications_send_message_everyone(message: Message, state: FSMContex
         async with state.proxy() as data:
 
             # for every client
-            for idx, [telegram_id] in enumerate(await postgesql_db.get_clients_telegram_ids()):
+            for idx, [telegram_id] in enumerate(await postgres_dbms.get_clients_telegram_ids()):
 
                 # if client didn't write to bot
                 try:
-                    await service_functions.send_message_by_telegram_id(telegram_id, data['message'])
+                    await internal_functions.send_message_by_telegram_id(telegram_id, data['message'])
 
                 # add him to message list of clients who didn't receive message
                 except ChatNotFound as _t:
-                    _, name, surname, username, *_ = await postgesql_db.get_client_info_by_telegramID(telegram_id)
+                    _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
                     ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, name, surname, username, telegram_id)
 
         # if some clients didn't receive message because they didn't write to bot at all
@@ -75,7 +75,7 @@ async def notifications_send_message_everyone(message: Message, state: FSMContex
     await message.answer(loc.admn.msgs['how_message_looks'])
 
     # echo message showing how will be displayed admin's message for clients
-    await service_functions.send_message_by_telegram_id(message.from_user.id, message)
+    await internal_functions.send_message_by_telegram_id(message.from_user.id, message)
 
     # save last message to send it if admin write /perfect
     async with state.proxy() as data:
@@ -102,11 +102,11 @@ async def notifications_send_message_selected_list(message: Message, state: FSMC
         if client[0] == '@':
 
             # if client exists in db
-            if telegram_id := await postgesql_db.get_telegramID_by_username(client):
+            if telegram_id := await postgres_dbms.get_telegramID_by_username(client):
                 selected_clients_telegram_ids.append(telegram_id)
 
         # if client mentioned by telegram_id and exists in db
-        elif await postgesql_db.get_clientID_by_telegramID(int(client)):
+        elif await postgres_dbms.get_clientID_by_telegramID(int(client)):
             selected_clients_telegram_ids.append(int(client))
 
     # save selected clients ids
@@ -117,7 +117,7 @@ async def notifications_send_message_selected_list(message: Message, state: FSMC
     # show selected clients info
     selected_clients_str = ''
     for idx, telegram_id in enumerate(selected_clients_telegram_ids):
-        _, name, surname, username, *_ = await postgesql_db.get_client_info_by_telegramID(telegram_id)
+        _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
         selected_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, name, surname, username, telegram_id)
 
     # if at least 1 selected client exists in db
@@ -143,11 +143,11 @@ async def notifications_send_message_selected(message: Message, state: FSMContex
 
                 # if client didn't write to bot
                 try:
-                    await service_functions.send_message_by_telegram_id(telegram_id, data['message'])
+                    await internal_functions.send_message_by_telegram_id(telegram_id, data['message'])
 
                 # add him to message list of clients who didn't receive message
                 except ChatNotFound as _t:
-                    _, name, surname, username, *_ = await postgesql_db.get_client_info_by_telegramID(telegram_id)
+                    _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
                     ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, name, surname, username, telegram_id)
 
         # if some clients didn't receive message because they didn't write to bot at all
@@ -166,7 +166,7 @@ async def notifications_send_message_selected(message: Message, state: FSMContex
     await message.answer('Вот так будет выглядеть Ваше сообщение:')
 
     # echo message showing how will be displayed admin's message for clients
-    await service_functions.send_message_by_telegram_id(message.from_user.id, message)
+    await internal_functions.send_message_by_telegram_id(message.from_user.id, message)
 
     # save last message to send it if admin write /perfect
     async with state.proxy() as data:
@@ -264,11 +264,11 @@ async def show_user_config_sql(message: Message):
 
     # if 1st argument is username
     if flag_username_or_telegram_id[0] == '@':
-        client_id = await postgesql_db.get_clientID_by_username(flag_username_or_telegram_id)
+        client_id = await postgres_dbms.get_clientID_by_username(flag_username_or_telegram_id)
 
     # if 1st argument is telegram_id
     else:
-        client_id = await postgesql_db.get_clientID_by_telegramID(int(flag_username_or_telegram_id))
+        client_id = await postgres_dbms.get_clientID_by_telegramID(int(flag_username_or_telegram_id))
 
     # check 2nd argument as protocol_id
     match flag_protocol:
@@ -304,7 +304,7 @@ async def show_user_config_sql(message: Message):
 @admin_mw.admin_only()
 async def show_earnings(message: Message):
     """Send message with information about earned money per current month."""
-    earnings_per_current_month: Decimal = await postgesql_db.get_earnings_per_month()
+    earnings_per_current_month: Decimal = await postgres_dbms.get_earnings_per_month()
     await message.answer(loc.admn.msgs['show_earnings'].format(float(earnings_per_current_month)), parse_mode='HTML')
 
 
@@ -319,19 +319,19 @@ async def check_user_configs(message: Message):
 
     # if user_info is username
     if user_info[0] == '@':
-        client_id = await postgesql_db.get_clientID_by_username(user_info)
+        client_id = await postgres_dbms.get_clientID_by_username(user_info)
 
     # if user_info is user telegramID
     else:
-        client_id = await postgesql_db.get_clientID_by_telegramID(user_info)
+        client_id = await postgres_dbms.get_clientID_by_telegramID(user_info)
 
     # get information about specified client's configurations
-    configurations_info = await postgesql_db.get_configurations_info(client_id)
+    configurations_info = await postgres_dbms.get_configurations_info(client_id)
     await message.answer(loc.auth.msgs['configs_info'].format(len(configurations_info)), parse_mode='HTML')
 
     # send message for every configuration
     for file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id in configurations_info:
-        await service_functions.send_configuration(message.from_user.id, file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id)
+        await internal_functions.send_configuration(message.from_user.id, file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id)
 
     await message.answer(loc.auth.msgs['configs_rules'], parse_mode='HTML')
 
@@ -369,7 +369,7 @@ async def send_configuration(message: Message, state: FSMContext):
     """Check configuration sended by admin and send it to client."""
     async with state.proxy() as data:
         telegram_id = int(data['telegram_id'])
-    client_id = await postgesql_db.get_clientID_by_telegramID(telegram_id)
+    client_id = await postgres_dbms.get_clientID_by_telegramID(telegram_id)
 
     try:
         # if message is text
@@ -377,8 +377,8 @@ async def send_configuration(message: Message, state: FSMContext):
             # create configuration
             file_type = 'link'
             flag_protocol, flag_location, flag_os, flag_link = text.split(' ')
-            await service_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, flag_link)
-            _, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id = (await postgesql_db.get_configurations_info(client_id))[-1]
+            await internal_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, flag_link)
+            _, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id = (await postgres_dbms.get_configurations_info(client_id))[-1]
 
         # if message is document
         elif document := message.document:
@@ -386,8 +386,8 @@ async def send_configuration(message: Message, state: FSMContext):
             file_type = 'document'
             flag_protocol, flag_location, flag_os = message.caption.split(' ')
             telegram_file_id = document.file_id
-            await service_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, telegram_file_id=telegram_file_id)
-            file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id = (await postgesql_db.get_configurations_info(client_id))[-1]
+            await internal_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, telegram_file_id=telegram_file_id)
+            file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id = (await postgres_dbms.get_configurations_info(client_id))[-1]
 
         # if message is photo
         elif photo := message.photo:
@@ -395,8 +395,8 @@ async def send_configuration(message: Message, state: FSMContext):
             file_type = 'photo'
             flag_protocol, flag_location, flag_os = message.caption.split(' ')
             telegram_file_id = photo[0].file_id
-            await service_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, telegram_file_id=telegram_file_id)
-            file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id = (await postgesql_db.get_configurations_info(client_id))[-1]
+            await internal_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, telegram_file_id=telegram_file_id)
+            file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id = (await postgres_dbms.get_configurations_info(client_id))[-1]
 
         # other cases
         else:
@@ -405,7 +405,7 @@ async def send_configuration(message: Message, state: FSMContext):
         
         # send message to client, admin and finish FSM for sending configurations
         await bot.send_message(telegram_id, loc.auth.msgs['config_was_received'], parse_mode='HTML')
-        await service_functions.send_configuration(telegram_id, file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id)
+        await internal_functions.send_configuration(telegram_id, file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id)
         await message.reply(loc.admn.msgs['config_was_sent'].format(file_type), parse_mode='HTML')
         await state.finish()
 

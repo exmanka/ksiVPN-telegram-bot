@@ -240,7 +240,7 @@
         }
     },
 
-    "service_functions":
+    "internal_functions":
     {
         "messages": {
             "wait_payment": "<b>Waiting for the subscription payment!</b>",

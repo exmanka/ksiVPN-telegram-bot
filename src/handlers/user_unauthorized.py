@@ -5,8 +5,8 @@ from aiogram.dispatcher.filters import Text
 from src.middlewares import user_mw
 from src.keyboards import user_unauthorized_kb
 from src.states import user_unauthorized_fsm
-from src.database import postgesql_db
-from src.services import service_functions, localization as loc
+from src.database import postgres_dbms
+from src.services import internal_functions, localization as loc
 
 
 @user_mw.unauthorized_only()
@@ -73,24 +73,24 @@ async def authorization_take_chatgpt(message: Message, state: FSMContext):
 async def authorization_promo_yes(message: Message, state: FSMContext):
     """Check entered referral promocode, notify old client about new client used his referral promocode, complete authorization."""
     # if referral promocode exists in system
-    if await postgesql_db.is_referral_promo(message.text):
+    if await postgres_dbms.is_referral_promo(message.text):
         async with state.proxy() as data:
             data['promo'] = message.text
 
         # send information to old client that new client joined project by his referral promocode
-        _, client_creator_id, provided_sub_id, _, bonus_time_parsed = await postgesql_db.get_refferal_promo_info_by_phrase(message.text)
-        await service_functions.notify_client_new_referal(client_creator_id, message.from_user.first_name, message.from_user.username)
+        _, client_creator_id, provided_sub_id, _, bonus_time_parsed = await postgres_dbms.get_refferal_promo_info_by_phrase(message.text)
+        await internal_functions.notify_client_new_referal(client_creator_id, message.from_user.first_name, message.from_user.username)
 
         # send information about promocode bonus time to new client
-        client_creator_name, *_ = await postgesql_db.get_client_info_by_clientID(client_creator_id)
+        client_creator_name, *_ = await postgres_dbms.get_client_info_by_clientID(client_creator_id)
         await message.answer(loc.unauth.msgs['ref_promo_accepted'].format(client_creator_name, bonus_time_parsed), parse_mode='HTML')
 
         # send information about subscription available by referral promocode
-        _, title, _, price = await postgesql_db.get_subscription_info_by_subID(provided_sub_id)
+        _, title, _, price = await postgres_dbms.get_subscription_info_by_subID(provided_sub_id)
         await message.answer(loc.unauth.msgs['sub_info'].format(title, price), parse_mode='HTML')
 
         # complete authorization
-        await service_functions.authorization_complete(message, state)
+        await internal_functions.authorization_complete(message, state)
 
     # if referral promocode wasn't recognized
     else:
@@ -105,7 +105,7 @@ async def authorization_promo_no(message: Message, state: FSMContext):
     async with state.proxy() as data:
         data['promo'] = None
 
-    await service_functions.authorization_complete(message, state)
+    await internal_functions.authorization_complete(message, state)
     await message.answer(loc.unauth.msgs['need_renew_sub'], parse_mode='HTML')
 
 

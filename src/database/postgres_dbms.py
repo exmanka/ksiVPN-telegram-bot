@@ -2,7 +2,7 @@ import asyncpg
 import datetime
 import logging
 from decimal import Decimal
-from bot_init import POSTGRES_PW
+from bot_init import POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
 
 
 logger = logging.getLogger(__name__)
@@ -12,7 +12,7 @@ conn: asyncpg.Connection
 async def asyncpg_run() -> None:
     """Initialize asyncpg connection."""
     global conn
-    conn = await asyncpg.connect(host='db', database='tgbot_postgres_db', user='docker', password=POSTGRES_PW)
+    conn = await asyncpg.connect(host='localhost', database=POSTGRES_DB, user=POSTGRES_USER, password=POSTGRES_PASSWORD)
 
     if conn:
         logger.info('Database has been successfully connected!')

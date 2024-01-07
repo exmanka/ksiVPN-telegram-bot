@@ -2,21 +2,21 @@ import logging
 from aiogram.utils import executor
 from src.middlewares import admin_mw, user_mw, throttling_mw
 from src.handlers import user_authorized, user_unauthorized, admin, other
-from src.database import postgesql_db
+from src.database import postgres_dbms
 from src.services import scheduler
 from bot_init import dp
 
 
 async def on_startup(_):
     """Connect to database and run scheduler during bot launch."""
-    await postgesql_db.asyncpg_run()
+    await postgres_dbms.asyncpg_run()
     await scheduler.apscheduler_start()
     logger.info('Bot has been successfully launched!')
 
 
 async def on_shutdown(_):
     """Disconnect from database and finish scheduler during bot shutdown."""
-    await postgesql_db.asyncpg_close()
+    await postgres_dbms.asyncpg_close()
     await scheduler.apscheduler_finish()
     logger.info('Bot has been successfully shut down!')
 

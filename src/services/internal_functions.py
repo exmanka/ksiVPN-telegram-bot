@@ -4,7 +4,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.utils.exceptions import MessageToDeleteNotFound
 from src.keyboards import user_authorized_kb, admin_kb
 from src.states import user_authorized_fsm
-from src.database import postgesql_db
+from src.database import postgres_dbms
 from src.services import aiomoney, localization as loc
 from bot_init import bot, ADMIN_ID, YOOMONEY_TOKEN
 
@@ -129,31 +129,31 @@ async def send_configuration_request_to_admin(client: dict, choice: dict, is_new
     username_str = await format_none_string(client['username'], prefix=' @')
 
     # get client_id from db
-    client_id, *_ = await postgesql_db.get_client_info_by_telegramID(client['id'])
+    client_id, *_ = await postgres_dbms.get_client_info_by_telegramID(client['id'])
 
     # if request was sended by new client with zero configurations
     if is_new_client:
 
         # if client didn't enter referral promocode during registration
         if choice['promo'] is None:
-            ref_promo_str = loc.srvc.msgs['config_request_new_client_no_ref_promo_str']
+            ref_promo_str = loc.internal.msgs['config_request_new_client_no_ref_promo_str']
 
         # if client entered referral promocode during registration
         else:
 
             # get information about entered referral promocode
-            _, client_creator_id, provided_sub_id, _, bonus_time_parsed = await postgesql_db.get_refferal_promo_info_by_phrase(choice['promo'])
-            client_creator_name, client_creator_surname, client_creator_username, client_creator_telegram_id, *_ = await postgesql_db.get_client_info_by_clientID(client_creator_id)
-            *_, price = await postgesql_db.get_subscription_info_by_subID(provided_sub_id)
+            _, client_creator_id, provided_sub_id, _, bonus_time_parsed = await postgres_dbms.get_refferal_promo_info_by_phrase(choice['promo'])
+            client_creator_name, client_creator_surname, client_creator_username, client_creator_telegram_id, *_ = await postgres_dbms.get_client_info_by_clientID(client_creator_id)
+            *_, price = await postgres_dbms.get_subscription_info_by_subID(provided_sub_id)
 
             # convert surname and username for beautiful formatting
             client_creator_surname_str = await format_none_string(client_creator_surname)
             client_creator_username_str = await format_none_string(client_creator_username)
-            ref_promo_str = loc.srvc.msgs['config_request_new_client_ref_promo_str'].\
+            ref_promo_str = loc.internal.msgs['config_request_new_client_ref_promo_str'].\
                 format(choice['promo'], client_creator_name, client_creator_surname_str, client_creator_username_str, client_creator_telegram_id, bonus_time_parsed, price)
 
         await bot.send_message(ADMIN_ID,
-                               loc.srvc.msgs['config_request_new_client'].\
+                               loc.internal.msgs['config_request_new_client'].\
                                 format(client['fullname'], username_str, client['id'], choice['platform'][2:], choice['os_name'], choice['chatgpt'], client_id, ref_promo_str=ref_promo_str),
                                reply_markup=await admin_kb.configuration(client['id']),
                                parse_mode='HTML')
@@ -161,7 +161,7 @@ async def send_configuration_request_to_admin(client: dict, choice: dict, is_new
     # if request was sended by old client with at least one configuration
     else:
         await bot.send_message(ADMIN_ID,
-                               loc.srvc.msgs['config_request_old_client'].\
+                               loc.internal.msgs['config_request_old_client'].\
                                 format(client['fullname'], username_str, client['id'], choice['platform'][2:], choice['os_name'], choice['chatgpt'], client_id),
                                reply_markup=await admin_kb.configuration(client['id']),
                                parse_mode='HTML')
@@ -175,7 +175,7 @@ async def notify_admin_promo_entered(client_id: int, promo_phrase: str, promo_ty
     :param promo_type: type of promocode as string ('global', 'local')
     :raises Exception: wrong type of promo code was entered
     """
-    name, surname, username, telegram_id, *_ = await postgesql_db.get_client_info_by_clientID(client_id)
+    name, surname, username, telegram_id, *_ = await postgres_dbms.get_client_info_by_clientID(client_id)
 
     # convert surname and username for beautiful formatting
     surname_str = await format_none_string(surname)
@@ -183,21 +183,21 @@ async def notify_admin_promo_entered(client_id: int, promo_phrase: str, promo_ty
 
     new_sub_str = ''
     if promo_type == 'global':
-        id, _, expiration_date_parsed, *_, bonus_time_parsed = await postgesql_db.get_global_promo_info(promo_phrase)
+        id, _, expiration_date_parsed, *_, bonus_time_parsed = await postgres_dbms.get_global_promo_info(promo_phrase)
 
     elif promo_type == 'local':
-        id, _, expiration_date_parsed, _, bonus_time_parsed, provided_sub_id = await postgesql_db.get_local_promo_info(promo_phrase)
+        id, _, expiration_date_parsed, _, bonus_time_parsed, provided_sub_id = await postgres_dbms.get_local_promo_info(promo_phrase)
 
         # if local promo changes client's subscription
         if provided_sub_id:
-            *_, price = await postgesql_db.get_subscription_info_by_subID(provided_sub_id)
-            new_sub_str = loc.srvc.msgs['admin_promo_was_etnered_local_promo_new_sub_str'].format(price)
+            *_, price = await postgres_dbms.get_subscription_info_by_subID(provided_sub_id)
+            new_sub_str = loc.internal.msgs['admin_promo_was_etnered_local_promo_new_sub_str'].format(price)
 
     else:
         raise Exception('wrong promo type was entered')
 
     await bot.send_message(ADMIN_ID,
-                           loc.srvc.msgs['admin_promo_was_entered'].\
+                           loc.internal.msgs['admin_promo_was_entered'].\
                             format(client_id, username_str, name, surname_str, telegram_id, promo_type, id, bonus_time_parsed, expiration_date_parsed, new_sub_str=new_sub_str),
                            parse_mode='HTML')
 
@@ -208,12 +208,12 @@ async def notify_admin_payment_success(client_id: int, months_number: int):
     :param client_id:
     :param months_number: number of month client paid for
     """
-    name, surname, username, telegram_id, *_ = await postgesql_db.get_client_info_by_clientID(client_id)
+    name, surname, username, telegram_id, *_ = await postgres_dbms.get_client_info_by_clientID(client_id)
 
     # convert surname and username for beautiful formatting
     surname_str = await format_none_string(surname)
     username_str = await format_none_string(username)
-    await bot.send_message(ADMIN_ID, loc.srvc.msgs['admin_successful_payment'].format(months_number, client_id, username_str, name, surname_str, telegram_id),
+    await bot.send_message(ADMIN_ID, loc.internal.msgs['admin_successful_payment'].format(months_number, client_id, username_str, name, surname_str, telegram_id),
                            parse_mode='HTML')
 
 
@@ -229,11 +229,11 @@ async def notify_client_new_referal(client_creator_id: int, referral_client_name
     referral_client_username_str = await format_none_string(referral_client_username, prefix=' @')
 
     # get information about referral bonus
-    *_, bonus_time_parsed = await postgesql_db.get_refferal_promo_info_by_clientCreatorID(client_creator_id)
+    *_, bonus_time_parsed = await postgres_dbms.get_refferal_promo_info_by_clientCreatorID(client_creator_id)
 
-    client_creator_telegram_id = await postgesql_db.get_telegramID_by_clientID(client_creator_id)
+    client_creator_telegram_id = await postgres_dbms.get_telegramID_by_clientID(client_creator_id)
     await bot.send_message(client_creator_telegram_id,
-                           loc.srvc.msgs['ref_promo_was_entered'].format(referral_client_name, referral_client_username_str, bonus_time_parsed),
+                           loc.internal.msgs['ref_promo_was_entered'].format(referral_client_name, referral_client_username_str, bonus_time_parsed),
                            parse_mode='HTML')
 
 
@@ -265,13 +265,13 @@ async def create_configuration_description(configuration_date_of_receipt: str,
 
     # creating answer text with ChatGPT option
     if configuration_is_chatgpt_available:
-        platform_str = loc.srvc.msgs['platform_str_chatgpt'].format(configuration_os)
+        platform_str = loc.internal.msgs['platform_str_chatgpt'].format(configuration_os)
 
     # creating answer text without ChatGPT option
     else:
-        platform_str = loc.srvc.msgs['platform_str_no_chatgpt'].format(configuration_os)
+        platform_str = loc.internal.msgs['platform_str_no_chatgpt'].format(configuration_os)
 
-    return loc.srvc.msgs['config_info'].format(configuration_date_of_receipt, configuration_protocol_name, server_country, server_city, server_bandwidth, server_ping,
+    return loc.internal.msgs['config_info'].format(configuration_date_of_receipt, configuration_protocol_name, server_country, server_city, server_bandwidth, server_ping,
                                                link_str=link_str, platform_str=platform_str)
 
 
@@ -297,17 +297,17 @@ async def create_configuration(client_id: int,
     link = None
     if file_type == 'link':
         protocol_id, location_id, os_enum, link = await get_configuration_sql_data(flag_protocol, flag_location, flag_os, flag_link)
-        await postgesql_db.insert_configuration(client_id, protocol_id, location_id, os_enum, file_type, link)
+        await postgres_dbms.insert_configuration(client_id, protocol_id, location_id, os_enum, file_type, link)
 
     elif file_type == 'document' or 'photo':
         if telegram_file_id is None:
-            raise Exception(loc.srvc.msgs['error_no_telegram_file_id'])
+            raise Exception(loc.internal.msgs['error_no_telegram_file_id'])
 
         protocol_id, location_id, os_enum, _ = await get_configuration_sql_data(flag_protocol, flag_location, flag_os, flag_link)
-        await postgesql_db.insert_configuration(client_id, protocol_id, location_id, os_enum, file_type, telegram_file_id)
+        await postgres_dbms.insert_configuration(client_id, protocol_id, location_id, os_enum, file_type, telegram_file_id)
 
     else:
-        raise Exception(loc.srvc.msgs['error_bad_file_type'])
+        raise Exception(loc.internal.msgs['error_bad_file_type'])
 
 
 async def get_configuration_sql_data(protocol: str, location: str, os: str, link: str | None = None) -> tuple[int, int, str]:
@@ -349,7 +349,7 @@ async def get_configuration_sql_data(protocol: str, location: str, os: str, link
             protocol_id = 3
 
         case _:
-            raise Exception(loc.srvc.msgs['error_bad_protocol'])
+            raise Exception(loc.internal.msgs['error_bad_protocol'])
 
     location_id = None
     match location.lower():
@@ -374,7 +374,7 @@ async def get_configuration_sql_data(protocol: str, location: str, os: str, link
             location_id = 4
 
         case _:
-            raise Exception(loc.srvc.msgs['error_bad_country'])
+            raise Exception(loc.internal.msgs['error_bad_country'])
 
     os_enum = None
     match os.lower():
@@ -396,10 +396,10 @@ async def get_configuration_sql_data(protocol: str, location: str, os: str, link
             os_enum = 'macOS'
 
         case _:
-            raise Exception(loc.srvc.msgs['error_bad_os'])
+            raise Exception(loc.internal.msgs['error_bad_os'])
 
     if link and not link.startswith('vless://'):
-        raise Exception(loc.srvc.msgs['error_bad_link'])
+        raise Exception(loc.internal.msgs['error_bad_link'])
 
     return protocol_id, location_id, os_enum, link
 
@@ -409,22 +409,22 @@ async def check_referral_reward(ref_client_id: int):
 
     :param ref_client_id: client_id of person who registered with referral promocode
     """
-    successful_payments_number = await postgesql_db.get_payments_successful_number(ref_client_id)
-    ref_client_name, _, ref_client_username, *_, used_ref_promo_id, _ = await postgesql_db.get_client_info_by_clientID(ref_client_id)
+    successful_payments_number = await postgres_dbms.get_payments_successful_number(ref_client_id)
+    ref_client_name, _, ref_client_username, *_, used_ref_promo_id, _ = await postgres_dbms.get_client_info_by_clientID(ref_client_id)
 
     # if client paid for subscription for the first time and used referral promo
     if successful_payments_number == 1 and used_ref_promo_id:
 
         # add subscription bonus time (30 days) for old client
-        _, client_creator_id, *_ = await postgesql_db.get_refferal_promo_info_by_promoID(used_ref_promo_id)
-        await postgesql_db.add_subscription_time(client_creator_id, days=30)
+        _, client_creator_id, *_ = await postgres_dbms.get_refferal_promo_info_by_promoID(used_ref_promo_id)
+        await postgres_dbms.add_subscription_time(client_creator_id, days=30)
 
         # notify old client about new bonus
         # if client's username exists (add whitespace for good string formatting)
         ref_client_username_str = await format_none_string(ref_client_username)
-        client_creator_telegram_id = await postgesql_db.get_telegramID_by_clientID(client_creator_id)
+        client_creator_telegram_id = await postgres_dbms.get_telegramID_by_clientID(client_creator_id)
         await bot.send_message(client_creator_telegram_id,
-                               loc.srvc.msgs['ref_client_paid_for_sub'].format(ref_client_name, ref_client_username_str),
+                               loc.internal.msgs['ref_client_paid_for_sub'].format(ref_client_name, ref_client_username_str),
                                parse_mode='HTML')
 
 
@@ -446,7 +446,7 @@ async def autocheck_payment_status(payment_id: int) -> str:
     for x in range(100):
 
         # if user has already checked successful payment and it was added to account subscription
-        if await postgesql_db.get_payment_status(payment_id):
+        if await postgres_dbms.get_payment_status(payment_id):
             return 'already_checked'
 
         # if payment was successful according to YooMoney info
@@ -472,12 +472,12 @@ async def authorization_complete(message: Message, state: FSMContext):
 
         # if new client entered referral promocode during registration
         if phrase := data['promo']:
-            used_ref_promo_id, _, provided_sub_id, bonus_time, _ = await postgesql_db.get_refferal_promo_info_by_phrase(phrase)
+            used_ref_promo_id, _, provided_sub_id, bonus_time, _ = await postgres_dbms.get_refferal_promo_info_by_phrase(phrase)
 
-        await postgesql_db.insert_client(client.first_name, client.id, client.last_name, client.username, used_ref_promo_id, provided_sub_id, bonus_time)
+        await postgres_dbms.insert_client(client.first_name, client.id, client.last_name, client.username, used_ref_promo_id, provided_sub_id, bonus_time)
         await send_configuration_request_to_admin({'fullname': client.full_name, 'username': client.username, 'id': client.id}, data._data, is_new_client=True)
 
-    await message.answer(loc.srvc.msgs['wait_for_admin_answer'], reply_markup=user_authorized_kb.menu)
+    await message.answer(loc.internal.msgs['wait_for_admin_answer'], reply_markup=user_authorized_kb.menu)
     await message.answer(loc.auth.msgs['i_wanna_sleep'])
     await state.finish()
 
@@ -491,15 +491,15 @@ async def sub_renewal(message: Message, state: FSMContext, months_number: int, d
     :param discount: price discount in range [0, 1)
     """
     # get client_id by telegramID
-    client_id = await postgesql_db.get_clientID_by_telegramID(message.from_user.id)
+    client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
 
     # get client's sub info
-    sub_id, sub_title, _, sub_price = await postgesql_db.get_subscription_info_by_clientID(client_id)
+    sub_id, sub_title, _, sub_price = await postgres_dbms.get_subscription_info_by_clientID(client_id)
 
     # count payment sum
     payment_price = max(sub_price * months_number * (1 - discount), 2)
     # create entity in db table payments and getting payment_id
-    payment_id = await postgesql_db.insert_payment(client_id, sub_id, payment_price, months_number)
+    payment_id = await postgres_dbms.insert_payment(client_id, sub_id, payment_price, months_number)
 
     # use aiomoney for payment link creation
     wallet = aiomoney.YooMoneyWallet(YOOMONEY_TOKEN)
@@ -511,26 +511,26 @@ async def sub_renewal(message: Message, state: FSMContext, months_number: int, d
     )
 
     # answer with ReplyKeyboardMarkup
-    await message.answer(loc.srvc.msgs['wait_payment'], parse_mode='HTML', reply_markup=user_authorized_kb.sub_renewal_verification)
+    await message.answer(loc.internal.msgs['wait_payment'], parse_mode='HTML', reply_markup=user_authorized_kb.sub_renewal_verification)
     await state.set_state(user_authorized_fsm.PaymentMenu.verification)
 
     # answer with InlineKeyboardMarkup with link to payment
     discount_str = ''
     if discount:
-        discount_str = loc.srvc.msgs['discount_str'].format(sub_price * months_number * discount)
+        discount_str = loc.internal.msgs['discount_str'].format(sub_price * months_number * discount)
 
-    message_info = await message.answer(loc.srvc.msgs['payment_form'].format(sub_title, months_number, payment_price, payment_id, discount_str=discount_str),
+    message_info = await message.answer(loc.internal.msgs['payment_form'].format(sub_title, months_number, payment_price, payment_id, discount_str=discount_str),
                                         parse_mode='HTML', reply_markup=await user_authorized_kb.sub_renewal_link_inline(payment_form.link_for_customer))
 
     # add telegram_id for created payment
-    await postgesql_db.update_payment_telegram_message_id(payment_id, message_info['message_id'])
+    await postgres_dbms.update_payment_telegram_message_id(payment_id, message_info['message_id'])
 
     # run payment autochecker for 310 seconds
     client_last_payment_status = await autocheck_payment_status(payment_id)
 
     # if autochecker returns successful payment info
     if client_last_payment_status == 'success':
-        await postgesql_db.update_payment_successful(payment_id, client_id, months_number)
+        await postgres_dbms.update_payment_successful(payment_id, client_id, months_number)
         await state.set_state(user_authorized_fsm.PaymentMenu.menu)
         await notify_admin_payment_success(client_id, months_number)
         await check_referral_reward(client_id)
@@ -544,4 +544,4 @@ async def sub_renewal(message: Message, state: FSMContext, months_number: int, d
             pass
 
         finally:
-            await message.answer(loc.srvc.msgs['payment_successful'].format(payment_id), reply_markup=user_authorized_kb.sub_renewal)
+            await message.answer(loc.internal.msgs['payment_successful'].format(payment_id), reply_markup=user_authorized_kb.sub_renewal)

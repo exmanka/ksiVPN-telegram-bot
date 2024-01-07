@@ -1,5 +1,5 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
-from src.database import postgesql_db
+from src.database import postgres_dbms
 from src.services import localization as loc
 
 
@@ -64,7 +64,7 @@ settings = ReplyKeyboardMarkup(resize_keyboard=True).\
 
 async def settings_notifications(client_id: int) -> ReplyKeyboardMarkup:
     """Return dynamic reply keyboard with current notifications settings for client with specified client_id."""
-    sub_expires_in_1_day, sub_expires_in_3_days, sub_expires_in_7_days = await postgesql_db.get_notifications_info(client_id)
+    sub_expires_in_1_day, sub_expires_in_3_days, sub_expires_in_7_days = await postgres_dbms.get_notifications_info(client_id)
     settings_notifications_kb = ReplyKeyboardMarkup(resize_keyboard=True)
 
     # if client turned on notifications one day before subscription expires
@@ -98,7 +98,7 @@ async def settings_chatgpt(telegram_id: int) -> ReplyKeyboardMarkup:
     settings_chatgpt_kb = ReplyKeyboardMarkup(resize_keyboard=True)
 
     # if client turned on ChatGPT mode for bot
-    if await postgesql_db.get_chatgpt_mode_status(telegram_id):
+    if await postgres_dbms.get_chatgpt_mode_status(telegram_id):
         settings_chatgpt_kb.add(KeyboardButton(loc.auth.btns['chatgpt_off']))
 
     # if client turned off ChatGPT mode for bot

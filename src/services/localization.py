@@ -25,7 +25,7 @@ unauth: SubjectLocalization     # user_unauthorized
 auth: SubjectLocalization       # user_authorized
 admn: SubjectLocalization       # admin
 other: SubjectLocalization      # other
-srvc: SubjectLocalization       # service_functions
+internal: SubjectLocalization   # internal_functions
 
 
 @run_once
@@ -36,7 +36,7 @@ def set_locale(localization_file_path: str = 'src/localizations/',
     :param localization_file_path: path to .json file, defaults to 'src/localizations/'
     :param language: name of .json file, defaults to 'ru'
     """
-    global unauth, auth, admn, other, srvc
+    global unauth, auth, admn, other, internal
 
     localization_file_name = language + '.json'
     try:
@@ -46,7 +46,7 @@ def set_locale(localization_file_path: str = 'src/localizations/',
             auth = SubjectLocalization(*localization_dict['user_authorized'].values())
             admn = SubjectLocalization(*localization_dict['admin'].values())
             other = SubjectLocalization(*localization_dict['other'].values())
-            srvc = SubjectLocalization(*localization_dict['service_functions'].values())
+            internal = SubjectLocalization(*localization_dict['internal_functions'].values())
     
     except Exception as e:
        print(e)
