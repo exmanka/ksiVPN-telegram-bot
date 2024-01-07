@@ -1,26 +1,50 @@
 version: '3.8'
 
 services:
-  telebot:
+  tgbot:
     build: .
-    restart: unless-stopped
+    ports:
+      - 80:80
+      - 443:443
+      - 88:88
+      - 8443:8443
+    container_name: tgbot-container
+    restart: always
     env_file:
       - .env
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
-      - botnet
+      - appnet
 
   db:
     image: postgres:14.9
+    container_name: postgres-container
+    ports:
+      - 5432:5432
     restart: always
     environment:
-      POSTGRES_USER: 'postgres'
-      POSTGRES_PASSWORD: 'test'
-      POSTGRES_DB: 'tgbot_postgres_db'
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: ${POSTGRES_PW}
+      POSTGRES_DB: tgbot_postgres_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docker -d tgbot_postgres_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
-      - botnet
+      - appnet
+    volumes:
+      - tgbot-db-data:/var/lib/postgresql/data
+      - ./init-database.sql:/docker-entrypoint-initdb.d/init-database.sql
+
 
 networks:
-  botnet:
+  appnet:
     driver: bridge
+    name: tgbot-net
+
+volumes:
+  tgbot-db-data:
+    name: tgbot-db-volume

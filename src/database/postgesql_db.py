@@ -12,7 +12,7 @@ conn: asyncpg.Connection
 async def asyncpg_run() -> None:
     """Initialize asyncpg connection."""
     global conn
-    conn = await asyncpg.connect(host='localhost', database='tgbot_postgres_db', user='postgres', password=POSTGRES_PW)
+    conn = await asyncpg.connect(host='db', database='tgbot_postgres_db', user='docker', password=POSTGRES_PW)
 
     if conn:
         logger.info('Database has been successfully connected!')
