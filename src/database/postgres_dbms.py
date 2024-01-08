@@ -205,12 +205,12 @@ async def get_client_info_by_telegramID(telegram_id: int) -> asyncpg.Record | No
     """Return information about client by specified telegram_id.
 
     :param telegram_id:
-    :return: asyncgp.Record object having (id, name, surname, username, register_date, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI'), used_ref_promo_id, bot_chatgpt_mode)
+    :return: asyncgp.Record object having (id, name, surname, username, register_date, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI'), used_ref_promo_id)
     :rtype: asyncpg.Record | None
     """
     return await conn.fetchrow(
         '''
-        SELECT id, name, surname, username, register_date, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI'), used_ref_promo_id, bot_chatgpt_mode
+        SELECT id, name, surname, username, register_date, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI'), used_ref_promo_id
         FROM clients
         WHERE telegram_id = $1;
         ''',
@@ -221,27 +221,27 @@ async def get_client_info_by_clientID(client_id: int) -> asyncpg.Record | None:
     """Return information about client by specified client_id.
 
     :param client_id:
-    :return: asyncgp.Record object having (name, surname, username, telegram_id, register_date, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI'), used_ref_promo_id, bot_chatgpt_mode)
+    :return: asyncgp.Record object having (name, surname, username, telegram_id, register_date, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI'), used_ref_promo_id)
     :rtype: asyncpg.Record | None
     """
     return await conn.fetchrow(
         '''
-        SELECT name, surname, username, telegram_id, register_date, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI'), used_ref_promo_id, bot_chatgpt_mode
+        SELECT name, surname, username, telegram_id, register_date, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI'), used_ref_promo_id
         FROM clients
         WHERE id = $1;
         ''',
         client_id)
 
 
-async def get_chatgpt_mode_status(telegram_id: int) -> bool | None:
+async def get_chatgpt_mode_status(client_id: int) -> bool | None:
     """Return TRUE if bot is answering unrecognized messages in ChatGPT mode else FALSE."""
     return await conn.fetchval(
         '''
-        SELECT bot_chatgpt_mode
-        FROM clients
-        WHERE telegram_id = $1;
+        SELECT chatgpt_mode
+        FROM settings
+        WHERE client_id = $1;
         ''',
-        telegram_id)
+        client_id)
 
 
 async def get_clients_telegram_ids() -> list[asyncpg.Record]:
@@ -546,17 +546,17 @@ async def get_client_entered_promos(client_id: int) -> tuple[asyncpg.Record | No
         return (promos_ref, promos_global, promos_local)
 
 
-async def get_notifications_info(client_id: int) -> asyncpg.Record | None:
-    """Return information about client's notifications' setting where TRUE means TURNED ON and FALSE means TURNED OFF.
+async def get_settings_info(client_id: int) -> asyncpg.Record | None:
+    """Return information about client's setting where TRUE means TURNED ON and FALSE means TURNED OFF.
 
     :param client_id:
-    :return: asyncgp.Record object having (sub_expiration_in_1d, sub_expiration_in_3d, sub_expiration_in_7d)
+    :return: asyncgp.Record object having (sub_expiration_in_1d, sub_expiration_in_3d, sub_expiration_in_7d, chatgpt_mode)
     :rtype: asyncpg.Record | None
     """
     return await conn.fetchrow(
         '''
-        SELECT sub_expiration_in_1d, sub_expiration_in_3d, sub_expiration_in_7d
-        FROM sub_notifications_settings
+        SELECT sub_expiration_in_1d, sub_expiration_in_3d, sub_expiration_in_7d, chatgpt_mode
+        FROM settings
         WHERE client_id = $1;
         ''',
         client_id)
@@ -574,14 +574,14 @@ async def get_notifications_status() -> list[asyncpg.Record]:
         SELECT c.telegram_id,
         TO_CHAR(cs.expiration_date, 'FMDD TMMonth в HH24:MI') AS subscription_expiration_date,
         CURRENT_TIMESTAMP <= cs.expiration_date AND cs.expiration_date < CURRENT_TIMESTAMP + INTERVAL '30 minutes' AS is_subscription_expiration_now,
-        sns.sub_expiration_in_1d AND CURRENT_TIMESTAMP + INTERVAL '1 days' <= cs.expiration_date AND cs.expiration_date < CURRENT_TIMESTAMP + INTERVAL '1 days 30 minutes' AS is_subscription_expiration_in_1d,
-        sns.sub_expiration_in_3d AND CURRENT_TIMESTAMP + INTERVAL '3 days' <= cs.expiration_date AND cs.expiration_date < CURRENT_TIMESTAMP + INTERVAL '3 days 30 minutes' AS is_subscription_expiration_in_3d,
-        sns.sub_expiration_in_7d AND CURRENT_TIMESTAMP + INTERVAL '7 days' <= cs.expiration_date AND cs.expiration_date < CURRENT_TIMESTAMP + INTERVAL '7 days 30 minutes' AS is_subscription_expiration_in_7d
+        s.sub_expiration_in_1d AND CURRENT_TIMESTAMP + INTERVAL '1 days' <= cs.expiration_date AND cs.expiration_date < CURRENT_TIMESTAMP + INTERVAL '1 days 30 minutes' AS is_subscription_expiration_in_1d,
+        s.sub_expiration_in_3d AND CURRENT_TIMESTAMP + INTERVAL '3 days' <= cs.expiration_date AND cs.expiration_date < CURRENT_TIMESTAMP + INTERVAL '3 days 30 minutes' AS is_subscription_expiration_in_3d,
+        s.sub_expiration_in_7d AND CURRENT_TIMESTAMP + INTERVAL '7 days' <= cs.expiration_date AND cs.expiration_date < CURRENT_TIMESTAMP + INTERVAL '7 days 30 minutes' AS is_subscription_expiration_in_7d
         FROM clients AS c
-        JOIN sub_notifications_settings AS sns
-        ON c.id = sns.client_id
+        JOIN settings AS s
+        ON c.id = s.client_id
         JOIN clients_subscriptions AS cs
-        ON sns.client_id = cs.client_id;
+        ON s.client_id = cs.client_id;
         ''')
 
 
@@ -685,16 +685,16 @@ async def get_earnings_per_month() -> Decimal:
     )
 
 
-async def update_chatgpt_mode(telegram_id: int) -> bool | None:
+async def update_chatgpt_mode(client_id: int) -> bool | None:
     """Turn on/off ChatGPT bot mode in DB of client with specified telegram_id."""
     return await conn.fetchval(
         '''
-        UPDATE clients
-        SET bot_chatgpt_mode = NOT bot_chatgpt_mode
-        WHERE telegram_id = $1
-        RETURNING bot_chatgpt_mode;
+        UPDATE settings
+        SET chatgpt_mode = NOT chatgpt_mode
+        WHERE client_id = $1
+        RETURNING chatgpt_mode;
         ''',
-        telegram_id)
+        client_id)
 
 
 async def insert_client(name: str,
@@ -744,7 +744,7 @@ async def insert_client(name: str,
 
         await conn.execute(
             '''
-            INSERT INTO sub_notifications_settings (client_id)
+            INSERT INTO settings (client_id)
             VALUES ($1);
             ''',
             client_id)
@@ -883,7 +883,7 @@ async def update_notifications_1d(client_id: int) -> bool | None:
     and FALSE is not send notification, return current settings."""
     return await conn.fetchval(
         '''
-        UPDATE sub_notifications_settings
+        UPDATE settings
         SET sub_expiration_in_1d = NOT sub_expiration_in_1d
         WHERE client_id = $1
         RETURNING sub_expiration_in_1d;
@@ -896,7 +896,7 @@ async def update_notifications_3d(client_id: int) -> bool | None:
     and FALSE is not send notification, return current settings."""
     return await conn.fetchval(
         '''
-        UPDATE sub_notifications_settings
+        UPDATE settings
         SET sub_expiration_in_3d = NOT sub_expiration_in_3d
         WHERE client_id = $1
         RETURNING sub_expiration_in_3d;
@@ -909,7 +909,7 @@ async def update_notifications_7d(client_id: int) -> bool | None:
     and FALSE is not send notification, return current settings."""
     return await conn.fetchval(
         '''
-        UPDATE sub_notifications_settings
+        UPDATE settings
         SET sub_expiration_in_7d = NOT sub_expiration_in_7d
         WHERE client_id = $1
         RETURNING sub_expiration_in_7d;

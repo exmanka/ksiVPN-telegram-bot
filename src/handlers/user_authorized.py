@@ -308,18 +308,18 @@ async def account_settings_submenu_fsm_cancel(message: Message, state: FSMContex
 async def account_settings_chatgpt(message: Message, state: FSMContext):
     """Change account settings FSM state and show dinamic account settings ChatGPT mode keyboard."""
     await state.set_state(user_authorized_fsm.SettingsMenu.chatgpt)
-    await message.answer(loc.auth.msgs['go_settings_chatgpt'], parse_mode='HTML', reply_markup=await user_authorized_kb.settings_chatgpt(message.from_user.id))
+    await message.answer(loc.auth.msgs['go_settings_chatgpt'], parse_mode='HTML', reply_markup=await user_authorized_kb.settings_chatgpt(await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)))
 
 
 @user_mw.authorized_only()
 async def account_settings_chatgpt_mode(message: Message, state: FSMContext):
     """Turn on/off client's ChatGPT mode for answering unrecognized messages."""
     # update ChatGPT mode status and get current ChatGPT mode status
-    chatgpt_mode_status: bool = await postgres_dbms.update_chatgpt_mode(message.from_user.id)
+    chatgpt_mode_status: bool = await postgres_dbms.update_chatgpt_mode(await postgres_dbms.get_clientID_by_telegramID(message.from_user.id))
 
     # if user switches ChatGPT mode from settings
     if await state.get_state() == user_authorized_fsm.SettingsMenu.chatgpt.state:
-        reply_keyboard = await user_authorized_kb.settings_chatgpt(message.from_user.id)
+        reply_keyboard = await user_authorized_kb.settings_chatgpt(await postgres_dbms.get_clientID_by_telegramID(message.from_user.id))
 
     # if user switches ChatGPT mode using command
     else:

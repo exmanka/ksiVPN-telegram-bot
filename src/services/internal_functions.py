@@ -410,7 +410,7 @@ async def check_referral_reward(ref_client_id: int):
     :param ref_client_id: client_id of person who registered with referral promocode
     """
     successful_payments_number = await postgres_dbms.get_payments_successful_number(ref_client_id)
-    ref_client_name, _, ref_client_username, *_, used_ref_promo_id, _ = await postgres_dbms.get_client_info_by_clientID(ref_client_id)
+    ref_client_name, _, ref_client_username, *_, used_ref_promo_id = await postgres_dbms.get_client_info_by_clientID(ref_client_id)
 
     # if client paid for subscription for the first time and used referral promo
     if successful_payments_number == 1 and used_ref_promo_id:
