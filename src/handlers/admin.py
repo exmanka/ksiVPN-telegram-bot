@@ -302,6 +302,56 @@ async def show_user_config_sql(message: Message):
 
 
 @admin_mw.admin_only()
+async def show_clients_info(message: Message):
+    """Send message with information about all clients."""
+    await message.answer(loc.admn.msgs['clients_info'])
+
+    answer_message = ''
+    for [client_id] in await postgres_dbms.get_clients_ids():
+        name, surname, username, telegram_id, _, register_date_parsed, used_ref_promo_id = await postgres_dbms.get_client_info_by_clientID(client_id)
+        *_, sub_price = await postgres_dbms.get_subscription_info_by_clientID(client_id)
+        sub_expiration_date_parsed = await postgres_dbms.get_subscription_expiration_date(telegram_id)
+        config_num = await postgres_dbms.get_configurations_number(client_id)
+        paid_sum: Decimal = await postgres_dbms.get_payments_successful_sum(client_id)
+        _, ref_promo_phrase, *_ = await postgres_dbms.get_refferal_promo_info_by_clientCreatorID(client_id)
+
+        answer_message_row = ''
+        if await postgres_dbms.is_subscription_active(telegram_id):
+            answer_message_row += loc.admn.msgs['clients_info_sub_active']
+        else:
+            answer_message_row += loc.admn.msgs['clients_info_sub_inactive']
+
+        # hope that telegram add ability to send markdown's spreadsheets in message to api, but for now
+        answer_message_row +=\
+            f"| <b>{client_id}</b> "\
+            f"| {await internal_functions.format_none_string(username)} <code>{name}{await internal_functions.format_none_string(surname)}</code> <code>{telegram_id}</code>, {register_date_parsed[:-8]} "\
+            f"| {sub_price}₽/мес, <b>{sub_expiration_date_parsed}</b> "\
+            f"| configs: {config_num} "\
+            f"| paid: {float(paid_sum):g}₽ "\
+            f"| <code>{ref_promo_phrase}</code> "
+            
+        # if client was invited by another client
+        who_invited_str = ''
+        if used_ref_promo_id is not None:
+            _, who_invited_client_id, *_ = await postgres_dbms.get_refferal_promo_info_by_promoID(used_ref_promo_id)
+            who_invited_name, who_invited_surname, who_invited_username, who_invited_telegram_id, *_ = await postgres_dbms.get_client_info_by_clientID(who_invited_client_id)
+            who_invited_str +=\
+                f"| {await internal_functions.format_none_string(who_invited_username)} <code>{who_invited_name}{await internal_functions.format_none_string(who_invited_surname)}</code> <code>{who_invited_telegram_id}</code>"
+
+        answer_message_row += who_invited_str
+        answer_message += answer_message_row + '\n\n'
+
+        # send message for every 10 client_id to avoid telegram message length restrictions
+        if client_id % 10 == 0:
+            await message.answer(answer_message, parse_mode='HTML')
+            answer_message = ''
+    
+    # send remaining info
+    if answer_message:
+        await message.answer(answer_message, 'HTML')
+
+
+@admin_mw.admin_only()
 async def show_earnings(message: Message):
     """Send message with information about earned money per current month."""
     earnings_per_current_month: Decimal = await postgres_dbms.get_earnings_per_month()
@@ -433,6 +483,7 @@ def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(show_user_config_sql_cm_start, commands=['sql_config'])
     dp.register_message_handler(check_user_configs, state=admin_fsm.ConfigInfo.ready, commands=['check_configs'])
     dp.register_message_handler(show_user_config_sql, state=admin_fsm.ConfigInfo.ready, content_types=['text', 'photo', 'document'])
+    dp.register_message_handler(show_clients_info, Text(loc.admn.btns['clients_info']))
     dp.register_message_handler(show_earnings, Text(loc.admn.btns['show_earnings']))
     dp.register_message_handler(get_file_id, Text(loc.admn.btns['get_file_id']), content_types=['text', 'photo', 'document'])
     dp.register_message_handler(get_file_id, commands=['fileid', 'fid'], commands_ignore_caption=False, content_types=['text', 'photo', 'document'])

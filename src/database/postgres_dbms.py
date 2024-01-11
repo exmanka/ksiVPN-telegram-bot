@@ -12,7 +12,7 @@ conn: asyncpg.Connection
 async def asyncpg_run() -> None:
     """Initialize asyncpg connection."""
     global conn
-    conn = await asyncpg.connect(host='app-db', database=POSTGRES_DB, user=POSTGRES_USER, password=POSTGRES_PASSWORD)
+    conn = await asyncpg.connect(host='localhost', database=POSTGRES_DB, user=POSTGRES_USER, password=POSTGRES_PASSWORD)
 
     if conn:
         logger.info('Database has been successfully connected!')
@@ -38,7 +38,7 @@ async def is_user_registered(telegram_id: int) -> bool | None:
 
 
 async def is_subscription_active(telegram_id: int) -> bool | None:
-    """Check subcription's expiration date of client with specified telegram_id."""
+    """Check subcription's expiration date of client with specified telegram_id. Return TRUE if acive, FALSE if inactive."""
     return await conn.fetchval(
         '''
         SELECT TRUE
@@ -244,6 +244,15 @@ async def get_chatgpt_mode_status(client_id: int) -> bool | None:
         client_id)
 
 
+async def get_clients_ids() -> list[asyncpg.Record]:
+    """Return all clients' ids from DB as list[asyncpg.Record]."""
+    return await conn.fetch(
+        '''
+        SELECT id
+        FROM clients;
+        ''')
+
+
 async def get_clients_telegram_ids() -> list[asyncpg.Record]:
     """Return all clients' telegram ids from DB as list[asyncpg.Record]."""
     return await conn.fetch(
@@ -339,7 +348,7 @@ async def get_configurations_info(client_id: int) -> list[asyncpg.Record]:
 
 
 async def get_configurations_number(client_id: int) -> int | None:
-    """Return number of all client's configurations."""
+    """Return number of client's configurations."""
     return await conn.fetchval(
         '''
         SELECT COUNT(*)
@@ -409,6 +418,22 @@ async def get_payments_successful_number(client_id: int) -> int:
     return await conn.fetchval(
         '''
         SELECT COUNT(*)
+        FROM payments
+        WHERE client_id = $1
+        AND is_successful = TRUE;
+        ''',
+        client_id)
+
+
+async def get_payments_successful_sum(client_id: int) -> Decimal:
+    """Return sum of successful payments initiated by client."""
+    return await conn.fetchval(
+        '''
+        SELECT
+        CASE
+            WHEN SUM(price) IS NULL THEN 0.00
+            ELSE SUM(price)
+        END
         FROM payments
         WHERE client_id = $1
         AND is_successful = TRUE;
