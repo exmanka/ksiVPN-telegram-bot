@@ -68,6 +68,25 @@ async def is_subscription_not_started(telegram_id: int) -> bool | None:
         telegram_id)
 
 
+async def is_subscription_free(telegram_id: int) -> bool | None:
+    """Check client has free subscription."""
+    return await conn.fetchval(
+        '''
+        SELECT
+        CASE
+            WHEN sub.price = 0 THEN TRUE
+            ELSE FALSE
+        END
+        FROM subscriptions AS sub
+        JOIN clients_subscriptions AS cs
+        ON sub.id = cs.sub_id
+        JOIN clients AS c
+        ON cs.client_id = c.id
+        WHERE c.telegram_id = $1;
+        ''',
+        telegram_id)
+
+
 async def is_referral_promo(phrase: str) -> bool | None:
     """Check phrase is refferal promocode existing in DB."""
     return await conn.fetchval(

@@ -316,7 +316,7 @@ async def show_clients_info(message: Message):
         _, ref_promo_phrase, *_ = await postgres_dbms.get_refferal_promo_info_by_clientCreatorID(client_id)
 
         answer_message_row = ''
-        if await postgres_dbms.is_subscription_active(telegram_id):
+        if await postgres_dbms.is_subscription_active(telegram_id) or await postgres_dbms.is_subscription_free(telegram_id):
             answer_message_row += loc.admn.msgs['clients_info_sub_active']
         else:
             answer_message_row += loc.admn.msgs['clients_info_sub_inactive']

@@ -21,8 +21,13 @@ async def subscription_status(message: Message):
         await message.answer(loc.auth.msgs['sub_isnt_active'])
         return
 
+    # if subscription is free
+    elif await postgres_dbms.is_subscription_free(message.from_user.id):
+        await message.answer(loc.auth.msgs['sub_is_free'], parse_mode='HTML')
+        return
+
     # if subscription is acive
-    if await postgres_dbms.is_subscription_active(message.from_user.id):
+    elif await postgres_dbms.is_subscription_active(message.from_user.id):
         await message.answer(loc.auth.msgs['sub_active'], parse_mode='HTML')
 
     # if subsctiption is inactive
@@ -44,6 +49,11 @@ async def submenu_fsm_cancel(message: Message, state: FSMContext = None):
 @user_mw.authorized_only()
 async def sub_renewal_fsm_start(message: Message):
     """Start FSM for subscription renewal and show subscription renewal keyboard."""
+    # if subscription is free for client
+    if await postgres_dbms.is_subscription_free(message.from_user.id):
+        await message.answer(loc.auth.msgs['sub_renewal_free'], parse_mode='HTML')
+        return
+    
     await user_authorized_fsm.PaymentMenu.menu.set()
     await message.answer(loc.auth.msgs['go_sub_renewal_menu'], parse_mode='HTML', reply_markup=user_authorized_kb.sub_renewal)
 
