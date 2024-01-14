@@ -1,15 +1,17 @@
 version: '3.9'
 
 services:
-  tgbot-app:
-    build: .
+  app-tgbot:
+    build:
+      context: .
+      dockerfile: tgbot.Dockerfile
     container_name: tgbot-container
     restart: unless-stopped
     env_file:
       - .env
     ports:
       - 80:80
-      - 443:443
+#      - 443:443
       - 88:88
       - 8443:8443
     networks:
@@ -19,7 +21,9 @@ services:
         condition: service_healthy
 
   app-db:
-    image: postgres:14.9-alpine
+    build:
+      context: .
+      dockerfile: db.Dockerfile
     container_name: postgres-container
     restart: unless-stopped
     environment:
