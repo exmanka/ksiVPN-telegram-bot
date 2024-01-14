@@ -24,6 +24,8 @@ services:
     build:
       context: .
       dockerfile: db.Dockerfile
+      args:
+        ADDITIONAL_LANGUAGE: ${ADDITIONAL_LANGUAGE}
     container_name: postgres-container
     restart: unless-stopped
     environment:
