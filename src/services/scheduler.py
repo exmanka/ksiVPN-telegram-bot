@@ -1,10 +1,12 @@
+import os
+import asyncio
 import logging
 from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram.types.input_file import InputFile
 from src.database import postgres_dbms
 from src.services import internal_functions
-from bot_init import bot, ADMIN_ID, BACKUP_PATH_NAME
+from bot_init import bot, ADMIN_ID, TIMEZONE, BACKUP_PATH
 
 
 logger = logging.getLogger(__name__)
@@ -15,7 +17,7 @@ async def apscheduler_start():
     global scheduler
     scheduler = AsyncIOScheduler()
     scheduler.add_job(send_subscription_expiration_notifications, 'cron', minute='0,30')
-    scheduler.add_job(send_database_backup, 'cron', hour=20, minute=30, timezone='Europe/Moscow')
+    scheduler.add_job(send_database_backup, 'cron', hour=23, minute=00, timezone=TIMEZONE)
     scheduler.start()
     logger.info('Scheduler has been successfully launched!')
 
@@ -90,5 +92,6 @@ async def send_subscription_expiration_notifications():
 
 async def send_database_backup():
     """Send document to admin with database backup."""
-    logger.info('A database backup is being sent')
-    await bot.send_document(ADMIN_ID, InputFile(BACKUP_PATH_NAME), caption=f'Бэкап за {datetime.now().strftime("%d.%m.%y %H:%M")}')
+    logger.info('Sending database backup to admin via telegram')
+    backup_path_name: str = os.path.join(BACKUP_PATH, 'db-backup.gz')
+    await bot.send_document(ADMIN_ID, InputFile(backup_path_name), caption=f'Backup for {datetime.now().strftime("%d.%m.%y %H:%M")}')

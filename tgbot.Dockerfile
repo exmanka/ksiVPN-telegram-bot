@@ -1,6 +1,6 @@
 FROM python:3.10-slim
 
-WORKDIR /usr/src/telebot
+WORKDIR /usr/src/tgbot
 
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt

@@ -16,6 +16,8 @@ services:
       - 8443:8443
     networks:
       - appnet
+    volumes:
+      - db-backups:${BACKUP_PATH}
     depends_on:
       app-db:
         condition: service_healthy
@@ -44,14 +46,17 @@ services:
     networks:
       - appnet
     volumes:
-      - tgbot-db-data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
+      - db-backups:/var/lib/postgresql/backups
       - ./init-database.sql:/docker-entrypoint-initdb.d/init-database.sql
 
 networks:
   appnet:
-    name: tgbot-net
+    name: app-net
     driver: bridge
 
 volumes:
-  tgbot-db-data:
-    name: tgbot-db-volume
+  db-data:
+    name: db-data-volume
+  db-backups:
+    name: db-backups-volume
