@@ -319,6 +319,7 @@ async def account_settings_chatgpt(message: Message, state: FSMContext):
     """Change account settings FSM state and show dinamic account settings ChatGPT mode keyboard."""
     await state.set_state(user_authorized_fsm.SettingsMenu.chatgpt)
     await message.answer(loc.auth.msgs['go_settings_chatgpt'], parse_mode='HTML', reply_markup=await user_authorized_kb.settings_chatgpt(await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)))
+    await message.answer(loc.auth.msgs['settings_chatgpt_info'], parse_mode='HTML')
 
 
 @user_mw.authorized_only()
@@ -350,6 +351,7 @@ async def account_settings_notifications(message: Message, state: FSMContext):
     client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
     await state.set_state(user_authorized_fsm.SettingsMenu.notifications)
     await message.answer(loc.auth.msgs['go_settings_notifications'], parse_mode='HTML', reply_markup=await user_authorized_kb.settings_notifications(client_id))
+    await message.answer(loc.auth.msgs['settings_notifications_info'], parse_mode='HTML')
 
 
 @user_mw.authorized_only()
