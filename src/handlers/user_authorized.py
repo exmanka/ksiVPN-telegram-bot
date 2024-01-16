@@ -199,7 +199,7 @@ async def account_configurations_fsm_start(message: Message, state: FSMContext):
 async def account_ref_program_fsm_start(message: Message, state: FSMContext):
     """Start FSM for account referral program menu and show account referral program menu keyboard."""
     await state.set_state(user_authorized_fsm.AccountMenu.ref_program)
-    await message.answer(loc.auth.msgs['ref_program_info'], parse_mode='HTML', reply_markup=user_authorized_kb.ref_program)
+    await bot.send_photo(message.from_user.id, loc.auth.tfids['ref_program_info'], loc.auth.msgs['ref_program_info'], parse_mode='HTML', reply_markup=user_authorized_kb.ref_program)
 
 
 @user_mw.authorized_only()

@@ -1,9 +1,9 @@
 from aiogram import Dispatcher
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
 from aiogram.utils import markdown
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
-from src.keyboards import user_authorized_kb, user_unauthorized_kb
+from src.keyboards import user_authorized_kb, user_unauthorized_kb, other_kb
 from src.database import postgres_dbms
 from src.services import gpt4free, localization as loc
 from bot_init import bot
@@ -16,7 +16,16 @@ async def command_help(message: Message):
 
 async def show_project_info(message: Message):
     """Send message with information about project."""
-    await bot.send_photo(message.from_user.id, loc.other.tfids['project_info'], loc.other.msgs['project_info'])
+    await bot.send_photo(message.from_user.id, loc.other.tfids['project_info'], loc.other.msgs['project_info'], 'HTML', reply_markup=other_kb.faq_inline)
+    # if client is registered
+    if await postgres_dbms.is_user_registered(message.from_user.id):
+        await message.answer(markdown.hide_link('https://github.com/exmanka/ksiVPN-telegram-bot') + loc.other.msgs['github'], parse_mode='HTML')
+
+
+async def show_faq(call: CallbackQuery):
+    """Send message with F.A.Q. information."""
+    await call.message.answer(loc.other.msgs['faq_info'], parse_mode='HTML')
+    await call.answer()
 
 
 async def answer_unrecognized_messages(message: Message):
@@ -41,11 +50,11 @@ async def answer_unrecognized_messages(message: Message):
 
 async def command_start(message: Message, state: FSMContext = None):
     """Send message when user press /start."""
-    await bot.send_photo(message.from_user.id, loc.other.tfids['hello_message'], loc.other.msgs['hello_message'])
+    await bot.send_photo(message.from_user.id, loc.other.tfids['hello_message'], loc.other.msgs['hello_message'], 'HTML')
 
     # if user isn't in db
     if not await postgres_dbms.is_user_registered(message.from_user.id):
-        await message.answer(loc.other.msgs['price_info'], reply_markup=user_unauthorized_kb.welcome)
+        await message.answer(loc.other.msgs['more_info'], reply_markup=user_unauthorized_kb.welcome, parse_mode='HTML')
 
     # if user is already in db
     else:
@@ -55,12 +64,13 @@ async def command_start(message: Message, state: FSMContext = None):
 
 
 def register_handlers_other(dp: Dispatcher):
+    dp.register_message_handler(command_start, commands=['start'], state='*')
     dp.register_message_handler(command_help, commands=['help'])
     dp.register_message_handler(command_help, commands=['help'], state='*')
     dp.register_message_handler(command_help, Text(loc.other.btns['help'], ignore_case=True))
     dp.register_message_handler(command_help, Text(loc.other.btns['help'], ignore_case=True), state='*')
     dp.register_message_handler(show_project_info, Text(loc.other.btns['about_project'], ignore_case=True))
     dp.register_message_handler(show_project_info, Text(loc.other.btns['about_service'], ignore_case=True))
-    dp.register_message_handler(command_start, commands=['start'], state='*')
+    dp.register_callback_query_handler(show_faq, Text(loc.other.btns['faq_inline_callback']), state='*')
     dp.register_message_handler(answer_unrecognized_messages)
     dp.register_message_handler(answer_unrecognized_messages, state="*")

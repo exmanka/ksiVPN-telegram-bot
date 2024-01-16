@@ -155,7 +155,7 @@ async def send_configuration_request_to_admin(client: dict, choice: dict, is_new
         await bot.send_message(ADMIN_ID,
                                loc.internal.msgs['config_request_new_client'].\
                                 format(client['fullname'], username_str, client['id'], choice['platform'][2:], choice['os_name'], choice['chatgpt'], client_id, ref_promo_str=ref_promo_str),
-                               reply_markup=await admin_kb.configuration(client['id']),
+                               reply_markup=await admin_kb.configuration_inline(client['id']),
                                parse_mode='HTML')
 
     # if request was sended by old client with at least one configuration
@@ -163,7 +163,7 @@ async def send_configuration_request_to_admin(client: dict, choice: dict, is_new
         await bot.send_message(ADMIN_ID,
                                loc.internal.msgs['config_request_old_client'].\
                                 format(client['fullname'], username_str, client['id'], choice['platform'][2:], choice['os_name'], choice['chatgpt'], client_id),
-                               reply_markup=await admin_kb.configuration(client['id']),
+                               reply_markup=await admin_kb.configuration_inline(client['id']),
                                parse_mode='HTML')
 
 
