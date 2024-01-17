@@ -8,7 +8,7 @@ Multifunctional telegram bot for ksiVPN project based on aiogram framework and u
 - __ChatGPT integration__
 - __subscription mechanics: renewal, expiration notifications__
 - __promocodes mechanics__
-- __referral sysetm mechanics__
+- __referral system mechanics__
 - __personal account mechanics__
 - __localizations support__
 - panels for unauthorized users, authorized users and admin
@@ -18,7 +18,8 @@ Multifunctional telegram bot for ksiVPN project based on aiogram framework and u
 - logging
 
 ## Use Case diagram
-Here will be the Use Case diagram.
+![tg_bot-use_case](https://github.com/exmanka/ksiVPN-telegram-bot/assets/74555362/489947e7-17ac-46ad-b013-a48c806008b7)
+
 
 ## PostgreSQL database diagram
 ![drawSQL-tgbot-postgres-export-2024-01-17](https://github.com/exmanka/ksiVPN-telegram-bot/assets/74555362/a3d96dab-207b-4553-b7d1-b969822ceab7)
