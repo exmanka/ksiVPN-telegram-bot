@@ -7,6 +7,9 @@ Multifunctional telegram bot for ksiVPN project based on aiogram framework and u
 - __P2P payments via YooMoney__
 - __ChatGPT integration__
 - __subscription mechanics: renewal, expiration notifications__
+- __promocodes mechanics__
+- __referral sysetm mechanics__
+- __personal account mechanics__
 - __localizations support__
 - panels for unauthorized users, authorized users and admin
 - rapid deployment via Docker
