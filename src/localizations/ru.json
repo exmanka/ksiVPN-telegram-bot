@@ -196,29 +196,29 @@
             "instructions": {
                 "wireguard":
                 {
-                    "android": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ", "AgACAgIAAxkBAAIBZWT4pf2JcOWwWqzq6BrDBplE_LefAALD0TEba5XBSwtXi502wnAvAQADAgADcwADMAQ"],
-                    "ios": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"],
-                    "windows": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"],
-                    "macos": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"],
-                    "linux": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"]
+                    "android": ["AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ"],
+                    "ios": ["AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ"],
+                    "windows": ["AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ"],
+                    "macos": ["AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ"],
+                    "linux": ["AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ"]
                 },
         
                 "xray vless xtls-reality":
                 {
-                    "android": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"],
-                    "ios": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"],
-                    "windows": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"],
-                    "macos": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"],
-                    "linux": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"]
+                    "android": ["AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ"],
+                    "ios": ["AgACAgIAAxkBAAJVQGWoH-_2dLZ0ha-w4JIua_54zKYIAAJh1TEbxdRBSTr0DEkdfN8rAQADAgADcwADNAQ"],
+                    "windows": ["AgACAgIAAxkBAAJVQmWoIG23wCiME_papPi_ji5-CPGMAAKV1jEb7uNASf1LfFIT-ON3AQADAgADcwADNAQ", "AgACAgIAAxkBAAJVRGWoIHJzBe6c6xp-InaOVX0pOqoQAAJk1TEbxdRBSc-fRhGfNPwwAQADAgADcwADNAQ"],
+                    "macos": ["AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ"],
+                    "linux": ["AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ"]
                 },
         
                 "shadowsocks-2022":
                 {
-                    "android": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"],
-                    "ios": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"],
-                    "windows": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"],
-                    "macos": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"],
-                    "linux": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"]
+                    "android": ["AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ"],
+                    "ios": ["AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ"],
+                    "windows": ["AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ"],
+                    "macos": ["AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ"],
+                    "linux": ["AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ"]
                 }
             }
         }
@@ -307,8 +307,8 @@
         },
 
         "telegram_file_ids": {
-            "project_info": "AgACAgIAAxkBAAJUvWWoBX0os4xG-jw1vCeJKpf9QLsfAAKt1TEb7uNASSFIHuOuRnb0AQADAgADcwADNAQ",
-            "hello_message": "AgACAgIAAxkBAAJUtGWoBQKB7zYQK7mjyS989TmZm3ncAALW1DEbxdRBSTwqicJoelJXAQADAgADcwADNAQ"
+            "project_info": "AgACAgIAAxkBAAJVOWWoH2RGI7pBEGUSvAt_xGjPM9ufAAJW1TEbxdRBSc9pyZvrLmwWAQADAgADcwADNAQ",
+            "hello_message": "AgACAgIAAxkBAAJVN2WoH0QQIRjdL-9ZoL8wqhQvEsY4AAJU1TEbxdRBSaknQL9Gkxc1AQADAgADcwADNAQ"
         }
     },
 
