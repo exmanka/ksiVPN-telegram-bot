@@ -1,4 +1,4 @@
-# ksiVPN Telegram bot
+# ksiVPN Telegram Bot
 Multifunctional telegram bot for ksiVPN project based on aiogram framework and using modules: asyncpg2, apscheduler, aiomoney, gpt4free. Deployment is possible using Docker with docker-compose.
 
 ## Features
@@ -17,8 +17,9 @@ Multifunctional telegram bot for ksiVPN project based on aiogram framework and u
 ## Use Case diagram
 Here will be the Use Case diagram.
 
-## Database diagram
-Here wil be the Database diagram.
+## PostgreSQL database diagram
+![drawSQL-tgbot-postgres-export-2024-01-17](https://github.com/exmanka/ksiVPN-telegram-bot/assets/74555362/a3d96dab-207b-4553-b7d1-b969822ceab7)
+
 
 ## Installation
 1. Install Docker with Docker Compose according to the [official instructions](https://docs.docker.com/engine/install/).
