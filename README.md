@@ -18,12 +18,10 @@ Multifunctional telegram bot for ksiVPN project based on aiogram framework and u
 - logging
 
 ## Use Case diagram
-![tg_bot-use_case](https://github.com/exmanka/ksiVPN-telegram-bot/assets/74555362/489947e7-17ac-46ad-b013-a48c806008b7)
-
+Use Case diagram can be found [here](https://github.com/exmanka/ksiVPN-telegram-bot/assets/74555362/36163ea2-810c-4a70-b97a-cb54df6b8a60).
 
 ## PostgreSQL database diagram
-![drawSQL-tgbot-postgres-export-2024-01-17](https://github.com/exmanka/ksiVPN-telegram-bot/assets/74555362/a3d96dab-207b-4553-b7d1-b969822ceab7)
-
+![db-diagram](https://github.com/exmanka/ksiVPN-telegram-bot/assets/74555362/3ac1e433-9b36-4d15-ab55-4c91d3d4d5d1)
 
 ## Installation
 1. Install Docker with Docker Compose according to the [official instructions](https://docs.docker.com/engine/install/).
