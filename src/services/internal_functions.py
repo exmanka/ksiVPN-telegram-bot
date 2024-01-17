@@ -477,7 +477,7 @@ async def authorization_complete(message: Message, state: FSMContext):
         await postgres_dbms.insert_client(client.first_name, client.id, client.last_name, client.username, used_ref_promo_id, provided_sub_id, bonus_time)
         await send_configuration_request_to_admin({'fullname': client.full_name, 'username': client.username, 'id': client.id}, data._data, is_new_client=True)
 
-    await message.answer(loc.internal.msgs['wait_for_admin_answer'], reply_markup=user_authorized_kb.menu)
+    await message.answer(loc.internal.msgs['wait_for_admin_answer'], parse_mode='HTML', reply_markup=user_authorized_kb.menu)
     await message.answer(loc.auth.msgs['i_wanna_sleep'])
     await state.finish()
 

@@ -1,7 +1,7 @@
 import random
 from decimal import Decimal
 from aiogram import Dispatcher
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, MediaGroup
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.utils.exceptions import MessageToDeleteNotFound
@@ -302,7 +302,7 @@ async def account_configurations_request_chatgpt(message: Message, state: FSMCon
         await internal_functions.send_configuration_request_to_admin({'fullname': message.from_user.full_name, 'username': message.from_user.username,
                                                                      'id': message.from_user.id}, data._data, is_new_client=False)
 
-    await message.answer(loc.auth.msgs['wait_for_admin'], reply_markup=user_authorized_kb.config)
+    await message.answer(loc.auth.msgs['wait_for_admin'], parse_mode='HTML', reply_markup=user_authorized_kb.config)
     await message.answer(loc.auth.msgs['i_wanna_sleep'])
     await state.set_state(user_authorized_fsm.AccountMenu.configs)
 
@@ -574,14 +574,36 @@ async def account_promo_info(message: Message):
 async def configuration_instruction(call: CallbackQuery):
     """Send message with instruction for configuration specified by inline button."""
     configuration_protocol_name, configuration_os = call.data.split('--')
-    await call.message.reply(loc.internal.msgs['instructions'][configuration_protocol_name.lower()][configuration_os.lower()])
+
+    # answer without photos
+    # await call.message.reply(loc.auth.msgs['instructions'][configuration_protocol_name.lower()][configuration_os.lower()],
+    #                          parse_mode='HTML', disable_web_page_preview=True)
+
+    # get objects from localization
+    instruction_text = loc.auth.msgs['instructions'][configuration_protocol_name.lower()][configuration_os.lower()]
+    instruction_images_list = loc.auth.tfids['instructions'][configuration_protocol_name.lower()][configuration_os.lower()]
+    
+    # use media group builder in aiogram 3.x.x
+    # create media group with multiple photos and caption as instruction
+    media_group = MediaGroup()
+
+    # add first image to media group with caption and parse_mode to display caption in instruction
+    media_group.attach_photo(instruction_images_list[0], caption=instruction_text, parse_mode='HTML')
+    
+    # add all other photos to media group
+    if len(instruction_images_list) > 1:
+        for telegram_file_id in instruction_images_list[1:]:
+            media_group.attach_photo(telegram_file_id)
+
+    # send media group to client
+    await call.message.reply_media_group(media_group)
     await call.answer()
 
 
 @user_mw.authorized_only()
 async def show_project_rules(message: Message):
     """Send message with information about project rules."""
-    await message.answer(loc.auth.msgs['rules'], parse_mode='HTML')
+    await message.answer_photo(loc.auth.tfids['rules'], caption=loc.auth.msgs['rules'], parse_mode='HTML')
 
 
 @user_mw.authorized_only()

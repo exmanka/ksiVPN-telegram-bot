@@ -61,6 +61,7 @@ async def command_start(message: Message, state: FSMContext = None):
         if state:
             await state.finish()
         await message.answer(loc.other.msgs['already_registered'], reply_markup=user_authorized_kb.menu)
+        await message.answer(loc.auth.msgs['configs_rules'], parse_mode='HTML')
 
 
 def register_handlers_other(dp: Dispatcher):

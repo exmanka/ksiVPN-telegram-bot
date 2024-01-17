@@ -4,7 +4,7 @@
         "messages": {
             "return_to_main_menu": "<i>Returning to the main menu</i>",
             "need_define_config": "To connect, I need to define your configuration",
-            "ask_four_questions": "I will ask 4 short questions!",
+            "ask_four_questions": "🙋‍♂️ <b>I will ask 4 short questions!</b>",
             "choose_your_platform": "<b>Choose your platform</b>",
             "choose_your_os": "<b>Specify the operating system</b>",
             "choose_chatgpt_option": "<b>Do you use ChatGPT?</b>",
@@ -41,7 +41,7 @@
     "user_authorized":
     {
         "messages": {
-            "rules": "<b>When working with the service, it is mandatory:</b>\n\n1. It is forbidden to share configurations (QR codes for smartphones or <code>*.conf</code> files for PCs) with other people. One configuration can only be used for one of your devices. At the same time, you can request an unlimited number of additional configurations for your use.\n\n2. It is forbidden to download files via torrent clients. However, the <code>*.torrent</code> extension files themselves can be downloaded.\n<i>Example: You want to download the movie, but the website hosting the files is not available from Russia. You turn on the VPN, go to the website and download the filmexample.torrent file. Next, you turn off the VPN and start downloading the movie itself in your torrent client.</i>\n\n\n<b>When working with the service, it is recommended:</b>\n\n1. Do not use a VPN at times when you do not need it. Thanks to this, you will not experience problems with your applications.",
+            "rules": "<b>By using the service, you agree to the rules:</b>\n\n<b>1. It is forbidden to share configurations with other people.</b>\nOne configuration can only be used for one of your devices. At the same time, you can request an unlimited number of additional configurations for your use within a reasonable framework.\n\n<b>2. It is forbidden to download files via torrent clients using a VPN.</b>\nHowever, the files themselves of the <code>*.torrent</code> extension can be downloaded.\n<i>Example: You want to download the movie, but the website hosting the files is not available from Russia. You turn on the VPN, go to the site and download the file film-example.torrent. Next, you turn off the VPN and start downloading the movie itself in your torrent client.</i>\n\n<b>3. It is recommended not to use a VPN when it is not necessary.Thanks to this, you will not experience problems with your applications.\n\n<b>❌ Violation of rules 1-2 may result in immediate blocking of the user.</b>",
             "sub_isnt_active": "The subscription has not been activated yet, as the administrator has not yet sent the configuration! Don't worry, the subscription expiration time report will start only after you receive it!",
             "sub_active": "🔥 <b>The subscription is active!</b>",
             "sub_is_free": "🔥 <b>The subscription is active forever!</b>",
@@ -69,11 +69,11 @@
             "go_settings": "<i>Going to settings</i>",
             "return_to_personal_account": "<i>Returning to personal account</i>",
             "configs_info": "Information about all your configurations, now you do not need to search for them through the dialogue with the bot!\n\n All configurations <b>{0}</b>.",
-            "configs_rules": "<b>I remind you of the basic rules /rules:\n\n1. One device is one configuration.\n2. Sharing configurations with other people is prohibited!</b>",
+            "configs_rules": "<b>I remind you of the basic rules /rules:\n\n1. One device is one configuration.\n2. Sharing configurations with other people is prohibited!\n3. Downloading files via torrent clients is prohibited!\n\n❌ Violation of any of the rules may result in the immediate blocking of the user.</b>",
             "return_to_configs_menu": "<i>Returning to the configuration menu</i>",
             "cant_request_config": "To request a new configuration, you need to renew your subscription!",
             "ask_three_questions": "You will need to answer 3 questions to request a new configuration from the administrator!\n\nMore of your configurations: <b>{0}</b>",
-            "wait_for_admin": "Great! Now we are waiting for a response from the developer: soon he will check your current configurations and send a new one!",
+            "wait_for_admin": "🎉 <b>Great, now we are waiting for a response from the developer!</b>\n\nHe will check your current configurations soon and send a new one!",
             "i_wanna_sleep": "Please do not forget that he is also a human being, and periodically sleeps (although in fact extremely rarely)",
             "return_to_settings": "<i>Returning to the settings</i>",
             "go_settings_chatgpt": "<i>Going to the ChatGPT mode settings</i>",
@@ -117,7 +117,35 @@
             "local_promos_str": "<b>💎 Used special promo codes</b>:\n{local_promo_row_str}\n",
             "local_promo_row_str": "{0}. <code>{1}</code> for {2} days of subscription.\nLED {3}.\n",
             "no_promo_entered": "You have not entered any promo codes yet. Follow the news! 🚀",
-            "config_was_received": "✨ <b>Hooray, the configuration is received!</b>"
+            "config_was_received": "✨ <b>Hooray, the configuration is received!</b>",
+            "instructions": {
+                "wireguard":
+                {
+                    "android": "⚙️ <b>Instructions for installing WireGuard on Android:</b>\n<b>1.</b> Download and install the official Wireguard app (<a href=\"https://play.google.com/store/apps/details?id=com.wireguard.android \">link to the Play Market</a>).\n<b>2.</b> After launching, click on the <b>«+»</b> icon in the lower right corner of the screen.3.</b> Select the option <b>«Create from QR code»</b>/<b>«Scan from QR code»</b>, allow access to the camera and scan the QR code.\n<b>4.</b> Enter the name of your VPN tunnel! You can specify any name, but it is recommended to name the tunnel by the country of location (Netherlands/Germany/Latvia/USA).\n\n🎉 <b>Instructions for use:</b>\n<b>1.To turn on the VPN, just click on the switch to the right of the tunnel name. For the first time, the phone may issue a notification about adding a new VPN connection - you must agree.\n<b>2.</b> To turn off the VPN, you need to change the switch position again.",
+                    "ios": "⚙️ <b>Instructions for installing WireGuard on iOS:</b>\n<b>1.</b> Download and install the official Wireguard app (<a href=\"https://apps.apple.com/ru/app/wireguard/id1441195209 \">link in the App Store</a>).\n<b>2.</b> After launching, click on the <b>«+»</b> icon in the lower right corner of the screen.3.</b> Select the option <b>«Create from QR code»</b>/<b>«Scan from QR code»</b>, allow access to the camera and scan the QR code.\n<b>4.</b> Enter the name of your VPN tunnel! You can specify any name, but it is recommended to name the tunnel by the country of location (Netherlands/Germany/Latvia/USA).\n\n🎉 <b>Instructions for use:</b>\n<b>1.To turn on the VPN, just click on the switch to the right of the tunnel name. For the first time, the phone may issue a notification about adding a new VPN connection - you must agree.\n<b>2.</b> To turn off the VPN, you need to change the switch position again.",
+                    "windows": "⚙️ <b>Instructions for installing WireGuard on Windows:</b>\n<b>1.</b> Download and install the Wireguard app (<a href=\"https://www.wireguard.com/install /\">link to the official website</a>).\n<b>2.</b> After launching, click <b>«Add tunnel»</b>/<b>«Add tunnel»</b> and select the extension file <code>*.conf</code> sent to you.\n\n🎉 <b>Instructions for use:</b>\n<b>1.</b> To enable VPN, just select a tunnel and click <b>«Connect»</b>.\n<b>2.</b> To turn off the VPN, just click <b>«Disable»</b>.",
+                    "macos": "⚙️ <b>Instructions for installing WireGuard on macOS:</b>\n<b>1.</b> Download and install the official Wireguard app (<a href=\"https://apps.apple.com/ru/app/wireguard/id1451685025 \">link in the App Store</a>).\n<b>2.</b> After launching, click <b>«Add tunnel»</b>/<b>«Add tunnel»</b> and select the extension file <code>*.conf</code> sent to you.\n\n🎉 <b>Instructions for use:</b>\n<b>1.</b> To enable VPN, just select a tunnel and click <b>«Connect»</b>.\n<b>2.</b> To turn off the VPN, just click <b>«Disable»</b>.",
+                    "linux": "⚙️ <b>Instructions for installing and using WireGuard on GNU/Linux:</b>\nOh, you're not little anymore, since you're using Linux!I send you great respect and a link to the documentation: https://www.wireguard.com/install/#ubuntu-module-tools\n\nПодсказки Installation instructions can be found here: https://shrub-coriander-4a3.notion.site/Linux-Mint-Cinnamon-21-1-29cda1060f4d4ab48c483cfa70948e46?pvs=4 "
+                },
+        
+                "xray vless xtls-reality":
+                {
+                    "android": "⚙️ <b>Instructions for installing XTLS-Reality on Android:</b>\n<b>1.</b> Download and install the official v2rayNG app (<a href=\"https://play.google.com/store/apps/details?id=com.v2ray.ang \">link to the Play Market</a>).\n<b>2.</b> After launching, click on the <b>«+» icon</b> next to the Profile.\n<b>3.</b> Select <b>«Import profile from QR code»</b>, allow access to the camera and scan the QR code.\n\n🎉 <b>Instructions for use:</b>\n<b>1.To turn on the VPN, just click on the switch in the lower right corner.For the first time, the phone may issue a notification about adding a new VPN connection - you must agree.\n<b>2.</b> To turn off the VPN, you need to change the switch position again.",
+                    "ios": "⚙️ <b>Instructions for installing XTLS-Reality on iOS:</b>\n<b>1.</b> Download and install the official FoXray app (<a href=\"https://apps.apple.com/ru/app/foxray/id6448898396 \">link in the App Store</a>).\n<b>2.</b> After launching, click on the <b>QR code icon</b> or <b>Image</b> at the top of the application.\n<b>3.</b> Scan the sent QR code through the camera or select its image in the gallery.\n\n🎉 <b>Instructions for use:</b>\n<b>1.</b> To enable VPN, just click on the switch to the right of the configuration name.For the first time, the phone may issue a notification about when adding a new VPN connection, you must agree.\n<b>2.</b> To turn off the VPN, you need to change the switch position again.",
+                    "windows": "⚙️ <b>Instructions for installing XTLS-Reality on Windows:</b>\n<b>1.</b> Upgrade to the latest release of the nekoray app <a href=\"https://github.com/MatsuriDayo/nekoray/releases/tag/3.21 \">by the link</a>.\n<b>2.</b> Download the Windows version.\n<b>3.</b> Unzip the archive (<b>RMB archive</b> — <b>«Extract all...»</b> — <b>«Extract»</b>)\n<b>4.</b> Run the file in the archive <b>nekoray.exe </b>.\n<b>5.</b> At the first launch, Windows will notify you that the application is being released by an unknown publisher. Don't be scared, NekoBox is an open source application. <b>It is completely safe and does not carry any viruses.\n<b>6.</b> To continue, click <b>«More details»</b> — <b>«Execute anyway»</b>.\n<b>7.</b> Select <b>«sing-box»</b> in the start dialog box.\n<b>8.</b> Copy the link given to you and hold <b>Ctrl+V</b> in the application. The configuration will be added automatically.\n\n🎉 <b>Instructions for use:</b>\n<b>1.</b> <u>Before switching on, be sure to select <b>«TUN mode»</b>. To do this, you will need to restart the program as an administrator.</u>\n<b>2.</b> You can enable and disable VPN in the program itself or in the tray.",
+                    "macos": "⚙️ <b>Instructions for installing XTLS-Reality on macOS:</b>\n<b>1.</b> Download and install the official FoXray app (<a href=\"https://apps.apple.com/ru/app/foxray/id6448898396 \">link in the App Store</a>).\n<b>2.</b> After launching, click on the <b>Notepad icon</b> and paste the link sent to you.\n\n🎉 <b>Instructions for use:</b>\n<b>1.</b> To enable VPN, just click on the switch to the right of the configuration name.For the first time, the device may issue a notification about adding a new VPN connection — It is necessary to agree.\n<b>2.</b> To turn off the VPN, you need to change the switch position again.",
+                    "linux": "⚙️ <b>Instructions for installing and using XTLS-Reality on GNU/Linux:</b>\nOh, you're not little anymore, since you use Linux!I send you great respect and a link to the documentation: https://github.com/MatsuriDayo/nekoray/tree/3.21 "
+                },
+        
+                "shadowsocks-2022":
+                {
+                    "android": "<b>The Shadowsocks-2022 protocol is currently used only by the testing team.</b>\n\nIf you are reading this message without being a tester, it means that the administrator made a mistake when creating the configuration. Write to him to clarify the problem!",
+                    "ios": "<b>The Shadowsocks-2022 protocol is currently used only by the testing team.</b>\n\nIf you are reading this message without being a tester, it means that the administrator made a mistake when creating the configuration. Write to him to clarify the problem!",
+                    "windows": "<b>The Shadowsocks-2022 protocol is currently used only by the testing team.</b>\n\nIf you are reading this message without being a tester, it means that the administrator made a mistake when creating the configuration. Write to him to clarify the problem!",
+                    "macos": "<b>The Shadowsocks-2022 protocol is currently used only by the testing team.</b>\n\nIf you are reading this message without being a tester, it means that the administrator made a mistake when creating the configuration. Write to him to clarify the problem!",
+                    "linux": "<b>The Shadowsocks-2022 protocol is currently used only by the testing team.</b>\n\nIf you are reading this message without being a tester, it means that the administrator made a mistake when creating the configuration. Write to him to clarify the problem!"
+}
+}
         },
 
         "keyboard_buttons": {
@@ -163,7 +191,36 @@
         },
 
         "telegram_file_ids": {
-            "ref_program_info": "AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"
+            "rules": "AgACAgIAAxkBAAJUyGWoBkWcqxDLR5T7rxSAgxD9k8LJAALd1DEbxdRBSUXUhjzY2aggAQADAgADcwADNAQ",
+            "ref_program_info": "AgACAgIAAxkBAAJUv2WoBaYCCxzAlLwaiIEttY5NnqytAALa1DEbxdRBSdtn1kU78RbOAQADAgADcwADNAQ",
+            "instructions": {
+                "wireguard":
+                {
+                    "android": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ", "AgACAgIAAxkBAAIBZWT4pf2JcOWwWqzq6BrDBplE_LefAALD0TEba5XBSwtXi502wnAvAQADAgADcwADMAQ"],
+                    "ios": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"],
+                    "windows": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"],
+                    "macos": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"],
+                    "linux": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"]
+                },
+        
+                "xray vless xtls-reality":
+                {
+                    "android": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"],
+                    "ios": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"],
+                    "windows": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"],
+                    "macos": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"],
+                    "linux": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"]
+                },
+        
+                "shadowsocks-2022":
+                {
+                    "android": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"],
+                    "ios": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"],
+                    "windows": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"],
+                    "macos": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"],
+                    "linux": ["AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ"]
+                }
+            }
         }
     },
 
@@ -236,7 +293,7 @@
             "chatgpt_only_for_active_sub": "ChatGPT mode is available only to clients with an active subscription!",
             "unrecognized_message": "<b>Sorry, I don't understand you</b> 🤔\n\n<tg-spoiler><i>You can give me unlimited power by enabling ChatGPT mode in the settings or by entering the command /chatgpt_mode</i></tg-spoiler>",
             "already_registered": "✨ Wow! You are already in our system! I'm teleporting to my personal account!",
-            "github": "<b>Special thanks</b>\n\n<b>to the UX/UI designer of the project:</b>\n🦩 to Olga @KoberO https://band.link/Dmt3l\n\n <b>The testing team:</b>\n🍒 Egor @Y0gu4t <code>EASTEREGGPROMO1032201661</code>\n🎀 Karina @Howtofindmee\n🍆 Denis @seregin_denis\n— they tried very hard to find bugs, but they never found them."
+            "github": "<b>Special thanks</b>\n\n<b>to the UX/UI designer of the project:</b>\n🦩 to Olga @KoberO https://band.link/Dmt3l\n\n <b>The testing team:</b>\n🍒 Egor @Y0gu4t <code>EASTEREGGPROMO1032201661</code>\n🎀 Karina @Howtofindmee\n🍆 Denis @seregin_denis"
         },
 
         "keyboard_buttons": {
@@ -244,12 +301,14 @@
             "about_project": "About project",
             "about_service": "About service",
             "faq_inline": "FAQ",
-            "faq_inline_callback": "faq"
+            "faq_inline_callback": "faq",
+            "tg_channel_inline": "Telegram channel",
+            "tg_channel_inline_url": "https://t.me/+5cDIKThNG-kzZjgy"
         },
 
         "telegram_file_ids": {
-            "project_info": "AgACAgIAAxkBAAIBt2T4tvKfh4vtyw9E0esmv5ez8oipAAJH0jEba5XBS205NYeWh2RdAQADAgADcwADMAQ",
-            "hello_message": "AgACAgIAAxkBAAIBZWT4pf2JcOWwWqzq6BrDBplE_LefAALD0TEba5XBSwtXi502wnAvAQADAgADcwADMAQ"
+            "project_info": "AgACAgIAAxkBAAJUvWWoBX0os4xG-jw1vCeJKpf9QLsfAAKt1TEb7uNASSFIHuOuRnb0AQADAgADcwADNAQ",
+            "hello_message": "AgACAgIAAxkBAAJUtGWoBQKB7zYQK7mjyS989TmZm3ncAALW1DEbxdRBSTwqicJoelJXAQADAgADcwADNAQ"
         }
     },
 
@@ -276,37 +335,9 @@
             "error_bad_os": "incorrect OS input (third argument)!",
             "error_bad_link": "incorrect vless link input (fourth argument)!",
             "ref_client_paid_for_sub": "🕊 Wow! The client {0}{1} who joined the project using your referral promo code has paid for the subscription for the first time!\n\n<b>You get a month of subscription for free!</b>",
-            "wait_for_admin_answer": "Great! Now we are waiting for a response from the developer: soon he will check your registration and send you the configuration! In the meantime, you can explore the bot!",
+            "wait_for_admin_answer": "🎉 <b>Great, now we are waiting for a response from the developer!</b>\n\n He will check your registration soon and send you the configuration. In the meantime, you can explore the bot's functions!",
             "discount_str": "(discount {0:g}₽)",
-            "payment_successful": "The payment was made successfully!\n\nPayment identifier: #{0}",
-            "instructions": {
-                "wireguard":
-                {
-                    "android": "<Instructions for installing WireGuard on Android>",
-                    "ios": "<Instructions for installing WireGuard on iOS>",
-                    "windows": "<Instructions for installing WireGuard on Windows>",
-                    "macos": "<Instructions for installing WireGuard on macOS>",
-                    "linux": "<Instructions for installing WireGuard on Linux>"
-                },
-        
-                "xray vless xtls-reality":
-                {
-                    "android": "<Instructions for installing XTLS-Reality on Android>",
-                    "ios": "<Instructions for installing XTLS-Reality on iOS>",
-                    "windows": "<Instructions for installing XTLS-Reality on Windows>",
-                    "macos": "<Instructions for installing XTLS-Reality on macOS>",
-                    "linux": "<Instructions for installing XTLS-Reality on Linux>"
-                },
-        
-                "shadowsocks-2022":
-                {
-                    "android": "<Instructions for installing Shadowsocks-2022 on Android>",
-                    "ios": "<Instructions for installing Shadowsocks-2022 on iOS>",
-                    "windows": "<Instructions for installing Shadowsocks-2022 on Windows>",
-                    "macos": "<Instructions for installing Shadowsocks-2022 on macOS>",
-                    "linux": "<Instructions for installing Shadowsocks-2022 on Linux>"
-                }
-            }
+            "payment_successful": "The payment was made successfully!\n\nPayment identifier: #{0}"
         },
 
         "keyboard_buttons": {
