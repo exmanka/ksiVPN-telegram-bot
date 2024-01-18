@@ -40,7 +40,7 @@ Multifunctional telegram bot for ksiVPN project based on aiogram framework and u
 Use Case diagram can be found [here](https://github.com/exmanka/ksiVPN-telegram-bot/assets/74555362/36163ea2-810c-4a70-b97a-cb54df6b8a60).
 
 ## PostgreSQL database diagram
-![db-diagram](https://github.com/exmanka/ksiVPN-telegram-bot/assets/74555362/3ac1e433-9b36-4d15-ab55-4c91d3d4d5d1)
+[![db-diagram](https://github.com/exmanka/ksiVPN-telegram-bot/assets/74555362/4eaae2bc-8742-41ba-9c3a-b6afed4479bd)](https://drawsql.app/teams/trycatch-1/diagrams/tgbot-postgres)
 
 ## Installation
 1. Install Docker with Docker Compose according to the [official instructions](https://docs.docker.com/engine/install/).
