@@ -1,3 +1,7 @@
+<div align="center">
+   <img src="https://github.com/exmanka/ksiVPN-telegram-bot/assets/74555362/38b4bf5b-bfa8-4904-b8e8-4c492c4eb872"/>
+</div>
+
 # ksiVPN Telegram Bot
 Multifunctional telegram bot for ksiVPN project based on aiogram framework and using modules: asyncpg2, apscheduler, aiomoney, gpt4free. Deployment is possible using Docker with docker-compose.
 
