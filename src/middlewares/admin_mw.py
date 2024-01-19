@@ -1,6 +1,7 @@
 from aiogram.types import Message
 from aiogram.dispatcher.handler import CancelHandler, current_handler
 from aiogram.dispatcher.middlewares import BaseMiddleware
+from src.services import localization as loc
 from bot_init import ADMIN_ID
 
 
@@ -23,5 +24,5 @@ class CheckAdmin(BaseMiddleware):
 
             # if current handler has attribute 'admin_only' and telegram_id of user isn't admin's telegram_id
             if only_for_admin and not message.from_user.id == ADMIN_ID:
-                await message.answer('Ууупс! Эта функция доступна только администратору \U0001F47E')
+                await message.answer(loc.mw.msgs['admin_only'])
                 raise CancelHandler()

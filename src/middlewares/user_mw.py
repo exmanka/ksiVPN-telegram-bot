@@ -2,6 +2,7 @@ from aiogram.types import Message
 from aiogram.dispatcher.middlewares import BaseMiddleware
 from aiogram.dispatcher.handler import CancelHandler, current_handler
 from src.database import postgres_dbms
+from src.services import localization as loc
 
 
 def unauthorized_only():
@@ -32,12 +33,12 @@ class CheckAuthorized(BaseMiddleware):
 
             # if current handler has attribute 'unauthorized_only' and client is already registered
             if only_for_unauthorized_users and await postgres_dbms.is_user_registered(message.from_user.id):
-                await message.answer('Вы уже зарегистрировались!')
+                await message.answer(loc.mw.msgs['unauthorized_only'])
                 raise CancelHandler()
 
             only_for_authorized_users = getattr(handler, 'authorized_only', False)
 
             # if current handler has attribute 'authorized_only' and client isn't registered
             if only_for_authorized_users and not await postgres_dbms.is_user_registered(message.from_user.id):
-                await message.answer('Ууупс! Эта функция доступна только зарегистрированным пользователям!')
+                await message.answer(loc.mw.msgs['authorized_only'])
                 raise CancelHandler()

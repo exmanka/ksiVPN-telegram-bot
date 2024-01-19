@@ -2,6 +2,7 @@ from aiogram.types import Message
 from aiogram.dispatcher.middlewares import BaseMiddleware
 from aiogram.dispatcher.handler import CancelHandler, current_handler
 from aiogram.utils.exceptions import Throttled
+from src.services import localization as loc
 from bot_init import dp
 
 
@@ -30,5 +31,5 @@ class Throttling(BaseMiddleware):
 
                 # if message is throttled
                 except Throttled as _t:
-                    await message.answer('Пожалуйста, не спамьте оплатами!')
+                    await message.answer(loc.mw.msgs['antiflood'])
                     raise CancelHandler()
