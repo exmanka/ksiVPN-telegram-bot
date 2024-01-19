@@ -21,7 +21,7 @@ CREATE TABLE subscriptions (
 	title VARCHAR(32) NOT NULL,
 	description VARCHAR(128)
 );
-INSERT INTO subscriptions (price, title, description) VALUES(200, 'Base subscription', 'Here is subscription description.');
+INSERT INTO subscriptions (price, title, description) VALUES(200, 'Standard subscription', 'Here is subscription description.');
 
 
 CREATE TABLE clients_subscriptions (
@@ -30,7 +30,7 @@ CREATE TABLE clients_subscriptions (
 	paid_months_counter INT NOT NULL DEFAULT 0,
 	expiration_date TIMESTAMP NOT NULL
 );
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(1, 2, 10, TIMESTAMP '2024-01-01 00:00');								-- '@exmanka'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(1, 1, 10, TIMESTAMP '2024-01-01 00:00');								-- '@exmanka'
 
 
 CREATE OR REPLACE FUNCTION create_ref_promocode() RETURNS text
@@ -56,7 +56,7 @@ CREATE TABLE promocodes_ref (
 	provided_sub_id SMALLINT NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
 	bonus_time INTERVAL NOT NULL DEFAULT '1 month'
 );
-INSERT INTO promocodes_ref(client_creator_id, provided_sub_id) VALUES(1, 2);
+INSERT INTO promocodes_ref(client_creator_id, provided_sub_id) VALUES(1, 1);
 
 
 CREATE TABLE promocodes_global (
@@ -99,7 +99,7 @@ CREATE TABLE configurations_protocols (
 	name VARCHAR(32) NOT NULL UNIQUE,
 	description VARCHAR(64) NOT NULL
 );
-INSERT INTO configurations_protocols(name, description) VALUES('Some VPN protocol', 'Still love WireGuard!');
+INSERT INTO configurations_protocols(name, description) VALUES('XRay VLESS XTLS-Reality', 'Here is protocol description. Still love WireGuard!');
 
 
 CREATE TABLE configurations_locations (
@@ -111,7 +111,7 @@ CREATE TABLE configurations_locations (
 	ping SMALLINT NOT NULL,
 	is_chatgpt_available BOOLEAN NOT NULL
 );
-INSERT INTO configurations_locations(country, city, description, bandwidth, ping, is_chatgpt_available) VALUES('Some country', 'Some city', 'Server description', 1000, 30, TRUE);
+INSERT INTO configurations_locations(country, city, description, bandwidth, ping, is_chatgpt_available) VALUES('Country of your awesome server', 'City of your awesome server', 'Here is your awesome server description.', 1000, 30, TRUE);
 
 
 CREATE TYPE osEnum AS ENUM ('Android', 'IOS', 'Windows', 'macOS', 'Linux');
@@ -126,7 +126,7 @@ CREATE TABLE configurations (
 	telegram_file_id VARCHAR(256) UNIQUE NOT NULL,
 	date_of_receipt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(1, 1, 1, 'Android', 'link', 'vless://example_link_here_in_db_can_be_telegram_file_id', 'EPOCH');
+INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(1, 1, 1, 'Android', 'link', 'vless://link_or_telegram_file_id_here', 'EPOCH');
 
 
 CREATE TABLE payments (
