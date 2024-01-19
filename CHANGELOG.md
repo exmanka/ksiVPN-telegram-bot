@@ -4,11 +4,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2024-01-19
+## [Unreleased] - 2024-01-20
+Release!
+
+## [1.0.0-rc] - 2024-01-19
 Go into production! 🎊
 
 ### Added
-- add example config files
+- [`c091170`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/c091170), [`e65ca2a`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/e65ca2a), [`2d0b003`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/2d0b003) - add example config files
+- [`c9611b7`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/c9611b7) - add middleware texts
+
+### Changed
+- [`72c43bf`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/72c43bf) - add more information to README
+
+### Fixed
+- [`99d3676`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/99d3676) - fix unparsed HTML-tags in localization
 
 ## [0.2.1] - 2024-01-18
 Make project readable for people!
