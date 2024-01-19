@@ -54,4 +54,13 @@ Use Case diagram can be found [here](https://github.com/exmanka/ksiVPN-telegram-
 
 ## Usage
 Now you can write to your bot and enjoy all its pre-installed features. You are free to play with functionality and database filling. Learn something new for yourself! 🎉  
-### You should mention me in your releases if you use my project for your own purposes.
+
+## About ksiVPN project
+🔥 __ksiVPN__ — an open source student project that has become something more not only for its creator, but also for most customers .Thanks to hard work, the use of basic modern protocols and competent server rental, the project is able to provide the highest quality VPN connection for the minimum cost.  
+### ksiVPN uses the following open-source solutions:
+- [pivpn](https://github.com/pivpn/pivpn)
+- [3x-ui](https://github.com/MHSanaei/3x-ui)
+- [nekoray](https://github.com/MatsuriDayo/nekoray)
+- [v2rayNG](https://github.com/2dust/v2rayNG)
+
+`PROMO_GITHUB_2049`
