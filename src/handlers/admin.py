@@ -1,4 +1,5 @@
 import logging
+import aiofiles
 from decimal import Decimal
 from aiogram import Dispatcher
 from aiogram.types import Message, CallbackQuery
@@ -422,6 +423,38 @@ async def show_earnings(message: Message):
 
 
 @admin_mw.admin_only()
+async def show_logs(message: Message):
+    """Send message with last N rows of bot logs.
+    
+    Can be use both /logs and /logs <last_rows_number> ways."""
+    # get last rows number by argument or set default if argument is not specified
+    last_rows_number_list = message.text.split(' ')[1:]
+    if last_rows_number_list:
+        last_rows_number = int(last_rows_number_list[0])
+    else:
+        last_rows_number = 10
+
+    # read only last rows of file
+    last_rows_counter = 0
+    async with aiofiles.open('bot.log', mode='rb') as f:
+
+        # move pointer to the end of byte-encoded file and iterate up
+        try:
+            await f.seek(-2, 2)
+            while last_rows_counter < last_rows_number:
+                await f.seek(-2, 1)
+                if await f.read(1) == b'\n':
+                    last_rows_counter += 1
+
+        # if file contains less then last_rows_number rows
+        except OSError:
+            await f.seek(0)
+        
+        last_lines = (await f.read()).decode()
+    await message.answer(last_lines)
+
+
+@admin_mw.admin_only()
 async def check_user_configs(message: Message):
     """Send messages with configurations of another client.
 
@@ -552,6 +585,8 @@ def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(sql_query_execution, state=admin_fsm.SQLQuery.query)
     dp.register_message_handler(show_clients_info, Text(loc.admn.btns['clients_info']))
     dp.register_message_handler(show_earnings, Text(loc.admn.btns['show_earnings']))
+    dp.register_message_handler(show_logs, Text(loc.admn.btns['show_logs']))
+    dp.register_message_handler(show_logs, commands=['logs'])
     dp.register_message_handler(get_file_id, Text(loc.admn.btns['get_file_id']), content_types=['text', 'photo', 'document'])
     dp.register_message_handler(get_file_id, commands=['fileid', 'fid'], commands_ignore_caption=False, content_types=['text', 'photo', 'document'])
     dp.register_callback_query_handler(send_configuration_fsm_start, lambda call: call.data.isdigit(), state='*')
