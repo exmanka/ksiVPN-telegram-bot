@@ -199,7 +199,13 @@ async def account_configurations_fsm_start(message: Message, state: FSMContext):
 async def account_ref_program_fsm_start(message: Message, state: FSMContext):
     """Start FSM for account referral program menu and show account referral program menu keyboard."""
     await state.set_state(user_authorized_fsm.AccountMenu.ref_program)
-    await bot.send_photo(message.from_user.id, loc.auth.tfids['ref_program_info'], loc.auth.msgs['ref_program_info'], parse_mode='HTML', reply_markup=user_authorized_kb.ref_program)
+
+    # use safe sending in case new bot tries to send photo using ksiVPN's bot file_id
+    await internal_functions.send_photo_safely(message.from_user.id,
+                                               telegram_file_id=loc.auth.tfids['ref_program_info'],
+                                               caption=loc.auth.msgs['ref_program_info'],
+                                               parse_mode='HTML',
+                                               reply_markup=user_authorized_kb.ref_program)
 
 
 @user_mw.authorized_only()
@@ -583,27 +589,22 @@ async def configuration_instruction(call: CallbackQuery):
     instruction_text = loc.auth.msgs['instructions'][configuration_protocol_name.lower()][configuration_os.lower()]
     instruction_images_list = loc.auth.tfids['instructions'][configuration_protocol_name.lower()][configuration_os.lower()]
     
-    # use media group builder in aiogram 3.x.x
-    # create media group with multiple photos and caption as instruction
-    media_group = MediaGroup()
-
-    # add first image to media group with caption and parse_mode to display caption in instruction
-    media_group.attach_photo(instruction_images_list[0], caption=instruction_text, parse_mode='HTML')
-    
-    # add all other photos to media group
-    if len(instruction_images_list) > 1:
-        for telegram_file_id in instruction_images_list[1:]:
-            media_group.attach_photo(telegram_file_id)
-
-    # send media group to client
-    await call.message.reply_media_group(media_group)
+    # use safe sending in case new bot tries to send photos using ksiVPN's bot files_ids
+    await internal_functions.reply_media_group_safely(call.message,
+                                                      telegram_files_ids_list=instruction_images_list,
+                                                      caption=instruction_text,
+                                                      parse_mode='HTML')
     await call.answer()
 
 
 @user_mw.authorized_only()
 async def show_project_rules(message: Message):
     """Send message with information about project rules."""
-    await message.answer_photo(loc.auth.tfids['rules'], caption=loc.auth.msgs['rules'], parse_mode='HTML')
+    # use safe sending in case new bot tries to send photo using ksiVPN's bot file_id
+    await internal_functions.send_photo_safely(message.from_user.id,
+                                               telegram_file_id=loc.auth.tfids['rules'],
+                                               caption=loc.auth.msgs['rules'],
+                                               parse_mode='HTML')
 
 
 @user_mw.authorized_only()

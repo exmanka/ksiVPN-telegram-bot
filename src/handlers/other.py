@@ -5,7 +5,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from src.keyboards import user_authorized_kb, user_unauthorized_kb, other_kb
 from src.database import postgres_dbms
-from src.services import gpt4free, localization as loc
+from src.services import gpt4free, internal_functions, localization as loc
 from bot_init import bot
 
 
@@ -16,7 +16,12 @@ async def command_help(message: Message):
 
 async def show_project_info(message: Message):
     """Send message with information about project."""
-    await bot.send_photo(message.from_user.id, loc.other.tfids['project_info'], loc.other.msgs['project_info'], 'HTML', reply_markup=other_kb.faq_inline)
+    # use safe sending in case new bot tries to send photo using ksiVPN's bot file_id
+    await internal_functions.send_photo_safely(message.from_user.id,
+                                               telegram_file_id=loc.other.tfids['project_info'],
+                                               caption=loc.other.msgs['project_info'],
+                                               parse_mode='HTML',
+                                               reply_markup=other_kb.faq_inline)
     # if client is registered
     if await postgres_dbms.is_user_registered(message.from_user.id):
         await message.answer(markdown.hide_link('https://github.com/exmanka/ksiVPN-telegram-bot') + loc.other.msgs['github'], parse_mode='HTML')
@@ -50,7 +55,12 @@ async def answer_unrecognized_messages(message: Message):
 
 async def command_start(message: Message, state: FSMContext = None):
     """Send message when user press /start."""
-    await bot.send_photo(message.from_user.id, loc.other.tfids['hello_message'], loc.other.msgs['hello_message'], 'HTML')
+    # use safe sending in case new bot tries to send photo using ksiVPN's bot file_id
+    await internal_functions.send_photo_safely(message.from_user.id,
+                                               telegram_file_id=loc.other.tfids['hello_message'],
+                                               caption=loc.other.msgs['hello_message'],
+                                               parse_mode='HTML',
+                                               reply_markup=other_kb.faq_inline)
 
     # if user isn't in db
     if not await postgres_dbms.is_user_registered(message.from_user.id):

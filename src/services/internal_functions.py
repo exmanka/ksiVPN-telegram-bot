@@ -1,12 +1,16 @@
 import asyncio
-from aiogram.types import Message
+import logging
+from aiogram.types import Message, MediaGroup, ReplyKeyboardMarkup, InlineKeyboardMarkup
 from aiogram.dispatcher import FSMContext
-from aiogram.utils.exceptions import MessageToDeleteNotFound
+from aiogram.utils.exceptions import MessageToDeleteNotFound, WrongFileIdentifier
 from src.keyboards import user_authorized_kb, admin_kb
 from src.states import user_authorized_fsm
 from src.database import postgres_dbms
 from src.services import aiomoney, localization as loc
 from bot_init import bot, ADMIN_ID, YOOMONEY_TOKEN
+
+
+logger = logging.getLogger(__name__)
 
 
 async def format_none_string(string: str | None, prefix: str = ' ', postfix: str = '') -> str:
@@ -20,6 +24,47 @@ async def format_none_string(string: str | None, prefix: str = ' ', postfix: str
     :return: empty string or prefix + string + postfix
     """    
     return '' if string is None else prefix + string + postfix
+
+
+async def send_photo_safely(telegram_user_id: int,
+                            telegram_file_id: str,
+                            caption: str | None,
+                            parse_mode: str | None = None,
+                            reply_markup: ReplyKeyboardMarkup | InlineKeyboardMarkup | None = None):
+    """Send photo by specified telegram_file_id if telegram_file_id is valid and available for bot. Else send template image by URL."""
+    try:
+        await bot.send_photo(telegram_user_id, telegram_file_id, caption, parse_mode, reply_markup=reply_markup)
+
+    except WrongFileIdentifier as wrong_file_id:
+        logger.warning(f"Can't send photo by specified telegram_file_id: {wrong_file_id}. Perhaps you try to send image by file_id from ksiVPN bot. File_id is unique for each individual bot!")
+        await bot.send_photo(telegram_user_id, loc.internal.tfids['template_image_url'], caption, parse_mode, reply_markup=reply_markup)
+
+
+async def reply_media_group_safely(message: Message,
+                                   telegram_files_ids_list: list[str],
+                                   caption: str | None,
+                                   parse_mode: str | None = None):
+    """Reply message with media group with specified telegram_files_ids if they are valid and available for bot. Else send template media group with image by URL."""
+    # use media group builder in aiogram 3.x.x
+    try:
+        # create media group
+        media_group = MediaGroup()
+
+        # add first image to media group with caption and parse_mode to display caption in instruction
+        media_group.attach_photo(telegram_files_ids_list[0], caption, parse_mode)
+
+        # add all other photos to media group
+        if len(telegram_files_ids_list) > 1:
+            for telegram_file_id in telegram_files_ids_list[1:]:
+                media_group.attach_photo(telegram_file_id)
+
+        await message.reply_media_group(media_group)
+        
+    except WrongFileIdentifier as wrong_file_id:
+        logger.warning(f"Can't send media group by specified telegram_files_ids: {wrong_file_id}. Perhaps you try to send image by file_id from ksiVPN bot. File_id is unique for each individual bot!")
+        media_group = MediaGroup()
+        media_group.attach_photo(loc.internal.tfids['template_image_url'], caption, parse_mode)
+        await message.reply_media_group(media_group)
 
 
 async def send_message_by_telegram_id(telegram_id: int, message: Message):
