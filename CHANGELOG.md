@@ -4,8 +4,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2024-01-20
-Release!
+## [Unreleased] - 2024-01-30
+Aiogram 3.x support.
+
+## [1.0.0] - 2024-01-23
+Release! 🥂
+
+### Added
+- [`5cf7909`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/5cf7909) - add feature to execute SQL-queries inside the bot
+- [`ec2dee9`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/ec2dee9) - add feature to show logs inside the bot
+
+### Changed
+- [`d0b07e9`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/d0b07e9) - add more unobtrusive reminders about the need to renew subscription
+- [`9b780cc`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/9b780cc) - clear database structure
+
+### Fixed
+- [`68e1c0a`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/68e1c0a) - fix inability send photos with default bot settings
+- [`1e5c58c`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/1e5c58c) - make logging more pure
+- [`723fdb0`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/723fdb0) - remove content protection for configurations
+
 
 ## [1.0.0-rc] - 2024-01-19
 Go into production! 🎊
