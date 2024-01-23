@@ -11,6 +11,9 @@ from bot_init import bot
 
 async def command_help(message: Message):
     """Send message with information about provided help."""
+    # if client needs to renew subscription before receiving his first configuration
+    await internal_functions.notify_client_if_subscription_must_be_renewed_to_receive_configuration(message.from_user.id)
+    
     await message.answer(markdown.hide_link('https://t.me/exmanka') + loc.other.msgs['help'], parse_mode='HTML')
 
 

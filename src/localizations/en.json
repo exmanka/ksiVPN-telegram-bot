@@ -13,7 +13,7 @@
             "ref_promo_accepted": "Wow! A promo code has been accepted from <b>client {0}</b>, giving <b>{1} days</b> of free subscription!",
             "sub_info": "🌟 Connected <b>{0}</b> with <b>cost {1:g}</b>₽ per month.",
             "invalid_promo": "There is no such promo code! Try to enter it again",
-            "need_renew_sub": "❗️ <b>To get the configuration, you need to renew your subscription!</b>"
+            "need_renew_sub": "❗️ <b>To get the first configuration, you need to renew your subscription</b>"
         },
 
         "keyboard_buttons": {

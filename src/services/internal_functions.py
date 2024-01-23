@@ -280,6 +280,13 @@ async def notify_client_new_referal(client_creator_id: int, referral_client_name
     await bot.send_message(client_creator_telegram_id,
                            loc.internal.msgs['ref_promo_was_entered'].format(referral_client_name, referral_client_username_str, bonus_time_parsed),
                            parse_mode='HTML')
+    
+
+async def notify_client_if_subscription_must_be_renewed_to_receive_configuration(telegram_id: int):
+    """Send message by specified telegram_id IF client needs to renew subscription for receiving his first configuration."""
+
+    if await postgres_dbms.is_subscription_blank(telegram_id):
+        await bot.send_message(telegram_id, loc.unauth.msgs['need_renew_sub'], parse_mode='HTML')
 
 
 async def create_configuration_description(configuration_date_of_receipt: str,
@@ -462,7 +469,7 @@ async def check_referral_reward(ref_client_id: int):
 
         # add subscription bonus time (30 days) for old client
         _, client_creator_id, *_ = await postgres_dbms.get_refferal_promo_info_by_promoID(used_ref_promo_id)
-        await postgres_dbms.add_subscription_time(client_creator_id, days=30)
+        await postgres_dbms.add_subscription_period(client_creator_id, days=30)
 
         # notify old client about new bonus
         # if client's username exists (add whitespace for good string formatting)

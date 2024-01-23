@@ -18,6 +18,10 @@ async def subscription_status(message: Message):
     """Send message with subscription status."""
     # if admin hasn't still sent client's first configuration
     if await postgres_dbms.is_subscription_not_started(message.from_user.id):
+        
+        # if client needs to renew subscription before receiving his first configuration
+        await internal_functions.notify_client_if_subscription_must_be_renewed_to_receive_configuration(message.from_user.id)
+        
         await message.answer(loc.auth.msgs['sub_isnt_active'])
         return
 
@@ -191,6 +195,9 @@ async def account_subscription_info(message: Message):
 @user_mw.authorized_only()
 async def account_configurations_fsm_start(message: Message, state: FSMContext):
     """Start FSM for account configurations menu and show account configurations menu keyboard."""
+    # if client needs to renew subscription before receiving his first configuration
+    await internal_functions.notify_client_if_subscription_must_be_renewed_to_receive_configuration(message.from_user.id)
+    
     await state.set_state(user_authorized_fsm.AccountMenu.configs)
     await message.answer(loc.auth.msgs['go_config_menu'], parse_mode='HTML', reply_markup=user_authorized_kb.config)
 

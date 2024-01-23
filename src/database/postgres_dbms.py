@@ -38,7 +38,7 @@ async def is_user_registered(telegram_id: int) -> bool | None:
 
 
 async def is_subscription_active(telegram_id: int) -> bool | None:
-    """Check subcription's expiration date of client with specified telegram_id. Return TRUE if acive, FALSE if inactive."""
+    """Check subcription's expiration date of client with specified telegram_id. Return TRUE if acive, None if inactive."""
     return await conn.fetchval(
         '''
         SELECT TRUE
@@ -54,7 +54,7 @@ async def is_subscription_active(telegram_id: int) -> bool | None:
 async def is_subscription_not_started(telegram_id: int) -> bool | None:
     """Check admin hasn't send first client's configuration to activate subscription.
 
-    Actually check subsciption's expiration date before 1980 year (peculiarity of implementation of database architecture).
+    Actually check subscription's expiration date before 1980 year (peculiarity of implementation of database architecture).
     """
     return await conn.fetchval(
         '''
@@ -64,6 +64,22 @@ async def is_subscription_not_started(telegram_id: int) -> bool | None:
         ON cs.client_id = c.id
         WHERE c.telegram_id = $1
         AND cs.expiration_date < TIMESTAMP 'EPOCH' + INTERVAL '10 years';
+        ''',
+        telegram_id)
+
+
+async def is_subscription_blank(telegram_id: int) -> bool | None:
+    """Check subscription was never paid or renewed.
+    
+    Actually check subscription's expiration date is 'EPOCH' = 1970-01-01 00:00 (peculiarity of implementation of database architecture)."""
+    return await conn.fetchval(
+        '''
+        SELECT TRUE
+        FROM clients_subscriptions AS cs
+        JOIN clients AS c
+        ON cs.client_id = c.id
+        WHERE c.telegram_id = $1
+        AND cs.expiration_date = TIMESTAMP 'EPOCH';
         ''',
         telegram_id)
 
@@ -961,7 +977,7 @@ async def update_notifications_7d(client_id: int) -> bool | None:
         client_id)
 
 
-async def add_subscription_time(client_id: int, days: int) -> None:
+async def add_subscription_period(client_id: int, days: int) -> None:
     """Add interval for subscription expiration date."""
     await conn.execute(
         '''
