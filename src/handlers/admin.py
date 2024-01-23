@@ -451,7 +451,7 @@ async def show_logs(message: Message):
             await f.seek(0)
         
         last_lines = (await f.read()).decode()
-    await message.answer(last_lines)
+    await message.answer(f'<pre>{last_lines}</pre>', parse_mode='HTML')
 
 
 @admin_mw.admin_only()
