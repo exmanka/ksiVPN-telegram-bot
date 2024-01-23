@@ -432,7 +432,7 @@ async def show_logs(message: Message):
     if last_rows_number_list:
         last_rows_number = int(last_rows_number_list[0])
     else:
-        last_rows_number = 10
+        last_rows_number = 25
 
     # read only last rows of file
     last_rows_counter = 0
