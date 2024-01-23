@@ -451,7 +451,9 @@ async def show_logs(message: Message):
             await f.seek(0)
         
         last_lines = (await f.read()).decode()
-    await message.answer(f'<pre>{last_lines}</pre>', parse_mode='HTML')
+
+    # set markdown YAML code block language because it has acceptable log file syntax highlighting
+    await message.answer(f"```yaml\n{last_lines}```", parse_mode='MarkdownV2')
 
 
 @admin_mw.admin_only()
