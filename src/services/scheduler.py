@@ -1,5 +1,5 @@
 import os
-import asyncio
+import apscheduler
 import logging
 from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -10,6 +10,7 @@ from bot_init import bot, ADMIN_ID, TIMEZONE, BACKUP_PATH
 
 
 logger = logging.getLogger(__name__)
+apscheduler_logger = logging.getLogger(apscheduler.__name__).setLevel(logging.WARNING)
 
 
 async def apscheduler_start():
