@@ -5,8 +5,7 @@ CREATE TABLE clients (
 	username VARCHAR(33),
 	telegram_id BIGINT NOT NULL UNIQUE,
 	register_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	used_ref_promo_id INT,
-	bot_chatgpt_mode BOOLEAN NOT NULL DEFAULT FALSE
+	used_ref_promo_id INT
 );
 INSERT INTO clients (name, surname, username, telegram_id, register_date) VALUES('Михаил','Ким', '@exmanka', 467321357, 'EPOCH');
 
