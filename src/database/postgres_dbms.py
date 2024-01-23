@@ -26,6 +26,22 @@ async def asyncpg_close() -> None:
         logger.info('Database has been successfully disconnected!')
 
 
+async def get_tables_names() -> list[asyncpg.Record]:
+    """Return names of tables of specified database."""
+    return await conn.fetch(
+        '''
+        SELECT table_name
+        FROM information_schema.tables
+        WHERE table_schema='public'
+        AND table_type='BASE TABLE';
+        '''
+    )
+
+async def execute_query(query: str) -> list[asyncpg.Record] | None:
+    """Execute SQL query via bot interface and return data."""
+    return await conn.fetch(query)
+
+
 async def is_user_registered(telegram_id: int) -> bool | None:
     """Check telegram_id exists in DB."""
     return await conn.fetchval(

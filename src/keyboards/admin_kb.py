@@ -3,13 +3,16 @@ from src.services import localization as loc
 
 
 menu = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton(loc.admn.btns['sql_insert_config'])).insert(KeyboardButton(loc.admn.btns['sql_insert_client'])).insert(KeyboardButton(loc.admn.btns['get_file_id'])).\
-    add(KeyboardButton(loc.admn.btns['send_message'])).insert(KeyboardButton(loc.admn.btns['clients_info'])).\
-    add(KeyboardButton(loc.admn.btns['show_earnings'])).\
+    add(KeyboardButton(loc.admn.btns['sql_insert_config'])).insert(KeyboardButton(loc.admn.btns['sql_insert_client'])).insert(KeyboardButton(loc.admn.btns['sql_query'])).\
+    add(KeyboardButton(loc.admn.btns['get_file_id'])).insert(KeyboardButton(loc.admn.btns['clients_info'])).insert(KeyboardButton(loc.admn.btns['show_earnings'])).\
+    add(KeyboardButton(loc.admn.btns['send_message'])).\
     add(KeyboardButton(loc.admn.btns['reset_fsm_1']))
 
 notification = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton(loc.admn.btns['send_message_everyone'])).insert(KeyboardButton(loc.admn.btns['send_message_selected'])).\
+    add(KeyboardButton(loc.admn.btns['reset_fsm_2']))
+
+sql_query = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton(loc.admn.btns['reset_fsm_2']))
 
 

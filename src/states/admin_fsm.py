@@ -21,3 +21,9 @@ class SendMessage(StatesGroup):
     everyone_decision = State()
     selected_list = State()
     selected_decision = State()
+
+
+class SQLQuery(StatesGroup):
+    """FSM states for executing SQL queries."""
+    password = State()
+    query = State()

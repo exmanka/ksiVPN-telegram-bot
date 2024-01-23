@@ -1,3 +1,4 @@
+import logging
 from decimal import Decimal
 from aiogram import Dispatcher
 from aiogram.types import Message, CallbackQuery
@@ -9,7 +10,10 @@ from src.keyboards import admin_kb
 from src.states import admin_fsm
 from src.database import postgres_dbms
 from src.services import internal_functions, localization as loc
-from bot_init import bot
+from bot_init import bot, POSTGRES_DB, POSTGRES_PASSWORD
+
+
+logger = logging.getLogger(__name__)
 
 
 @admin_mw.admin_only()
@@ -302,6 +306,65 @@ async def show_user_config_sql(message: Message):
 
 
 @admin_mw.admin_only()
+async def sql_query_fsm_start(message: Message):
+    """Start FSM for executing SQL query."""
+    await admin_fsm.SQLQuery.password.set()
+    await message.answer(loc.admn.msgs['fsm_start'], parse_mode='HTML')
+    await message.answer(loc.admn.msgs['sql_query_enter_password'], parse_mode='HTML', reply_markup=admin_kb.sql_query)
+
+
+@admin_mw.admin_only()
+async def sql_query_password_verification(message: Message, state: FSMContext):
+    """Verify database password entered correctly."""
+    if message.text == POSTGRES_PASSWORD:
+        await state.set_state(admin_fsm.SQLQuery.query)
+
+        # delete message with password
+        await bot.delete_message(message.from_user.id, message.message_id)
+        
+        await message.answer(loc.admn.msgs['sql_query_correct_password'], 'HTML')
+
+        # send message with all database tables names to admin
+        tables_names_str = ''
+        for idx, [table_name] in enumerate(await postgres_dbms.get_tables_names()):
+            tables_names_str += loc.admn.msgs['sql_query_tables_row'].format(idx + 1, table_name)
+        await message.answer(loc.admn.msgs['sql_query_tables_list'].format(POSTGRES_DB, tables_names_str=tables_names_str), parse_mode='HTML')
+
+    else:
+        await message.answer(loc.admn.msgs['sql_query_wrong_password'], 'HTML')
+
+
+@admin_mw.admin_only()
+async def sql_query_execution(message: Message, state: FSMContext):
+    """Execute written SQL query and receive feedback."""
+    logger.info(f'SQL query "{message.text}" was executed by admin with telegram_id {message.from_user.id}')
+    try:
+        # get data from DBMS
+        records_list = await postgres_dbms.execute_query(message.text)
+
+        # send data by chunks in case data size is too long for one telegram message
+        max_chunk_size = 2048
+        answer_message = ''
+        for record in records_list:
+            table_row_list_str: list[str] = [f'{column}=<code>{value}</code>' for column, value in zip(list(record.keys()), list(record.values()))]
+            answer_message += f"{', '.join(table_row_list_str)}\n"
+            if len(answer_message) >= max_chunk_size:
+                await message.answer(answer_message, parse_mode='HTML')
+                answer_message = ''
+        await message.answer(answer_message, parse_mode='HTML')
+            
+        # left_border = 0
+        # chunk_size = 4000
+        # while (len(data) - left_border) // chunk_size != 0:
+        #     await message.answer(data[left_border:left_border + chunk_size])
+        #     left_border += chunk_size
+        # await message.answer(data[left_border:])
+    
+    except Exception as e:
+        await message.answer(loc.admn.msgs['sql_query_error'].format(e))
+
+
+@admin_mw.admin_only()
 async def show_clients_info(message: Message):
     """Send message with information about all clients."""
     await message.answer(loc.admn.msgs['clients_info'])
@@ -470,7 +533,7 @@ async def send_configuration(message: Message, state: FSMContext):
 def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(fsm_reset, Text([loc.admn.btns[key] for key in ('reset_fsm_1', 'reset_fsm_2')]), state='*')
     dp.register_message_handler(fsm_reset, commands=['reset'], state='*')
-    dp.register_message_handler(show_admin_keyboard, commands=['admin'])
+    dp.register_message_handler(show_admin_keyboard, commands=['admin'], state='*')
     dp.register_message_handler(notifications_menu, Text(loc.admn.btns['send_message']))
     dp.register_message_handler(notifications_send_message_everyone_fsm_start, Text(loc.admn.btns['send_message_everyone']))
     dp.register_message_handler(notifications_send_message_everyone, state=admin_fsm.SendMessage.everyone_decision, content_types='any')
@@ -484,6 +547,9 @@ def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(show_user_config_sql_cm_start, commands=['sql_config'])
     dp.register_message_handler(check_user_configs, state=admin_fsm.ConfigInfo.ready, commands=['check_configs'])
     dp.register_message_handler(show_user_config_sql, state=admin_fsm.ConfigInfo.ready, content_types=['text', 'photo', 'document'])
+    dp.register_message_handler(sql_query_fsm_start, Text(loc.admn.btns['sql_query']))
+    dp.register_message_handler(sql_query_password_verification, state=admin_fsm.SQLQuery.password)
+    dp.register_message_handler(sql_query_execution, state=admin_fsm.SQLQuery.query)
     dp.register_message_handler(show_clients_info, Text(loc.admn.btns['clients_info']))
     dp.register_message_handler(show_earnings, Text(loc.admn.btns['show_earnings']))
     dp.register_message_handler(get_file_id, Text(loc.admn.btns['get_file_id']), content_types=['text', 'photo', 'document'])
