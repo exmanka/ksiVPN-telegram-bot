@@ -144,8 +144,8 @@
                     "windows": "<b>The Shadowsocks-2022 protocol is currently used only by the testing team.</b>\n\nIf you are reading this message without being a tester, it means that the administrator made a mistake when creating the configuration. Write to him to clarify the problem!",
                     "macos": "<b>The Shadowsocks-2022 protocol is currently used only by the testing team.</b>\n\nIf you are reading this message without being a tester, it means that the administrator made a mistake when creating the configuration. Write to him to clarify the problem!",
                     "linux": "<b>The Shadowsocks-2022 protocol is currently used only by the testing team.</b>\n\nIf you are reading this message without being a tester, it means that the administrator made a mistake when creating the configuration. Write to him to clarify the problem!"
-}
-}
+                }
+            }
         },
 
         "keyboard_buttons": {
@@ -250,6 +250,12 @@
             "error_too_many_flags": "Flags entered incorrectly, there are too many of them!",
             "error_bad_protocol": "Protocol entered incorrectly!",
             "error_bad_location": "Location entered incorrectly!",
+            "sql_query_enter_password": "Enter the password from the database",
+            "sql_query_correct_password": "🔥 Great, the password is entered correctly! Now enter the SQL-query!",
+            "sql_query_wrong_password": "The password was entered incorrectly!",
+            "sql_query_tables_row": "{0}. <code>{1}</code>\n",
+            "sql_query_tables_list": "List of all database tables <b>{0}</b>:\n\n{tables_names_str}",
+            "sql_query_error": "Error occurred: {0}",
             "clients_info": "🚀 Displaying information about all clients!",
             "clients_info_sub_active": "✅  ",
             "clients_info_sub_inactive": "❌  ",
@@ -266,10 +272,12 @@
         "keyboard_buttons": {
             "sql_insert_config": "SQL config\n👾",
             "sql_insert_client": "SQL client\n👾",
+            "sql_query": "SQL query\n👾",
             "get_file_id": "File ID\n👾",
             "send_message": "Send message\n👾",
             "clients_info": "About clients\n👾",
             "show_earnings": "Earnings\n👾",
+            "show_logs": "Logs\n👾",
             "reset_fsm_1": "Reset FSM\n👾",
             "send_message_everyone": "Send to all\n👾",
             "send_message_selected": "Send to favorites\n👾",
