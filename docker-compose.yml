@@ -48,7 +48,7 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
       - db-backups:/var/lib/postgresql/backups
-      - .init-database.sql:/docker-entrypoint-initdb.d/init-database.sql
+      - ./init-database.sql:/docker-entrypoint-initdb.d/init-database.sql
 
 networks:
   appnet:
