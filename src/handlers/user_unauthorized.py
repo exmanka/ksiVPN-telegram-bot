@@ -2,21 +2,21 @@ from aiogram import Dispatcher
 from aiogram.types import Message
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
-from src.middlewares import user_mw
+from src.middlewares import user_unauthorized_mw
 from src.keyboards import user_unauthorized_kb
 from src.states import user_unauthorized_fsm
 from src.database import postgres_dbms
 from src.services import internal_functions, localization as loc
 
 
-@user_mw.unauthorized_only()
+@user_unauthorized_mw.unauthorized_only()
 async def fsm_cancel(message: Message, state: FSMContext):
     """Cancel FSM state for registration."""
     await state.finish()
     await message.answer(loc.unauth.msgs['return_to_main_menu'], parse_mode='HTML', reply_markup=user_unauthorized_kb.welcome)
 
 
-@user_mw.unauthorized_only()
+@user_unauthorized_mw.unauthorized_only()
 async def authorization_fsm_start(message: Message):
     """Start FSM for registration and request user's platform."""
     await message.answer(loc.unauth.msgs['need_define_config'], parse_mode='HTML')
@@ -25,7 +25,7 @@ async def authorization_fsm_start(message: Message):
     await user_unauthorized_fsm.RegistrationMenu.platform.set()
 
 
-@user_mw.unauthorized_only()
+@user_unauthorized_mw.unauthorized_only()
 async def authorization_take_platform(message: Message, state: FSMContext):
     """Change FSM state, save user's platform and request user's OS."""
     async with state.proxy() as data:
@@ -43,7 +43,7 @@ async def authorization_take_platform(message: Message, state: FSMContext):
     await state.set_state(user_unauthorized_fsm.RegistrationMenu.os)
 
 
-@user_mw.unauthorized_only()
+@user_unauthorized_mw.unauthorized_only()
 async def authorization_take_os(message: Message, state: FSMContext):
     """Change FSM state, save user's OS and request user's ChatGPT option."""
     async with state.proxy() as data:
@@ -53,13 +53,13 @@ async def authorization_take_os(message: Message, state: FSMContext):
     await state.set_state(user_unauthorized_fsm.RegistrationMenu.chatgpt)
 
 
-@user_mw.unauthorized_only()
+@user_unauthorized_mw.unauthorized_only()
 async def authorization_show_info_chatgpt(message: Message):
     """Send message with information about ChatGPT."""
     await message.answer(loc.unauth.msgs['chatgpt_info'], parse_mode='HTML')
 
 
-@user_mw.unauthorized_only()
+@user_unauthorized_mw.unauthorized_only()
 async def authorization_take_chatgpt(message: Message, state: FSMContext):
     """Change FSM state, save user's ChatGPT option and request user's referral promo."""
     async with state.proxy() as data:
@@ -69,7 +69,7 @@ async def authorization_take_chatgpt(message: Message, state: FSMContext):
     await state.set_state(user_unauthorized_fsm.RegistrationMenu.promo)
 
 
-@user_mw.unauthorized_only()
+@user_unauthorized_mw.unauthorized_only()
 async def authorization_promo_yes(message: Message, state: FSMContext):
     """Check entered referral promocode, notify old client about new client used his referral promocode, complete authorization."""
     # if referral promocode exists in system
@@ -99,7 +99,7 @@ async def authorization_promo_yes(message: Message, state: FSMContext):
             data['promo'] = None
 
 
-@user_mw.unauthorized_only()
+@user_unauthorized_mw.unauthorized_only()
 async def authorization_promo_no(message: Message, state: FSMContext):
     """Complete authorization without referral promocode."""
     async with state.proxy() as data:

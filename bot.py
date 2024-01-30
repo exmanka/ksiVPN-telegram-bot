@@ -1,6 +1,6 @@
 import logging
 from aiogram.utils import executor
-from src.middlewares import admin_mw, user_mw, throttling_mw
+from src.middlewares import user_authorized_mw, user_unauthorized_mw, admin_mw, throttling_mw
 from src.handlers import user_authorized, user_unauthorized, admin, other
 from src.database import postgres_dbms
 from src.services import scheduler
@@ -24,7 +24,8 @@ async def on_shutdown(_):
 def main() -> None:
     # register middlwares
     dp.middleware.setup(admin_mw.CheckAdmin())
-    dp.middleware.setup(user_mw.CheckAuthorized())
+    dp.middleware.setup(user_authorized_mw.CheckAuthorized())
+    dp.middleware.setup(user_unauthorized_mw.CheckUnauthorized())
     dp.middleware.setup(throttling_mw.Throttling())
 
     # register handlers

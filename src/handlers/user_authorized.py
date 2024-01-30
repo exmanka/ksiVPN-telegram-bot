@@ -5,7 +5,7 @@ from aiogram.types import Message, CallbackQuery, MediaGroup
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.utils.exceptions import MessageToDeleteNotFound
-from src.middlewares import user_mw, throttling_mw
+from src.middlewares import user_authorized_mw, throttling_mw
 from src.keyboards import user_authorized_kb
 from src.states import user_authorized_fsm
 from src.database import postgres_dbms
@@ -13,7 +13,7 @@ from src.services import internal_functions, aiomoney, localization as loc
 from bot_init import bot, YOOMONEY_TOKEN
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 async def subscription_status(message: Message):
     """Send message with subscription status."""
     # if admin hasn't still sent client's first configuration
@@ -42,7 +42,7 @@ async def subscription_status(message: Message):
                          parse_mode='HTML')
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 async def submenu_fsm_cancel(message: Message, state: FSMContext = None):
     """Cancel FSM state for submenu and return to menu keyboard regardless of machine state."""
     if state:
@@ -50,7 +50,7 @@ async def submenu_fsm_cancel(message: Message, state: FSMContext = None):
     await message.answer(loc.auth.msgs['return_to_main_menu'], parse_mode='HTML', reply_markup=user_authorized_kb.menu)
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 async def sub_renewal_fsm_start(message: Message):
     """Start FSM for subscription renewal and show subscription renewal keyboard."""
     # if subscription is free for client
@@ -62,28 +62,28 @@ async def sub_renewal_fsm_start(message: Message):
     await message.answer(loc.auth.msgs['go_sub_renewal_menu'], parse_mode='HTML', reply_markup=user_authorized_kb.sub_renewal)
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 @throttling_mw.antiflood(rate_limit=2)
 async def sub_renewal_months_1(message: Message, state: FSMContext):
     """Create subscription renewal payment for 1 month."""
     await internal_functions.sub_renewal(message, state, months_number=1, discount=0.)
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 @throttling_mw.antiflood(rate_limit=2)
 async def sub_renewal_months_3(message: Message, state: FSMContext):
     """Create subscription renewal payment for 3 months."""
     await internal_functions.sub_renewal(message, state, months_number=3, discount=.1)
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 @throttling_mw.antiflood(rate_limit=2)
 async def sub_renewal_months_12(message: Message, state: FSMContext):
     """Create subscription renewal payment for 12 months."""
     await internal_functions.sub_renewal(message, state, months_number=12, discount=.15)
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 async def sub_renewal_payment_history(message: Message):
     """Send messages with successful payments history."""
     payment_history = await postgres_dbms.get_payments_successful_info(await postgres_dbms.get_clientID_by_telegramID(message.from_user.id))
@@ -102,7 +102,7 @@ async def sub_renewal_payment_history(message: Message):
         await message.answer(loc.auth.msgs['cant_find_payments'])
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 async def sub_renewal_submenu_fsm_cancel(message: Message, state: FSMContext):
     """Cancel FSM state for subscription renewal, try to delete payment message and return to subscription renewal keyboard."""
     # get last user's payment's telegram message id
@@ -122,7 +122,7 @@ async def sub_renewal_submenu_fsm_cancel(message: Message, state: FSMContext):
         await message.answer(loc.auth.msgs['cancel_payment'], parse_mode='HTML', reply_markup=user_authorized_kb.sub_renewal)
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 @throttling_mw.antiflood(rate_limit=2)
 async def sub_renewal_verification(message: Message, state: FSMContext):
     """Verify client's payments (per last hour) are successful according to YooMoney information."""
@@ -159,14 +159,14 @@ async def sub_renewal_verification(message: Message, state: FSMContext):
         await message.answer(loc.auth.msgs['restore_payments'])
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 async def account_fsm_start(message: Message):
     """Start FSM for account menu and show account menu keyboard."""
     await user_authorized_fsm.AccountMenu.menu.set()
     await message.answer(loc.auth.msgs['go_personal_account'], parse_mode='HTML', reply_markup=user_authorized_kb.account)
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 async def account_client_info(message: Message):
     """Send message with information about client."""
     _, name, surname, username, _, register_date_parsed, *_ = await postgres_dbms.get_client_info_by_telegramID(message.from_user.id)
@@ -185,14 +185,15 @@ async def account_client_info(message: Message):
                          parse_mode='HTML')
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 async def account_subscription_info(message: Message):
     """Send message with information about client's subscription."""
     _, title, description, price = await postgres_dbms.get_subscription_info_by_clientID(await postgres_dbms.get_clientID_by_telegramID(message.from_user.id))
     await message.answer(loc.auth.msgs['subscription_info'].format(title, description, price), parse_mode='HTML')
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
+@user_authorized_mw.nonblank_subscription_only()
 async def account_configurations_fsm_start(message: Message, state: FSMContext):
     """Start FSM for account configurations menu and show account configurations menu keyboard."""
     # if client needs to renew subscription before receiving his first configuration
@@ -202,7 +203,8 @@ async def account_configurations_fsm_start(message: Message, state: FSMContext):
     await message.answer(loc.auth.msgs['go_config_menu'], parse_mode='HTML', reply_markup=user_authorized_kb.config)
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
+@user_authorized_mw.nonblank_subscription_only()
 async def account_ref_program_fsm_start(message: Message, state: FSMContext):
     """Start FSM for account referral program menu and show account referral program menu keyboard."""
     await state.set_state(user_authorized_fsm.AccountMenu.ref_program)
@@ -215,7 +217,8 @@ async def account_ref_program_fsm_start(message: Message, state: FSMContext):
                                                reply_markup=user_authorized_kb.ref_program)
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
+@user_authorized_mw.nonblank_subscription_only()
 async def account_promo_fsm_start(message: Message, state: FSMContext):
     """Start FSM for account promocodes menu and show account promocodes menu keyboard."""
     await state.set_state(user_authorized_fsm.AccountMenu.promo)
@@ -223,21 +226,22 @@ async def account_promo_fsm_start(message: Message, state: FSMContext):
     await message.answer(loc.auth.msgs['enter_promo'], parse_mode='HTML')
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 async def account_settings_fsm_start(message: Message, state: FSMContext):
     """Start FSM for account settings menu and show account settings menu keyboard."""
     await state.set_state(user_authorized_fsm.AccountMenu.settings)
     await message.answer(loc.auth.msgs['go_settings'], parse_mode='HTML', reply_markup=user_authorized_kb.settings)
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 async def account_submenu_fsm_cancel(message: Message, state: FSMContext):
     """Cancel FSM state for account submenu and return to account menu keyboard."""
     await state.set_state(user_authorized_fsm.AccountMenu.menu)
     await message.answer(loc.auth.msgs['return_to_personal_account'], parse_mode='HTML', reply_markup=user_authorized_kb.account)
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
+@user_authorized_mw.nonblank_subscription_only()
 async def account_configurations_info(message: Message):
     """Send messages with all client's available configurations."""
     configurations_info = await postgres_dbms.get_configurations_info(await postgres_dbms.get_clientID_by_telegramID(message.from_user.id))
@@ -250,14 +254,15 @@ async def account_configurations_info(message: Message):
     await message.answer(loc.auth.msgs['configs_rules'], parse_mode='HTML')
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 async def account_configurations_submenu_fsm_cancel(message: Message, state: FSMContext):
     """Cancel FSM state for account configurations submenu and return to account configurations menu keyboard."""
     await state.set_state(user_authorized_fsm.AccountMenu.configs)
     await message.answer(loc.auth.msgs['return_to_configs_menu'], parse_mode='HTML', reply_markup=user_authorized_kb.config)
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
+@user_authorized_mw.nonblank_subscription_only()
 async def account_configurations_request_fsm_start(message: Message):
     """Start FSM for account configurations request menu, show account configurations request keyboard and request client's platform."""
     # if client's subscription is not active
@@ -272,7 +277,7 @@ async def account_configurations_request_fsm_start(message: Message):
     await message.answer(loc.unauth.msgs['choose_your_platform'], parse_mode='HTML', reply_markup=user_authorized_kb.config_platform)
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 async def account_configurations_request_platform(message: Message, state: FSMContext):
     """Change account configurations request FSM state, save client's platform and request user's OS."""
     async with state.proxy() as data:
@@ -289,7 +294,7 @@ async def account_configurations_request_platform(message: Message, state: FSMCo
     await state.set_state(user_authorized_fsm.ConfigMenu.os)
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 async def account_configurations_request_os(message: Message, state: FSMContext):
     """Change account configurations request FSM state, save client's OS and request client's ChatGPT option."""
     async with state.proxy() as data:
@@ -299,13 +304,13 @@ async def account_configurations_request_os(message: Message, state: FSMContext)
     await message.answer(loc.unauth.msgs['choose_chatgpt_option'], parse_mode='HTML', reply_markup=user_authorized_kb.config_chatgpt)
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 async def account_configurations_request_chatgpt_info(message: Message):
     """Send message with information about ChatGPT."""
     await message.answer(loc.unauth.msgs['chatgpt_info'], parse_mode='HTML')
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 async def account_configurations_request_chatgpt(message: Message, state: FSMContext):
     """Change FSM state to account configurations menu, save client's ChatGPT option and send information about client's new configuration request to admin."""
     async with state.proxy() as data:
@@ -320,14 +325,14 @@ async def account_configurations_request_chatgpt(message: Message, state: FSMCon
     await state.set_state(user_authorized_fsm.AccountMenu.configs)
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 async def account_settings_submenu_fsm_cancel(message: Message, state: FSMContext):
     """Cancel FSM state for account settings submenu and return to account settings menu keyboard."""
     await state.set_state(user_authorized_fsm.AccountMenu.settings)
     await message.answer(loc.auth.msgs['return_to_settings'], parse_mode='HTML', reply_markup=user_authorized_kb.settings)
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 async def account_settings_chatgpt(message: Message, state: FSMContext):
     """Change account settings FSM state and show dinamic account settings ChatGPT mode keyboard."""
     await state.set_state(user_authorized_fsm.SettingsMenu.chatgpt)
@@ -335,7 +340,7 @@ async def account_settings_chatgpt(message: Message, state: FSMContext):
     await message.answer(loc.auth.msgs['settings_chatgpt_info'], parse_mode='HTML')
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 async def account_settings_chatgpt_mode(message: Message, state: FSMContext):
     """Turn on/off client's ChatGPT mode for answering unrecognized messages."""
     # update ChatGPT mode status and get current ChatGPT mode status
@@ -358,7 +363,7 @@ async def account_settings_chatgpt_mode(message: Message, state: FSMContext):
         await message.answer(loc.auth.msgs['chatgpt_off'], parse_mode='HTML', reply_markup=reply_keyboard)
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 async def account_settings_notifications(message: Message, state: FSMContext):
     """Change account settings FSM state and show dinamic account settings notifications keyboard."""
     client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
@@ -367,7 +372,7 @@ async def account_settings_notifications(message: Message, state: FSMContext):
     await message.answer(loc.auth.msgs['settings_notifications_info'], parse_mode='HTML')
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 async def account_settings_notifications_1d(message: Message):
     """Turn on/off client's receiving notifications 1 day before subscription expiration."""
     client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
@@ -382,7 +387,7 @@ async def account_settings_notifications_1d(message: Message):
         await message.answer(loc.auth.msgs['1d_off'], parse_mode='HTML', reply_markup=await user_authorized_kb.settings_notifications(client_id))
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 async def account_settings_notifications_3d(message: Message):
     """Turn on/off client's receiving notifications 3 days before subscription expiration."""
     client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
@@ -397,7 +402,7 @@ async def account_settings_notifications_3d(message: Message):
         await message.answer(loc.auth.msgs['3d_off'], parse_mode='HTML', reply_markup=await user_authorized_kb.settings_notifications(client_id))
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 async def account_settings_notifications_7d(message: Message):
     """Turn on/off client's receiving notifications 7 days before subscription expiration."""
     client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
@@ -412,7 +417,8 @@ async def account_settings_notifications_7d(message: Message):
         await message.answer(loc.auth.msgs['7d_off'], parse_mode='HTML', reply_markup=await user_authorized_kb.settings_notifications(client_id))
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
+@user_authorized_mw.nonblank_subscription_only()
 async def account_ref_program_info(message: Message):
     """Send message with information about client's participation in referral program."""
     who_invited_client = await postgres_dbms.get_invited_by_client_info(message.from_user.id)
@@ -448,7 +454,8 @@ async def account_ref_program_info(message: Message):
         await message.answer(loc.auth.msgs['nobody_was_invited'])
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
+@user_authorized_mw.nonblank_subscription_only()
 async def account_ref_program_invite(message: Message):
     """Send message with random invite text from messages.py."""
     ref_promocode = await postgres_dbms.get_referral_promo(message.from_user.id)
@@ -456,14 +463,16 @@ async def account_ref_program_invite(message: Message):
     await message.answer(text, parse_mode='HTML')
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
+@user_authorized_mw.nonblank_subscription_only()
 async def account_ref_program_promocode(message: Message):
     """Send message with client's own referral promocode."""
     ref_promo_phrase: str = await postgres_dbms.get_referral_promo(message.from_user.id)
     await message.answer(loc.auth.msgs['your_ref_code'].format(ref_promo_phrase), parse_mode='HTML')
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
+@user_authorized_mw.nonblank_subscription_only()
 async def account_promo_check(message: Message, state: FSMContext):
     """Check entered promocode is valid, send information about successfuly entered promocode, update subscription period for client.
 
@@ -546,7 +555,8 @@ async def account_promo_check(message: Message, state: FSMContext):
         await message.answer(loc.auth.msgs['error_promo_not_exist'])
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
+@user_authorized_mw.nonblank_subscription_only()
 async def account_promo_info(message: Message):
     """Send message with information about entered by client promocodes."""
     ref_promos, global_promos, local_promos = await postgres_dbms.get_client_entered_promos(await postgres_dbms.get_clientID_by_telegramID(message.from_user.id))
@@ -583,7 +593,8 @@ async def account_promo_info(message: Message):
         await message.answer(ref_promo_str + global_promos_str + local_promos_str, parse_mode='HTML')
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
+@user_authorized_mw.nonblank_subscription_only()
 async def configuration_instruction(call: CallbackQuery):
     """Send message with instruction for configuration specified by inline button."""
     configuration_protocol_name, configuration_os = call.data.split('--')
@@ -604,7 +615,7 @@ async def configuration_instruction(call: CallbackQuery):
     await call.answer()
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 async def show_project_rules(message: Message):
     """Send message with information about project rules."""
     # use safe sending in case new bot tries to send photo using ksiVPN's bot file_id
@@ -614,7 +625,7 @@ async def show_project_rules(message: Message):
                                                parse_mode='HTML')
 
 
-@user_mw.authorized_only()
+@user_authorized_mw.authorized_only()
 @throttling_mw.antiflood(rate_limit=2)
 async def restore_payments(message: Message):
     """Try to verify client's payments (per whole time) are successful according to YooMoney information."""

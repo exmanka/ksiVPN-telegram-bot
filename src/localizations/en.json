@@ -363,7 +363,8 @@
             "authorized_only": "👾 Oops! This feature is only available to registered users!",
             "unauthorized_only": "You have already registered!",
             "admin_only": "👾 Oh, oh! This function is only available to the administrator!",
-            "antiflood": "🤖 Please do not spam with requests!"
+            "antiflood": "🤖 Please do not spam with requests!",
+            "nonblank_only": "👾 Eh! This feature is only available to clietns with an activated subscription!"
         },
 
         "keyboard_buttons": {

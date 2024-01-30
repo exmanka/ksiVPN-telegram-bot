@@ -5,19 +5,19 @@ from src.database import postgres_dbms
 from src.services import localization as loc
 
 
-def unauthorized_only():
-    """Decorator for handlers available only for unauthorized users."""
+def authorized_only():
+    """Decorator for handlers available only for authorized clients."""
     def wrapper(func):
-        setattr(func, 'unauthorized_only', True)
+        setattr(func, 'authorized_only', True)
 
         return func
     return wrapper
 
 
-def authorized_only():
-    """Decorator for handlers available only for authorized clients."""
+def nonblank_subscription_only():
+    """Decorator for handlers available only for clients with nonblank subscription."""
     def wrapper(func):
-        setattr(func, 'authorized_only', True)
+        setattr(func, 'nonblank_only', True)
 
         return func
     return wrapper
@@ -29,16 +29,13 @@ class CheckAuthorized(BaseMiddleware):
         """Check authorized-only clients handler on message process."""
         # if current event was caught by handler
         if handler := current_handler.get():
-            only_for_unauthorized_users = getattr(handler, 'unauthorized_only', False)
-
-            # if current handler has attribute 'unauthorized_only' and client is already registered
-            if only_for_unauthorized_users and await postgres_dbms.is_user_registered(message.from_user.id):
-                await message.answer(loc.mw.msgs['unauthorized_only'])
-                raise CancelHandler()
-
-            only_for_authorized_users = getattr(handler, 'authorized_only', False)
 
             # if current handler has attribute 'authorized_only' and client isn't registered
-            if only_for_authorized_users and not await postgres_dbms.is_user_registered(message.from_user.id):
+            if getattr(handler, 'authorized_only', False) and not await postgres_dbms.is_user_registered(message.from_user.id):
                 await message.answer(loc.mw.msgs['authorized_only'])
+                raise CancelHandler()
+
+            # if current handler has attribute 'nonblank_only' and client has blank subscription
+            if getattr(handler, 'nonblank_only', False) and await postgres_dbms.is_subscription_blank(message.from_user.id):
+                await message.answer(loc.mw.msgs['nonblank_only'])
                 raise CancelHandler()
