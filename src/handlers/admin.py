@@ -27,7 +27,7 @@ async def fsm_reset(message: Message, state: FSMContext):
 @admin_mw.admin_only()
 async def show_admin_keyboard(message: Message):
     """Send message with information about admin's commands and show admin keyboard."""
-    await message.reply(loc.admn.msgs['admin_kb_info'], reply_markup=admin_kb.menu)
+    await message.reply(loc.admn.msgs['admin_kb_info'], parse_mode='HTML', reply_markup=admin_kb.menu)
 
 
 @admin_mw.admin_only()
@@ -225,7 +225,7 @@ async def show_user_config_sql_cm_start(message: Message):
 
 @admin_mw.admin_only()
 async def show_user_config_sql(message: Message):
-    """Send message with SQL auery for INSERT of configuration provided by admin."""
+    """Send message with SQL qauery for INSERT of configuration provided by admin."""
     # parse arguments
     if message.photo or message.document:
         arguments = message.caption.split(' ')
@@ -458,20 +458,21 @@ async def show_logs(message: Message):
 
 @admin_mw.admin_only()
 async def check_user_configs(message: Message):
-    """Send messages with configurations of another client.
+    """Send messages with configurations of another client."""
+    try:
+        # taking user info (telegramID or username) from text after command
+        user_info = message.text.split(' ')[1]
 
-    Used for test.
-    """
-    # taking user info (telegramID or username) from text after command
-    user_info = message.text.split(' ')[1]
+        # if user_info is username
+        if user_info[0] == '@':
+            client_id = await postgres_dbms.get_clientID_by_username(user_info)
 
-    # if user_info is username
-    if user_info[0] == '@':
-        client_id = await postgres_dbms.get_clientID_by_username(user_info)
-
-    # if user_info is user telegramID
-    else:
-        client_id = await postgres_dbms.get_clientID_by_telegramID(user_info)
+        # if user_info is user telegramID
+        else:
+            client_id = await postgres_dbms.get_clientID_by_telegramID(int(user_info))
+    except Exception as e:
+        await message.answer(loc.admn.msgs['error_unrecognized'].format(e))
+        return
 
     # get information about specified client's configurations
     configurations_info = await postgres_dbms.get_configurations_info(client_id)
@@ -480,8 +481,6 @@ async def check_user_configs(message: Message):
     # send message for every configuration
     for file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id in configurations_info:
         await internal_functions.send_configuration(message.from_user.id, file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id)
-
-    await message.answer(loc.auth.msgs['configs_rules'], parse_mode='HTML')
 
 
 @admin_mw.admin_only()
@@ -580,12 +579,13 @@ def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(show_user_info_sql, state=admin_fsm.UserInfo.ready)
     dp.register_message_handler(show_user_config_sql_cm_start, Text(loc.admn.btns['sql_insert_config']))
     dp.register_message_handler(show_user_config_sql_cm_start, commands=['sql_config'])
-    dp.register_message_handler(check_user_configs, state=admin_fsm.ConfigInfo.ready, commands=['check_configs'])
+    dp.register_message_handler(check_user_configs, commands=['configs'])
     dp.register_message_handler(show_user_config_sql, state=admin_fsm.ConfigInfo.ready, content_types=['text', 'photo', 'document'])
     dp.register_message_handler(sql_query_fsm_start, Text(loc.admn.btns['sql_query']))
     dp.register_message_handler(sql_query_password_verification, state=admin_fsm.SQLQuery.password)
     dp.register_message_handler(sql_query_execution, state=admin_fsm.SQLQuery.query)
     dp.register_message_handler(show_clients_info, Text(loc.admn.btns['clients_info']))
+    dp.register_message_handler(show_clients_info, commands=['clients'])
     dp.register_message_handler(show_earnings, Text(loc.admn.btns['show_earnings']))
     dp.register_message_handler(show_logs, Text(loc.admn.btns['show_logs']))
     dp.register_message_handler(show_logs, commands=['logs'])

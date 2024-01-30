@@ -216,7 +216,7 @@ async def get_clientID_by_telegramID(telegram_id: int) -> int | None:
         FROM clients
         WHERE telegram_id = $1;
         ''',
-                               telegram_id)
+        telegram_id)
 
 
 async def get_clientID_by_username(username: str) -> int | None:

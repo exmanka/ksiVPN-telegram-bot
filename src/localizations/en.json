@@ -229,7 +229,7 @@
         "messages": {
             "reset_fsm_keyboard": "<i>Reset the machine state and keyboard</i>",
             "fsm_start": "<i>The machine state is activated</i>",
-            "admin_kb_info": "To open this menu, use /admin.\b\b Available commands:\n\n/fileid (/fid)\n/sql_user\n/sql_config",
+            "admin_kb_info": "To open this menu, use /admin.\b\b Available commands:\n\n/fileid (/fid)\n/sql_user\n/sql_config\n/clients\n/configs <i>telegram_id</i> | <i>username</i>",
             "go_send_message_menu": "<i>Going to the menu for sending messages to clients</i>",
             "message_everyone_info": "Enter the necessary information with the following message, and attach files if necessary!\n\nEnter /perfect to confirm the selection of the last sent message!",
             "clients_row_str": "{0}. {1} {2} {3} <code>{4}</code>\n",
@@ -244,7 +244,7 @@
             "sql_insert_client_info": "Forward the message to me and I will output all possible information!",
             "cant_read_user": "Unfortunately, I cannot read the user information 😭",
             "sql_insert_config_info": "Send me a message in the format (spaces are used instead of line breaks):\n\n<b>client_id</b> - client_username | client_telegram_id\n<b>protocol_id</b> - <code>w</code> (WireGuard) | <code>x</code> (XTLS-Reality) | <code>s</code> (ShadowSocks)\n<b>location_id</b> - <code>n</code> (Netherlands) | <code>l</code> (Latvia) | <code>g</code> (Germany) | <code>u</code> (USA)\n<b>os</b> - <code>Android</code> | <code>IOS</code> | <code>Windows</code> | <code>Linux</code>\n<b>date_of_receipt</b> - date of receipt of the configuration in the format <code>YYYY-MM-DD HH-MI</code>\n<b>link</b> - if instead of a photo or a *.conf file, you need a link for XTLS/SS for PC\n\n<b>Do not forget to attach the file if required!</b>",
-            "sql_insert_config_check_config_info": "By the way, you can check which configurations are available to the client with the command \n/check_configs <i>telegram_id</i> | <i>username</i>",
+            "sql_insert_config_check_config_info": "By the way, you can check which configurations are available to the user in the admin menu with the command \n/configs <i>telegram_id</i> | <i>username</i>",
             "error_not_enough_flags": "The flags are entered incorrectly, there are too few of them!",
             "error_bad_attachment": "You didn't attach the file, or you added the wrong attachment type!",
             "error_too_many_flags": "Flags entered incorrectly, there are too many of them!",
