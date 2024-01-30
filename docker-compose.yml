@@ -8,7 +8,7 @@ services:
     container_name: tgbot-container
     restart: unless-stopped
     env_file:
-      - .confs/.data/.env
+      - .env
     ports:
       - 80:80
 #      - 443:443
@@ -30,14 +30,12 @@ services:
         ADDITIONAL_LANGUAGE: ${ADDITIONAL_LANGUAGE}
     container_name: postgres-container
     restart: unless-stopped
-    env_file:
-      - .confs/.data/.env
-    # environment:
-    #   TZ: ${TZ}
-    #   POSTGRES_USER: ${POSTGRES_USER}
-    #   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    #   POSTGRES_DB: ${POSTGRES_DB}
-    #   POSTGRES_INITDB_ARGS: ${POSTGRES_INITDB_ARGS}
+    environment:
+      TZ: ${TZ}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_INITDB_ARGS: ${POSTGRES_INITDB_ARGS}
     ports:
       - 5432:5432
     healthcheck:
@@ -50,7 +48,7 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
       - db-backups:/var/lib/postgresql/backups
-      - .confs/.data/init-database.sql:/docker-entrypoint-initdb.d/init-database.sql
+      - .init-database.sql:/docker-entrypoint-initdb.d/init-database.sql
 
 networks:
   appnet:
