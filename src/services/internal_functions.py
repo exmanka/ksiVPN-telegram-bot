@@ -2,7 +2,7 @@ import asyncio
 import logging
 from aiogram.types import Message, MediaGroup, ReplyKeyboardMarkup, InlineKeyboardMarkup
 from aiogram.dispatcher import FSMContext
-from aiogram.utils.exceptions import MessageToDeleteNotFound, WrongFileIdentifier
+from aiogram.utils.exceptions import MessageToDeleteNotFound, WrongFileIdentifier, ChatNotFound
 from src.keyboards import user_authorized_kb, admin_kb
 from src.states import user_authorized_fsm
 from src.database import postgres_dbms
@@ -475,9 +475,13 @@ async def check_referral_reward(ref_client_id: int):
         # if client's username exists (add whitespace for good string formatting)
         ref_client_username_str = await format_none_string(ref_client_username)
         client_creator_telegram_id = await postgres_dbms.get_telegramID_by_clientID(client_creator_id)
-        await bot.send_message(client_creator_telegram_id,
-                               loc.internal.msgs['ref_client_paid_for_sub'].format(ref_client_name, ref_client_username_str),
-                               parse_mode='HTML')
+        try:
+            await bot.send_message(client_creator_telegram_id,
+                                   loc.internal.msgs['ref_client_paid_for_sub'].format(ref_client_name, ref_client_username_str),
+                                   parse_mode='HTML')
+        # if old client has never written to bot
+        except ChatNotFound as cnf:
+            logger.info(f"Can't notify client about new bonus by refferal program: {cnf}. Perhaps client has never written to bot.")
 
 
 async def autocheck_payment_status(payment_id: int) -> str:
