@@ -1,5 +1,6 @@
 import logging
 import aiofiles
+import html
 from decimal import Decimal
 from aiogram import Dispatcher
 from aiogram.types import Message, CallbackQuery
@@ -432,7 +433,7 @@ async def show_logs(message: Message):
     if last_rows_number_list:
         last_rows_number = int(last_rows_number_list[0])
     else:
-        last_rows_number = 25
+        last_rows_number = 50
 
     # read only last rows of file
     last_rows_counter = 0
@@ -453,7 +454,7 @@ async def show_logs(message: Message):
         last_lines = (await f.read()).decode()
 
     # set markdown YAML code block language because it has acceptable log file syntax highlighting
-    await message.answer(f"```yaml\n{last_lines}```", parse_mode='MarkdownV2')
+    await message.answer(f"<pre>{html.escape(last_lines)}</pre>", parse_mode='HTML')
 
 
 @admin_mw.admin_only()
