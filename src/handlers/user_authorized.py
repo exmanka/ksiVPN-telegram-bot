@@ -148,11 +148,21 @@ async def sub_renewal_verification(message: Message, state: FSMContext):
             await state.set_state(user_authorized_fsm.PaymentMenu.menu)
             await message.answer(loc.auth.msgs['payment_found'].format(payment_id), parse_mode='HTML', reply_markup=user_authorized_kb.sub_renewal)
 
-            # notify admin about successful payment and check referral reward for other client
-            await internal_functions.notify_admin_payment_success(client_id, months_number)
-            await internal_functions.check_referral_reward(client_id)
+            # try to delete payment message
+            message_id = await postgres_dbms.get_payment_telegram_message_id(payment_id)
+            try:
+                await bot.delete_message(message.chat.id, message_id)
 
-            is_payment_found = True
+            # if already deleted
+            except MessageToDeleteNotFound as _t:
+                pass
+            
+            finally:
+                # notify admin about successful payment and check referral reward for other client
+                await internal_functions.notify_admin_payment_success(client_id, months_number)
+                await internal_functions.check_referral_reward(client_id)
+
+                is_payment_found = True
 
     if not is_payment_found:
         await message.answer(loc.auth.msgs['cant_find_payments'])
@@ -648,11 +658,21 @@ async def restore_payments(message: Message):
             # answer to a client
             await message.answer(loc.auth.msgs['payment_found'].format(payment_id), parse_mode='HTML')
 
-            # notify admin about successful payment and check referral reward for other client
-            await internal_functions.notify_admin_payment_success(client_id, months_number)
-            await internal_functions.check_referral_reward(client_id)
+            # try to delete payment message
+            message_id = await postgres_dbms.get_payment_telegram_message_id(payment_id)
+            try:
+                await bot.delete_message(message.chat.id, message_id)
+            
+            # if already deleted
+            except MessageToDeleteNotFound as _t:
+                pass
+            
+            finally:
+                # notify admin about successful payment and check referral reward for other client
+                await internal_functions.notify_admin_payment_success(client_id, months_number)
+                await internal_functions.check_referral_reward(client_id)
 
-            is_payment_found = True
+                is_payment_found = True
 
     if not is_payment_found:
         await message.answer(loc.auth.msgs['cant_find_payments_restore'])

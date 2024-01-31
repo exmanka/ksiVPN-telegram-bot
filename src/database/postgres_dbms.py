@@ -503,6 +503,17 @@ async def get_payment_status(payment_id: int) -> bool | None:
         payment_id)
 
 
+async def get_payment_telegram_message_id(payment_id: int) -> int | None:
+    """Return telegram message id for specified payment_id."""
+    return await conn.fetchval(
+        '''
+        SELECT telegram_message_id
+        FROM payments
+        WHERE id = $1;
+        ''',
+        payment_id)
+
+
 async def get_payment_months_number(payment_id: int) -> int | None:
     """Return paid number of months for specified payment_id."""
     return await conn.fetchval(
