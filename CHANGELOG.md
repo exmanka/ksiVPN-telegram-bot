@@ -4,8 +4,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2024-01-30
+## [Unreleased] - 2024-02-30
 Aiogram 3.x support.
+
+## [1.0.1] - 2024-01-31
+
+### Added
+- [`33f67e3`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/33f67e3) - add middleware for clients with not activated subscription
+- [`2243709`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/2243709) - add deletion of successful payment message after checking payments
+
+### Changed
+- [`3d828f1`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/3d828f1) - add GIFs to README
+- [`29c9b84`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/29c9b84), [`a20bcf7`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/a20bcf7) - update messages in bot
+
+### Fixed
+- [`ac66fcc`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/ac66fcc) - fix showing user configs via username in bot
+- [`e410535`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/e410535) - fix showing logs parse_mode in bot
+- [`26f6c2f`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/26f6c2f) - fix throwing exception during referral reward checking
+- [`eee65f5`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/eee65f5) - update incorrect messages in bot
+
 
 ## [1.0.0] - 2024-01-23
 Release! 🥂
