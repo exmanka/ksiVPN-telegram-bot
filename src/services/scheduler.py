@@ -39,6 +39,7 @@ async def send_subscription_expiration_notifications():
 
         # if client's subscription expires between [CURRENT_TIMESTAMP, CURRENT_TIMESTAMP + INTERVAL '30 minutes')
         if is_sub_expiration_now:
+            logger.info(f'Send message to client: {telegram_id} {name}. Subscription has expired.')
 
             # send message to client
             await bot.send_message(telegram_id, 'Срок действия подписки закончися!')
@@ -56,6 +57,7 @@ async def send_subscription_expiration_notifications():
 
         # if client's subscription expires between [CURRENT_TIMESTAMP + INTERVAL '1 day', CURRENT_TIMESTAMP + INTERVAL '1 day 30 minutes')
         if is_sub_expiration_in_1d:
+            logger.info(f'Send message to client: {telegram_id} {name}. Subscription expires in 1 day.')
 
             # send message to client
             await bot.send_message(telegram_id, f'Уведомляю: cрок действия подписки закончится через 1 сутки, {sub_expiration_date}!')
@@ -68,6 +70,7 @@ async def send_subscription_expiration_notifications():
 
         # if client's subscription expires between [CURRENT_TIMESTAMP + INTERVAL '3 days', CURRENT_TIMESTAMP + INTERVAL '3 days 30 minutes')
         if is_sub_expiration_in_3d:
+            logger.info(f'Send message to client: {telegram_id} {name}. Subscription expires in 3 days.')
 
             # send message to client
             await bot.send_message(telegram_id, f'Уведомляю: срок действия подписки закончится через 3 дня, {sub_expiration_date}!')
@@ -80,6 +83,7 @@ async def send_subscription_expiration_notifications():
 
         # if client's subscription expires between [CURRENT_TIMESTAMP + INTERVAL '7 days', CURRENT_TIMESTAMP + INTERVAL '7 days 30 minutes')
         if is_sub_expiration_in_7d:
+            logger.info(f'Send message to client: {telegram_id} {name}. Subscription expires in 7 days.')
 
             # send message to client
             await bot.send_message(telegram_id, f'Уведомляю: срок действия подписки закончится через 7 дней, {sub_expiration_date}!')
