@@ -58,23 +58,25 @@ async def answer_unrecognized_messages(message: Message):
 
 async def command_start(message: Message, state: FSMContext = None):
     """Send message when user press /start."""
-    # use safe sending in case new bot tries to send photo using ksiVPN's bot file_id
-    await internal_functions.send_photo_safely(message.from_user.id,
-                                               telegram_file_id=loc.other.tfids['hello_message'],
-                                               caption=loc.other.msgs['hello_message'],
-                                               parse_mode='HTML',
-                                               reply_markup=other_kb.faq_inline)
-
     # if user isn't in db
     if not await postgres_dbms.is_user_registered(message.from_user.id):
-        await message.answer(loc.other.msgs['more_info'], reply_markup=user_unauthorized_kb.welcome, parse_mode='HTML')
+        # send hello image with message
+        # use safe sending in case new bot tries to send photo using ksiVPN's bot file_id
+        await internal_functions.send_photo_safely(message.from_user.id,
+                                                   telegram_file_id=loc.other.tfids['hello_message'],
+                                                   caption=loc.other.msgs['hello_message'],
+                                                   parse_mode='HTML',
+                                                   reply_markup=other_kb.faq_inline)
+        
+        # reset FSM state and show welcome keyboard
+        await state.finish()
+        await message.answer(loc.other.msgs['more_info'], 'HTML', reply_markup=user_unauthorized_kb.welcome)
 
     # if user is already in db
     else:
-        if state:
-            await state.finish()
-        await message.answer(loc.other.msgs['already_registered'], reply_markup=user_authorized_kb.menu)
-        await message.answer(loc.auth.msgs['configs_rules'], parse_mode='HTML')
+        # reset FSM state and show menu keyboard
+        await state.finish()
+        await message.answer(loc.other.msgs['restart'], 'HTML', reply_markup=user_authorized_kb.menu)
 
 
 def register_handlers_other(dp: Dispatcher):
