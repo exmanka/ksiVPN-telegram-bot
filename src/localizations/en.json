@@ -68,7 +68,7 @@
             "enter_promo": "<b>🎟 Send me the promo code by message!</b>",
             "go_settings": "<i>Going to settings</i>",
             "return_to_personal_account": "<i>Returning to personal account</i>",
-            "configs_info": "Information about all your configurations, now you do not need to search for them through the dialogue with the bot!\n\n All configurations <b>{0}</b>.",
+            "configs_info": "Information about all your configurations, now you do not need to search for them through the dialogue with the bot!\n\nAll configurations <b>{0}</b>.",
             "configs_rules": "<b>I remind you of the basic rules /rules:\n\n1. One device is one configuration.\n2. Sharing configurations with other people is prohibited!\n3. Downloading files via torrent clients is prohibited!\n\n❌ Violation of any of the rules may result in the immediate blocking of the user.</b>",
             "return_to_configs_menu": "<i>Returning to the configuration menu</i>",
             "cant_request_config": "To request a new configuration, you need to renew your subscription!",
@@ -118,6 +118,10 @@
             "local_promo_row_str": "{0}. <code>{1}</code> for {2} days of subscription.\nLED {3}.\n",
             "no_promo_entered": "You have not entered any promo codes yet. Follow the news! 🚀",
             "config_was_received": "✨ <b>Hooray, the configuration is received!</b>",
+            "sub_expired": "👾 <b>Oh, oh! The subscription has expired, the VPN will have to be disabled</b>\n\nWe hope that this is temporary, and you will definitely come back to us! ♥️",
+            "sub_expires_1d": "👾 <b>Notifying: the subscription expires in 1 day</b>\n\nDon't forget to renew your subscription!\n\n<tg-spoiler><i>You can disable the reminder by going to «Personal Account» — «Settings» — «Notifications».</i></tg-spoiler>",
+            "sub_expires_3d": "👾 <b>Notifying: the subscription expires in 3 days</b>\n\nDon't forget to renew your subscription!\n\n<tg-spoiler><i>You can disable the reminder by going to «Personal Account» — «Settings» — «Notifications».</i></tg-spoiler>",
+            "sub_expires_7d": "👾 <b>Notifying: the subscription expires in 7 days</b>\n\nDon't forget to renew your subscription!\n\n<tg-spoiler><i>You can disable the reminder by going to «Personal Account» — «Settings» — «Notifications».</i></tg-spoiler>",
             "instructions": {
                 "wireguard":
                 {
@@ -238,7 +242,7 @@
             "message_everyone_somebody_didnt_recieve": "<b>Users who did not receive the message</b>:\n{ignored_clients_str}",
             "how_message_looks": "This is how your message will look like:",
             "message_selected_info": "Enter a comma separated <i><b>username</b></i> or <i><b>telegram_id</b></i> of the clients for whom the newsletter is intended.",
-            "message_selected_somebody_received": "<b>The message will be sent to the clients</b>:\n\n {selected_clients_str}",
+            "message_selected_somebody_received": "<b>The message will be sent to the clients</b>:\n\n{selected_clients_str}",
             "message_selected_nobody_received": "You made a mistake when entering clients! The message will not reach anyone!",
             "message_selected_enter_message_info": "Now enter the necessary information with the following message, and also attach files if necessary!\n\nEnter /perfect to confirm the selection of the last sent message!",
             "sql_insert_client_info": "Forward the message to me and I will output all possible information!",
@@ -266,7 +270,11 @@
             "send_configuration_info": "Send me a message in the format (use spaces instead of line breaks):\n\n<b>protocol</b> — <code>wireguard/wg/w</code> | <code>xtls-reality/xtls/reality/x</code> | <code>shadosocks/ss/s</code>\n<b>location</b> — <code>netherlands/n</code> | <code>latvia/l</code> | <code>germany/g</code> | <code>usa/u</code>\n<b>os</b> — <code>android</code> | <code>ios</code> | <code>windows</code> | <code>macos/mac</code> | <code>linux</code>\n<b>link</b> — if instead of a photo or a *.conf file, you need a link for XTLS/SS for PC\n\n<b>Do not forget to attach the file if required!</b>",
             "config_was_sent": "Excellent, configuration type <b>{0}</b> has been sent!",
             "error_bad_flags_number": "Error: {0}\nMost likely, you specified the wrong number of flags!",
-            "error_unrecognized": "Error: {0}"
+            "error_unrecognized": "Error: {0}",
+            "sub_expired": "👾 <b>The user's subscription has expired. Disable its configurations (there are {0} in total)!</b>\n\n<b>Client ID</b>: <code>{1}</code>\n<b>Telegram INFO</b>:{2} <code>{3}{4}</code> <code>{5}</code>",
+            "sub_expires_1d": "👾 <b>The user's subscription expires in 1 day.</b>\n\n<b>Client ID</b>: <code>{0}</code>\n<b>Telegram INFO</b>:{1} <code>{2}{3}</code> <code>{4}</code>",
+            "sub_expires_3d": "👾 <b>The user's subscription expires in 3 days.</b>\n\n<b>Client ID</b>: <code>{0}</code>\n<b>Telegram INFO</b>:{1} <code>{2}{3}</code> <code>{4}</code>",
+            "sub_expires_7d": "👾 <b>The user's subscription expires in 7 days.</b>\n\n<b>Client ID</b>: <code>{0}</code>\n<b>Telegram INFO</b>:{1} <code>{2}{3}</code> <code>{4}</code>"
         },
 
         "keyboard_buttons": {
@@ -293,15 +301,15 @@
     "other":
     {
         "messages": {
-            "hello_message": "👋 <b>Hi! I am a bot of the ksiVPN project — an unlimited, fast and completely secure VPN service for 200</b>₽<b>/month!</b>\n\n I will help you configure the connection, pay for the subscription, extend it for free, as well as solve many other tasks! If desired, you can even discuss <code>human</code> topics with me!",
+            "hello_message": "👋 <b>Hi! I am a bot of the ksiVPN project — an unlimited, fast and completely secure VPN service for 200</b>₽<b>/month!</b>\n\nI will help you configure the connection, pay for the subscription, extend it for free, as well as solve many other tasks! If desired, you can even discuss <code>human</code> topics with me!",
             "more_info": "More information about the service is available by clicking the <b>«About project»</b> button from below",
             "help": "You can easily write to my creator if you have any problems, as well as if you have ideas to improve my work!\n\n<b>If I do not perceive button clicks, reset my state using the /start command</b>",
             "project_info": "Unlimited, fast and completely secure service that allows you to establish a VPN connection in various countries of the world through your own VPS for 200₽ per month.",
-            "faq_info": "💬 <b>How much does the subscription cost?</b>\nThe cost of a basic subscription is 200rubles per month.\n\n💬 <b>What do I get for this cost?</b>\nVPN connection at maximum speed with no traffic limit on all project servers. The number of VPN connections is also unlimited within reason! And additional bot functions will be available.\n\n💬 <b>How does the connection work?</b>\nIn the question-answer mode, the BOT learns the necessary information from you, sends instructions and configuration. You need to download the application from the official store (PlayMarket or App Store) and, following the instructions, add the configuration (usually you just need to scan the QR code).\n\n💬 <b>Is the subscription price fixed?</b>\nNo, the cost of a subscription depends on its type, there are several of them. For example, a discounted subscription is available to testers and some others. The final subscription price will be displayed after entering the referral promo code.\n\n💬 <b>Are ChatGPT-type services available with this VPN?</b>\n are always available! Do not forget to specify their use when answering the bot's questions when creating the configuration.\n\n💬 <b>Which operating systems are supported?</b>\nThe service is available on all possible operating systems, including Android, iOS, Windows, macOS, Linux.\n\n💬 <b>Which servers are provided?</b>\nThere are currently four servers available:\n1. Netherlands, Amsterdam — speed up to 1 Gb/s, ping 30 ms.\n2. Latvia, Riga — speed up to 1 Gb/s, ping 20 ms.\n3. Germany, Nuremberg — speed up to 500 Mb/s, ping 40 ms.\n4. USA, Silicon Valley — speed up to 50 Mb/s, ping 150 ms.",
+            "faq_info": "💬 <b>How much does the subscription cost?</b>\nThe cost of a basic subscription is 200rubles per month.\n\n💬 <b>What do I get for this cost?</b>\nVPN connection at maximum speed with no traffic limit on all project servers. The number of VPN connections is also unlimited within reason! And additional bot functions will be available.\n\n💬 <b>How does the connection work?</b>\nIn the question-answer mode, the BOT learns the necessary information from you, sends instructions and configuration. You need to download the application from the official store (PlayMarket or App Store) and, following the instructions, add the configuration (usually you just need to scan the QR code).\n\n💬 <b>Is the subscription price fixed?</b>\nNo, the cost of a subscription depends on its type, there are several of them. For example, a discounted subscription is available to testers and some others. The final subscription price will be displayed after entering the referral promo code.\n\n💬 <b>Are ChatGPT-type services available with this VPN?</b>\nAlways available! Do not forget to specify their use when answering the bot's questions when creating the configuration.\n\n💬 <b>Which operating systems are supported?</b>\nThe service is available on all possible operating systems, including Android, iOS, Windows, macOS, Linux.\n\n💬 <b>Which servers are provided?</b>\nThere are currently four servers available:\n1. Netherlands, Amsterdam — speed up to 1 Gb/s, ping 30 ms.\n2. Latvia, Riga — speed up to 1 Gb/s, ping 20 ms.\n3. Germany, Nuremberg — speed up to 500 Mb/s, ping 40 ms.\n4. USA, Silicon Valley — speed up to 50 Mb/s, ping 150 ms.",
             "chatgpt_only_for_active_sub": "ChatGPT mode is available only to clients with an active subscription!",
             "unrecognized_message": "<b>Sorry, I don't understand you</b> 🤔\n\n<tg-spoiler><i>You can give me unlimited power by enabling ChatGPT mode in the settings or by entering the command /chatgpt_mode</i></tg-spoiler>",
             "already_registered": "✨ Wow! You are already in our system! Teleporting to the main menu!",
-            "github": "<b>Special thanks</b>\n\n<b>to the UX/UI designer of the project:</b>\n🦩 to Olga @KoberO https://band.link/Dmt3l\n\n <b>The testing team:</b>\n🍒 Egor @Y0gu4t <code>EASTEREGGPROMO1032201661</code>\n🎀 Karina @Howtofindmee\n🍆 Denis @seregin_denis"
+            "github": "<b>Special thanks</b>\n\n<b>to the UX/UI designer of the project:</b>\n🦩 to Olga @KoberO https://band.link/Dmt3l\n\n<b>The testing team:</b>\n🍒 Egor @Y0gu4t <code>EASTEREGGPROMO1032201661</code>\n🎀 Karina @Howtofindmee\n🍆 Denis @seregin_denis"
         },
 
         "keyboard_buttons": {
@@ -343,7 +351,7 @@
             "error_bad_os": "incorrect OS input (third argument)!",
             "error_bad_link": "incorrect vless link input (fourth argument)!",
             "ref_client_paid_for_sub": "🕊 Wow! The client {0}{1} who joined the project using your referral promo code has paid for the subscription for the first time!\n\n<b>You get a month of subscription for free!</b>",
-            "wait_for_admin_answer": "🎉 <b>Great, now we are waiting for a response from the developer!</b>\n\n He will check your registration soon and send you the configuration. In the meantime, you can explore the bot's functions!",
+            "wait_for_admin_answer": "🎉 <b>Great, now we are waiting for a response from the developer!</b>\n\nHe will check your registration soon and send you the configuration. In the meantime, you can explore the bot's functions!",
             "discount_str": "(discount {0:g}₽)",
             "payment_successful": "The payment was made successfully!\n\nPayment identifier: #{0}"
         },

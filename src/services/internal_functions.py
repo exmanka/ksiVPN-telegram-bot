@@ -146,18 +146,18 @@ async def send_configuration(telegram_id: int,
     # if config was generated as photo
     if configuration_file_type == 'photo':
         await bot.send_photo(telegram_id, configuration_telegram_file_id, answer_text, parse_mode='HTML',
-                             reply_markup=await user_authorized_kb.configuration_instruction_inlkb(configuration_protocol_name, configuration_os))
+                             reply_markup=await user_authorized_kb.configuration_instruction_inline(configuration_protocol_name, configuration_os))
 
     # if config was generated as document
     elif configuration_file_type == 'document':
         await bot.send_document(telegram_id, configuration_telegram_file_id, caption=answer_text, parse_mode='HTML',
-                                reply_markup=await user_authorized_kb.configuration_instruction_inlkb(configuration_protocol_name, configuration_os))
+                                reply_markup=await user_authorized_kb.configuration_instruction_inline(configuration_protocol_name, configuration_os))
 
     # if config was generated as link
     elif configuration_file_type == 'link':
         answer_text = f'<code>{configuration_telegram_file_id}</code>\n\n' + answer_text
         await bot.send_message(telegram_id, answer_text, parse_mode='HTML',
-                               reply_markup=await user_authorized_kb.configuration_instruction_inlkb(configuration_protocol_name, configuration_os))
+                               reply_markup=await user_authorized_kb.configuration_instruction_inline(configuration_protocol_name, configuration_os))
 
     else:
         raise Exception('wrong file type')

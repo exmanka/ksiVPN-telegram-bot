@@ -5,7 +5,7 @@ from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram.types.input_file import InputFile
 from src.database import postgres_dbms
-from src.services import internal_functions
+from src.services import internal_functions, localization as loc
 from bot_init import bot, ADMIN_ID, TIMEZONE, BACKUP_PATH
 
 
@@ -35,21 +35,24 @@ async def send_subscription_expiration_notifications():
     clients_notifications_status = await postgres_dbms.get_notifications_status()
 
     # for every client in db
-    for telegram_id, sub_expiration_date, is_sub_expiration_now, is_sub_expiration_in_1d, is_sub_expiration_in_3d, is_sub_expiration_in_7d in clients_notifications_status:
+    for telegram_id, _, is_sub_expiration_now, is_sub_expiration_in_1d, is_sub_expiration_in_3d, is_sub_expiration_in_7d in clients_notifications_status:
 
         # if client's subscription expires between [CURRENT_TIMESTAMP, CURRENT_TIMESTAMP + INTERVAL '30 minutes')
         if is_sub_expiration_now:
+            client_id, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
             logger.info(f'Send message to client: {telegram_id} {name}. Subscription has expired.')
 
             # send message to client
-            await bot.send_message(telegram_id, 'Срок действия подписки закончися!')
+            await bot.send_message(telegram_id, loc.auth.msgs['sub_expired'], 'HTML')
 
             # send message to admin
-            _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
+            # convert surname and username for beautiful formatting
+            surname_str = await internal_functions.format_none_string(surname)
+            username_str = await internal_functions.format_none_string(username)
             configurations_info = await postgres_dbms.get_configurations_info(await postgres_dbms.get_clientID_by_telegramID(telegram_id))
-            answer_message = f'Срок действия подписки пользователя {name} {surname} {username} <code>{telegram_id}</code> истек!\n\n'
-            answer_message += f'Отключите его конфигурации (всего их <b>{len(configurations_info)}</b>)!'
-            await bot.send_message(ADMIN_ID, answer_message, parse_mode='HTML')
+            await bot.send_message(ADMIN_ID,
+                                   loc.admn.msgs['sub_expired'].format(len(configurations_info), client_id, username_str, name, surname_str, telegram_id),
+                                   parse_mode='HTML')
 
             # send client's configurations to admin
             for file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id in configurations_info:
@@ -57,41 +60,50 @@ async def send_subscription_expiration_notifications():
 
         # if client's subscription expires between [CURRENT_TIMESTAMP + INTERVAL '1 day', CURRENT_TIMESTAMP + INTERVAL '1 day 30 minutes')
         if is_sub_expiration_in_1d:
+            client_id, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
             logger.info(f'Send message to client: {telegram_id} {name}. Subscription expires in 1 day.')
 
             # send message to client
-            await bot.send_message(telegram_id, f'Уведомляю: cрок действия подписки закончится через 1 сутки, {sub_expiration_date}!')
+            await bot.send_message(telegram_id, loc.auth.msgs['sub_expires_1d'], 'HTML')
 
             # send message to admin
-            _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
+            # convert surname and username for beautiful formatting
+            surname_str = await internal_functions.format_none_string(surname)
+            username_str = await internal_functions.format_none_string(username)
             await bot.send_message(ADMIN_ID,
-                                   f'Срок действия подписки пользователя {name} {surname} {username} <code>{telegram_id}</code> истекает через 1 сутки!',
+                                   loc.admn.msgs['sub_expires_1d'].format(client_id, username_str, name, surname_str, telegram_id),
                                    parse_mode='HTML')
 
         # if client's subscription expires between [CURRENT_TIMESTAMP + INTERVAL '3 days', CURRENT_TIMESTAMP + INTERVAL '3 days 30 minutes')
         if is_sub_expiration_in_3d:
+            client_id, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
             logger.info(f'Send message to client: {telegram_id} {name}. Subscription expires in 3 days.')
 
             # send message to client
-            await bot.send_message(telegram_id, f'Уведомляю: срок действия подписки закончится через 3 дня, {sub_expiration_date}!')
+            await bot.send_message(telegram_id, loc.auth.msgs['sub_expires_3d'], 'HTML')
 
             # send message to admin
-            _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
+            # convert surname and username for beautiful formatting
+            surname_str = await internal_functions.format_none_string(surname)
+            username_str = await internal_functions.format_none_string(username)
             await bot.send_message(ADMIN_ID,
-                                   f'Срок действия подписки пользователя {name} {surname} {username} <code>{telegram_id}</code> истекает через 3 дня!',
+                                   loc.admn.msgs['sub_expires_3d'].format(client_id, username_str, name, surname_str, telegram_id),
                                    parse_mode='HTML')
 
         # if client's subscription expires between [CURRENT_TIMESTAMP + INTERVAL '7 days', CURRENT_TIMESTAMP + INTERVAL '7 days 30 minutes')
         if is_sub_expiration_in_7d:
+            client_id, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
             logger.info(f'Send message to client: {telegram_id} {name}. Subscription expires in 7 days.')
 
             # send message to client
-            await bot.send_message(telegram_id, f'Уведомляю: срок действия подписки закончится через 7 дней, {sub_expiration_date}!')
+            await bot.send_message(telegram_id, loc.auth.msgs['sub_expires_7d'], 'HTML')
 
             # send message to admin
-            _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
+            # convert surname and username for beautiful formatting
+            surname_str = await internal_functions.format_none_string(surname)
+            username_str = await internal_functions.format_none_string(username)
             await bot.send_message(ADMIN_ID,
-                                   f'Срок действия подписки пользователя {name} {surname} {username} <code>{telegram_id}</code> истекает через 7 дней!',
+                                   loc.admn.msgs['sub_expires_7d'].format(client_id, username_str, name, surname_str, telegram_id),
                                    parse_mode='HTML')
 
 
