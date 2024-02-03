@@ -368,7 +368,13 @@ async def sql_query_execution(message: Message, state: FSMContext):
 
 @admin_mw.admin_only()
 async def show_clients_info(message: Message):
-    """Send message with information about all clients."""
+    """Send message with information about all clients. Add /clients [-h] flag to get human-readable message."""
+    # check command /clients is called with -h flag
+    is_human_readable = False
+    command_flags: list = message.text.split(' ')
+    if len(command_flags) > 1 and command_flags[1] == '-h':
+        is_human_readable = True
+
     await message.answer(loc.admn.msgs['clients_info'])
 
     answer_message = ''
@@ -389,7 +395,7 @@ async def show_clients_info(message: Message):
         # hope that telegram add ability to send markdown's spreadsheets in message to api, but for now
         answer_message_row +=\
             f"| <b>{client_id}</b> "\
-            f"| {await internal_functions.format_none_string(username)} <code>{name}{await internal_functions.format_none_string(surname)}</code> <code>{telegram_id}</code>, {register_date_parsed[:-8]} "\
+            f"|{await internal_functions.format_none_string(username)} <code>{name}{await internal_functions.format_none_string(surname)}</code> <code>{telegram_id}</code>, {register_date_parsed[:-8]} "\
             f"| {sub_price}₽/мес, <b>{sub_expiration_date_parsed}</b> "\
             f"| configs: {config_num} "\
             f"| paid: {float(paid_sum):g}₽ "\
@@ -404,16 +410,23 @@ async def show_clients_info(message: Message):
                 f"| {await internal_functions.format_none_string(who_invited_username)} <code>{who_invited_name}{await internal_functions.format_none_string(who_invited_surname)}</code> <code>{who_invited_telegram_id}</code>"
 
         answer_message_row += who_invited_str
-        answer_message += answer_message_row + '\n\n'
+        answer_message += answer_message_row + '\n' + '\n' * int(is_human_readable)
 
-        # send message for every 10 client_id to avoid telegram message length restrictions
-        if client_id % 10 == 0:
+        # if human readable format: send message for every 10 client_id to avoid telegram message length restrictions
+        if is_human_readable and client_id % 10 == 0:
             await message.answer(answer_message, parse_mode='HTML')
+            answer_message = ''
+
+        # if standard format: send message for every 25 client_id to avoid telegram message length restrictions
+        elif not is_human_readable and client_id % 25 == 0:
+            await message.answer(f"<pre>{answer_message}</pre>", parse_mode='HTML')
             answer_message = ''
     
     # send remaining info
-    if answer_message:
-        await message.answer(answer_message, 'HTML')
+    if answer_message and is_human_readable:
+        await message.answer(answer_message, parse_mode='HTML')
+    elif answer_message and not is_human_readable:
+        await message.answer(f"<pre>{answer_message}</pre>", 'HTML')
 
 
 @admin_mw.admin_only()
