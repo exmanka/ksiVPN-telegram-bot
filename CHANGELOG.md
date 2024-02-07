@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - 2024-02-30
 Aiogram 3.x support.
 
+## [1.0.2] - 2024-02-07
+
+### Added
+- [`ced7b04`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/ced7b04) - add to logs information about clients with expiring subscription
+- [`f111d62`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/f111d62) - add /clients [-h] command
+
+### Changed
+- [`6cf3249`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/6cf3249) - update manual for XTLS IOS configuration. Now using Streisand instead of FoXray
+- [`50feb95`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/50feb95) - update notification messages for clients with expiring subscription
+- [`f08c7b3`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/f08c7b3) - update message during bot restart by /start command
+
+### Fixed
+- [`ce1723f`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/ce1723f) - fix desperate situation during registration when users enter /start command
+
+
 ## [1.0.1] - 2024-01-31
 
 ### Added
