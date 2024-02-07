@@ -6,7 +6,7 @@ from aiogram import Dispatcher
 from aiogram.types import Message, CallbackQuery
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
-from aiogram.utils.exceptions import ChatNotFound
+from aiogram.utils.exceptions import ChatNotFound, BotBlocked
 from src.middlewares import admin_mw
 from src.keyboards import admin_kb
 from src.states import admin_fsm
@@ -55,15 +55,21 @@ async def notifications_send_message_everyone(message: Message, state: FSMContex
 
             # for every client
             for idx, [telegram_id] in enumerate(await postgres_dbms.get_clients_telegram_ids()):
-
-                # if client didn't write to bot
                 try:
                     await internal_functions.send_message_by_telegram_id(telegram_id, data['message'])
 
                 # add him to message list of clients who didn't receive message
                 except ChatNotFound as _t:
+                    # add him to message list of clients who didn't receive message
                     _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
                     ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, name, surname, username, telegram_id)
+
+                # if client blocked bot
+                except BotBlocked as bb:
+                    # add him to message list of clients who didn't receive message and add info to log
+                    id, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
+                    logger.info(f"Can't send message to client {id} {name}: {bb}")
+                    ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, name, surname, username, telegram_id) + '(blocked bot)'
 
         # if some clients didn't receive message because they didn't write to bot at all
         if ignored_clients_str:
@@ -146,15 +152,21 @@ async def notifications_send_message_selected(message: Message, state: FSMContex
 
             # for every existing in db selected client
             for idx, telegram_id in enumerate(data['selected_telegram_ids']):
-
-                # if client didn't write to bot
                 try:
                     await internal_functions.send_message_by_telegram_id(telegram_id, data['message'])
 
                 # add him to message list of clients who didn't receive message
                 except ChatNotFound as _t:
+                    # add him to message list of clients who didn't receive message
                     _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
                     ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, name, surname, username, telegram_id)
+
+                # if client blocked bot
+                except BotBlocked as bb:
+                    # add him to message list of clients who didn't receive message and add info to log
+                    id, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
+                    logger.info(f"Can't send message to client {id} {name}: {bb}")
+                    ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, name, surname, username, telegram_id) + '(has blocked bot)\n'
 
         # if some clients didn't receive message because they didn't write to bot at all
         if ignored_clients_str:
