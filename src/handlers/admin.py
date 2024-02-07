@@ -67,9 +67,9 @@ async def notifications_send_message_everyone(message: Message, state: FSMContex
                 # if client blocked bot
                 except BotBlocked as bb:
                     # add him to message list of clients who didn't receive message and add info to log
-                    id, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
-                    logger.info(f"Can't send message to client {id} {name}: {bb}")
-                    ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, name, surname, username, telegram_id) + '(blocked bot)'
+                    _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
+                    logger.info(f"Can't send message to client {name} {telegram_id}: {bb}")
+                    ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, name, surname, username, telegram_id) + '(has blocked bot)\n'
 
         # if some clients didn't receive message because they didn't write to bot at all
         if ignored_clients_str:
@@ -164,8 +164,8 @@ async def notifications_send_message_selected(message: Message, state: FSMContex
                 # if client blocked bot
                 except BotBlocked as bb:
                     # add him to message list of clients who didn't receive message and add info to log
-                    id, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
-                    logger.info(f"Can't send message to client {id} {name}: {bb}")
+                    _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
+                    logger.info(f"Can't send message to client {name} {telegram_id}: {bb}")
                     ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, name, surname, username, telegram_id) + '(has blocked bot)\n'
 
         # if some clients didn't receive message because they didn't write to bot at all
