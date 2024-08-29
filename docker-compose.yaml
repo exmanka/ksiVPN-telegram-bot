@@ -1,34 +1,31 @@
-version: '3.9'
-
 services:
-  app-tgbot:
+  tgbot:
     build:
       context: .
-      dockerfile: tgbot.Dockerfile
-    container_name: tgbot-container
+      dockerfile: ./build/bot/Dockerfile
+    image: ${CI_REGISTRY_IMAGE}/tgbot:${TAG}
+    container_name: tgbot
     restart: unless-stopped
     env_file:
       - .env
     ports:
-      - 80:80
-#      - 443:443
-      - 88:88
-      - 8443:8443
+      - ${BOT_HTTP_PORT:-80}:80
+      - ${BOT_HTTPS_PORT:-443}:443
     networks:
-      - appnet
+      - app-net
     volumes:
       - db-backups:${BACKUP_PATH}
     depends_on:
-      app-db:
+      tgbot-db:
         condition: service_healthy
 
-  app-db:
+  tgbot-db:
     build:
-      context: .
-      dockerfile: db.Dockerfile
+      context: ./build/database
       args:
         ADDITIONAL_LANGUAGE: ${ADDITIONAL_LANGUAGE}
-    container_name: postgres-container
+    image: ${CI_REGISTRY_IMAGE}/tgbot-postgres:${TAG}
+    container_name: tgbot-postgres
     restart: unless-stopped
     environment:
       TZ: ${TZ}
@@ -37,26 +34,21 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_INITDB_ARGS: ${POSTGRES_INITDB_ARGS}
     ports:
-      - 5432:5432
+      - ${POSTGRES_PORT:-5432}:5432
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - appnet
+      - app-net
     volumes:
-      - db-data:/var/lib/postgresql/data
-      - db-backups:/var/lib/postgresql/backups
-      - ./init-database.sql:/docker-entrypoint-initdb.d/init-database.sql
+      - tgbot-db-data:/var/lib/postgresql/data
+      - tgbot-db-backups:/var/lib/postgresql/backups
 
 networks:
-  appnet:
-    name: app-net
-    driver: bridge
+  app-net:
 
 volumes:
-  db-data:
-    name: db-data-volume
-  db-backups:
-    name: db-backups-volume
+  tgbot-db-data:
+  tgbot-db-backups:
