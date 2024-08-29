@@ -6,10 +6,7 @@ __pycache__/
 # C extensions
 *.so
 
-# Wireguard configurations folder
-.confs/
-
-# Environment
+# Python virtual environments
 .venv
 
 # Log files
