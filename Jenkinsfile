@@ -18,6 +18,7 @@ pipeline {
                 }
             }
             steps {
+                sh 'pwd'
                 sh 'ls -al'
                 sh 'printenv'
                 sh 'source ${WORKSPACE}/.env'
