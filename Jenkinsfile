@@ -11,11 +11,7 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                echo $POSTGRES_PASSWORD
-                echo $ADMIN_ID
-                // sh printenv BOT_TOKEN
-                // sh printenv YOOMONEY_TOKEN
-                // sh printenv YOOMONEY_ACCOUNT_NUMBER
+                sh 'printenv'
                 echo 'Building..'
             }
         }
