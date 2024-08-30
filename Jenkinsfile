@@ -15,7 +15,7 @@ pipeline {
                 docker {
                     image 'gcr.io/kaniko-project/executor:v1.14.0-debug'
                     args "--entrypoint=''"
-                    registryCredentialsId credentials('dockerhub-creds')
+                    registryCredentialsId '$DOCKERHUB_CREDS'
                 }
             }
             steps {
