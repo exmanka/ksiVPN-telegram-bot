@@ -12,6 +12,7 @@ pipeline {
         stage('Build') {
             steps {
                 sh 'printenv ADMIN_ID'
+                sh 'echo $ADMIN_ID'
                 sh 'printenv'
                 echo 'Building..'
             }
