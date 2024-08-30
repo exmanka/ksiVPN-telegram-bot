@@ -18,12 +18,12 @@ pipeline {
                 sh 'ls -al'
                 sh 'printenv'
                 sh 'source ${WORKSPACE}/.env'
-                sh '/kaniko/executor
+                sh '''/kaniko/executor
                     --context ${MATRIX_CONTEXT}
                     --dockerfile ${CI_PROJECT_DIR}/${MATRIX_DOCKERFILE}
                     --destination ${CI_REGISTRY_IMAGE}/${MATRIX_IMAGE_NAME}:${TAG}
                     --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE}
-                    --cache=true'
+                    --cache=true'''
             }
         }
         stage('Test') {
