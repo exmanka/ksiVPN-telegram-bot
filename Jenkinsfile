@@ -10,8 +10,8 @@ pipeline {
     }
 
     stages {
-        failFast true
         stage('Build') {
+            failFast true
             matrix {
                 agent {
                     docker {
