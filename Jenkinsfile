@@ -12,81 +12,33 @@ pipeline {
     stages {
         stage('Build') {
             failFast true
-            matrix {
-                agent {
-                    docker {
-                        image 'gcr.io/kaniko-project/executor:v1.14.0-debug'
-                        args '--entrypoint=""'
+            parallel {
+                stage("Build ${MATRIX_IMAGE_NAME}") {
+                    environment {
+                        MATRIX_IMAGE_NAME = 'tgbot'
+                        MATRIX_DOCKERFILE = 'build/bot/Dockerfile'
+                        MATRIX_CONTEXT = "${WORKSPACE}"
+                    }
+                    steps {
+                        sh 'echo $MATRIX_IMAGE_NAME'
+                        sh 'echo $MATRIX_DOCKERFILE'
+                        sh 'echo $MATRIX_CONTEXT'
                     }
                 }
-                axes {
-                    axis {
-                        name 'MATRIX_IMAGE_NAME'
-                        values 'tgbot', 'tgbot-postgres'
+                stage("Build ${MATRIX_IMAGE_NAME}") {
+                    environment {
+                        MATRIX_IMAGE_NAME = 'tgbot-postgres'
+                        MATRIX_DOCKERFILE = 'build/database/Dockerfile'
+                        MATRIX_CONTEXT = "${WORKSPACE}/build/database"
                     }
-                    axis {
-                        name 'MATRIX_DOCKERFILE'
-                        values 'build/bot/Dockerfile', 'build/database/Dockerfile'
-                    }
-                    axis {
-                        name 'MATRIX_CONTEXT'
-                        values '${WORKSPACE}', '${WORKSPACE}/build/database'
-                    }
-                }
-                excludes {
-                    exclude {
-                        axis {
-                            name 'MATRIX_IMAGE_NAME'
-                            values 'tgbot'
-                        }
-                        axis {
-                            name 'MATRIX_DOCKERFILE'
-                            values 'build/database/Dockerfile'
-                        }
-                    }
-                    exclude {
-                        axis {
-                            name 'MATRIX_IMAGE_NAME'
-                            values 'tgbot'
-                        }
-                        axis {
-                            name 'MATRIX_CONTEXT'
-                            values '${WORKSPACE}/build/database'
-                        }
-                    }
-                    exclude {
-                        axis {
-                            name 'MATRIX_IMAGE_NAME'
-                            values 'tgbot-postgres'
-                        }
-                        axis {
-                            name 'MATRIX_DOCKERFILE'
-                            values 'build/bot/Dockerfile'
-                        }
-                    }
-                    exclude {
-                        axis {
-                            name 'MATRIX_IMAGE_NAME'
-                            values 'tgbot-postgres'
-                        }
-                        axis {
-                            name 'MATRIX_CONTEXT'
-                            values '${WORKSPACE}'
-                        }
-                    }
-                }
-                stages {
-                    stage('Build ${MATRIX_IMAGE_NAME}') {
-                        steps {
-                            sh 'echo $MATRIX_IMAGE_NAME'
-                            sh 'echo $MATRIX_DOCKERFILE'
-                            sh 'echo $MATRIX_CONTEXT'
-                        }
+                    steps {
+                        sh 'echo $MATRIX_IMAGE_NAME'
+                        sh 'echo $MATRIX_DOCKERFILE'
+                        sh 'echo $MATRIX_CONTEXT'
                     }
                 }
             }
         }
-
 
         // parallel {
         //     steps {
