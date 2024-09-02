@@ -15,26 +15,34 @@ pipeline {
             parallel {
                 stage('Build tgbot') {
                     environment {
-                        MATRIX_IMAGE_NAME = 'tgbot'
-                        MATRIX_DOCKERFILE = 'build/bot/Dockerfile'
-                        MATRIX_CONTEXT = "${WORKSPACE}"
+                        PARALLEL_IMAGE_NAME = 'tgbot'
+                        PARALLEL_DOCKERFILE = 'build/bot/Dockerfile'
+                        PARALLEL_CONTEXT = "${WORKSPACE}"
                     }
                     steps {
-                        sh 'echo $MATRIX_IMAGE_NAME'
-                        sh 'echo $MATRIX_DOCKERFILE'
-                        sh 'echo $MATRIX_CONTEXT'
+                        sh 'source ${WORKSPACE}/.env'
+                        sh '''/kaniko/executor
+                            --context ${MATRIX_CONTEXT}
+                            --dockerfile ${WORKSPACE}/${MATRIX_DOCKERFILE}
+                            --destination ${CI_REGISTRY_IMAGE}/${MATRIX_IMAGE_NAME}:${TAG}
+                            --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE}
+                            --cache=true'''
                     }
                 }
                 stage('Build tgbot-postgres') {
                     environment {
-                        MATRIX_IMAGE_NAME = 'tgbot-postgres'
-                        MATRIX_DOCKERFILE = 'build/database/Dockerfile'
-                        MATRIX_CONTEXT = "${WORKSPACE}/build/database"
+                        PARALLEL_IMAGE_NAME = 'tgbot-postgres'
+                        PARALLEL_DOCKERFILE = 'build/database/Dockerfile'
+                        PARALLEL_CONTEXT = "${WORKSPACE}/build/database"
                     }
                     steps {
-                        sh 'echo $MATRIX_IMAGE_NAME'
-                        sh 'echo $MATRIX_DOCKERFILE'
-                        sh 'echo $MATRIX_CONTEXT'
+                        sh 'source ${WORKSPACE}/.env'
+                        sh '''/kaniko/executor
+                            --context ${MATRIX_CONTEXT}
+                            --dockerfile ${WORKSPACE}/${MATRIX_DOCKERFILE}
+                            --destination ${CI_REGISTRY_IMAGE}/${MATRIX_IMAGE_NAME}:${TAG}
+                            --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE}
+                            --cache=true'''
                     }
                 }
             }
