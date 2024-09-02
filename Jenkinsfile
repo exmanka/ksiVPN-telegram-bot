@@ -10,26 +10,53 @@ pipeline {
     }
 
     stages {
-        stage('Build') {
+        failFast true
+        matrix {
             agent {
                 docker {
                     image 'gcr.io/kaniko-project/executor:v1.14.0-debug'
                     args '--entrypoint=""'
                 }
             }
-            steps {
-                sh 'pwd'
-                sh 'ls -al'
-                sh 'printenv'
-                sh 'source ${WORKSPACE}/.env'
-                sh '''/kaniko/executor
-                    --context ${MATRIX_CONTEXT}
-                    --dockerfile ${CI_PROJECT_DIR}/${MATRIX_DOCKERFILE}
-                    --destination ${CI_REGISTRY_IMAGE}/${MATRIX_IMAGE_NAME}:${TAG}
-                    --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE}
-                    --cache=true'''
+            axes {
+                axis {
+                    name 'MATRIX_IMAGE_NAME'
+                    values 'tgbot', 'tgbot-postgres'
+                }
+                axis {
+                    name 'MATRIX_DOCKERFILE'
+                    values 'build/bot/Dockerfile', 'build/database/Dockerfile'
+                }
+                axis {
+                    name 'MATRIX_CONTEXT'
+                    values '${WORKSPACE}', '${WORKSPACE}/build/database'
+                }
+            }
+
+            stage('Build') {
+                sh 'echo $MATRIX_IMAGE_NAME'
+                sh 'echo $MATRIX_DOCKERFILE'
+                sh 'echo $MATRIX_CONTEXT'
             }
         }
+
+        // parallel {
+        //     steps {
+        //         sh 'pwd'
+        //         sh 'ls -al'
+        //         sh 'printenv'
+        //         sh 'source ${WORKSPACE}/.env'
+        //         sh '''/kaniko/executor
+        //             --context ${MATRIX_CONTEXT}
+        //             --dockerfile ${CI_PROJECT_DIR}/${MATRIX_DOCKERFILE}
+        //             --destination ${CI_REGISTRY_IMAGE}/${MATRIX_IMAGE_NAME}:${TAG}
+        //             --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE}
+        //             --cache=true'''
+        //     }
+        // }
+
+
+
         stage('Test') {
             steps {
                 echo 'Testing..'
