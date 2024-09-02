@@ -40,11 +40,14 @@ pipeline {
                 //         }
                 //     }
                 // }
-
-                stage('Build') {
-                    sh 'echo $MATRIX_IMAGE_NAME'
-                    sh 'echo $MATRIX_DOCKERFILE'
-                    sh 'echo $MATRIX_CONTEXT'
+                stages {
+                    stage('Build') {
+                        steps {
+                            sh 'echo $MATRIX_IMAGE_NAME'
+                            sh 'echo $MATRIX_DOCKERFILE'
+                            sh 'echo $MATRIX_CONTEXT'
+                        }
+                    }
                 }
             }
         }
