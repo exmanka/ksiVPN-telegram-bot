@@ -28,24 +28,59 @@ pipeline {
                         name 'MATRIX_DOCKERFILE'
                         values 'build/bot/Dockerfile', 'build/database/Dockerfile'
                     }
-                    // axis {
-                    //     name 'MATRIX_CONTEXT'
-                    //     values '${WORKSPACE}', '${WORKSPACE}/build/database'
-                    // }
+                    axis {
+                        name 'MATRIX_CONTEXT'
+                        values '${WORKSPACE}', '${WORKSPACE}/build/database'
+                    }
                 }
-                // excludes {
-                //     exclude {
-                //         axis {
-
-                //         }
-                //     }
-                // }
+                excludes {
+                    exclude {
+                        axis {
+                            name 'MATRIX_IMAGE_NAME'
+                            values 'tgbot'
+                        }
+                        axis {
+                            name 'MATRIX_DOCKERFILE'
+                            values 'build/database/Dockerfile'
+                        }
+                    }
+                    exclude {
+                        axis {
+                            name 'MATRIX_IMAGE_NAME'
+                            values 'tgbot'
+                        }
+                        axis {
+                            name 'MATRIX_CONTEXT'
+                            values '${WORKSPACE}/build/database'
+                        }
+                    }
+                    exclude {
+                        axis {
+                            name 'MATRIX_IMAGE_NAME'
+                            values 'tgbot-postgres'
+                        }
+                        axis {
+                            name 'MATRIX_DOCKERFILE'
+                            values 'build/bot/Dockerfile'
+                        }
+                    }
+                    exclude {
+                        axis {
+                            name 'MATRIX_IMAGE_NAME'
+                            values 'tgbot-postgres'
+                        }
+                        axis {
+                            name 'MATRIX_CONTEXT'
+                            values '${WORKSPACE}'
+                        }
+                    }
+                }
                 stages {
                     stage('Build ${MATRIX_IMAGE_NAME}') {
                         steps {
                             sh 'echo $MATRIX_IMAGE_NAME'
                             sh 'echo $MATRIX_DOCKERFILE'
-                            // sh 'echo $MATRIX_CONTEXT'
+                            sh 'echo $MATRIX_CONTEXT'
                         }
                     }
                 }
