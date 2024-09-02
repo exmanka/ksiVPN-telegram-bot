@@ -33,13 +33,13 @@ pipeline {
                     //     values '${WORKSPACE}', '${WORKSPACE}/build/database'
                     // }
                 }
-                excludes {
-                    exclude {
-                        axis {
+                // excludes {
+                //     exclude {
+                //         axis {
 
-                        }
-                    }
-                }
+                //         }
+                //     }
+                // }
                 stages {
                     stage('Build ${MATRIX_IMAGE_NAME}') {
                         steps {
