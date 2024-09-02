@@ -13,7 +13,7 @@ pipeline {
         stage('Build') {
             failFast true
             parallel {
-                stage("Build ${MATRIX_IMAGE_NAME}") {
+                stage('Build tgbot') {
                     environment {
                         MATRIX_IMAGE_NAME = 'tgbot'
                         MATRIX_DOCKERFILE = 'build/bot/Dockerfile'
@@ -25,7 +25,7 @@ pipeline {
                         sh 'echo $MATRIX_CONTEXT'
                     }
                 }
-                stage("Build ${MATRIX_IMAGE_NAME}") {
+                stage('Build tgbot-postgres') {
                     environment {
                         MATRIX_IMAGE_NAME = 'tgbot-postgres'
                         MATRIX_DOCKERFILE = 'build/database/Dockerfile'
