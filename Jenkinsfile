@@ -76,12 +76,6 @@ pipeline {
         // }
 
         stage('Deploy:Dev') {
-            agent {
-                docker {
-                    label 'russia_moscow-maria && shell'
-                    image 'docker:26.1.4'
-                }
-            }
             environment {
                 CONTAINER_REGISTRY_URL = 'https://index.docker.io/v1/'
                 CONTAINER_REGISTRY_CREDS = credentials('dockerhub-creds')
