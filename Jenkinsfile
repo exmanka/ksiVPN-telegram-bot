@@ -8,7 +8,7 @@ pipeline {
         YOOMONEY_ACCOUNT_NUMBER = credentials('yoomoney-account-number')
         CONTAINER_REGISTRY_URL = 'https://index.docker.io/v1/'
         CONTAINER_REGISTRY_CREDS = credentials('dockerhub-creds')
-        
+        CONTAINER_REGISTRY_JSON = credentials('dockerhub-json')
     }
 
     stages {
@@ -19,7 +19,7 @@ pipeline {
                     agent {
                         docker {
                             image 'gcr.io/kaniko-project/executor:v1.23.2-debug'
-                            args '--entrypoint="" -v .env:/kaniko/.docker/config.json'
+                            args '--entrypoint="" -v ${CONTAINER_REGISTRY_JSON}:/kaniko/.docker/config.json'
                         }
                     }
                     environment {
@@ -50,7 +50,7 @@ pipeline {
                     agent {
                         docker {
                             image 'gcr.io/kaniko-project/executor:v1.23.2-debug'
-                            args '--entrypoint="" -v .env:/kaniko/.docker/config.json'
+                            args '--entrypoint="" -v ${CONTAINER_REGISTRY_JSON}:/kaniko/.docker/config.json'
                         }
                     }
                     environment {
