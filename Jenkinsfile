@@ -6,7 +6,9 @@ pipeline {
         BOT_TOKEN = credentials('bot-token')
         YOOMONEY_TOKEN = credentials('yoomoney-token')
         YOOMONEY_ACCOUNT_NUMBER = credentials('yoomoney-account-number')
-        DOCKERHUB_CREDS = credentials('dockerhub-creds')
+        CONTAINER_REGISTRY_URL = 'https://index.docker.io/v1/'
+        CONTAINER_REGISTRY_CREDS = credentials('dockerhub-creds')
+        
     }
 
     stages {
@@ -27,10 +29,11 @@ pipeline {
                         PARALLEL_TAG = 'latest'
                     }
                     steps {
+                        sh 'echo "{\"auths\":{\"${CONTAINER_REGISTRY_URL}\":{\"auth\":\"$(printf "%s:%s" "${CONTAINER_REGISTRY_CREDS_USR}" "${CONTAINER_REGISTRY_CREDS_PSW}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json'
+                        sh 'cat /kaniko/.docker/config.json'
                         // sh 'echo $DOCKERHUB_CREDS_PWD | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
                         sh '''
                             . ${WORKSPACE}/.env
-                            printenv
                             /kaniko/executor \
                             --context ${PARALLEL_CONTEXT} \
                             --dockerfile ${WORKSPACE}/${PARALLEL_DOCKERFILE} \
@@ -54,10 +57,11 @@ pipeline {
                         PARALLEL_TAG = 'latest'
                     }
                     steps {
+                        sh 'echo "{\"auths\":{\"${CONTAINER_REGISTRY_URL}\":{\"auth\":\"$(printf "%s:%s" "${CONTAINER_REGISTRY_CREDS_USR}" "${CONTAINER_REGISTRY_CREDS_PSW}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json'
+                        sh 'cat /kaniko/.docker/config.json'
                         // sh 'echo $DOCKERHUB_CREDS_PWD | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
                         sh '''
                             . ${WORKSPACE}/.env
-                            printenv
                             /kaniko/executor \
                             --context ${PARALLEL_CONTEXT} \
                             --dockerfile ${WORKSPACE}/${PARALLEL_DOCKERFILE} \
