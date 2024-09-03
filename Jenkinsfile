@@ -29,7 +29,9 @@ pipeline {
                         PARALLEL_TAG = 'latest'
                     }
                     steps {
-                        sh 'cat /kaniko/.docker/config.json'
+                        sh 'ls -al'
+                        sh 'ls -al /kaniko/'
+                        sh 'ls -al /kaniko/.docker'
                         sh '''
                             . ${WORKSPACE}/.env
                             /kaniko/executor \
@@ -55,6 +57,9 @@ pipeline {
                         PARALLEL_TAG = 'latest'
                     }
                     steps {
+                        sh 'ls -al'
+                        sh 'ls -al /kaniko/'
+                        sh 'ls -al /kaniko/.docker'
                         sh '''
                             . ${WORKSPACE}/.env
                             /kaniko/executor \
