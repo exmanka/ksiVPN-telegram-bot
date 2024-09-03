@@ -28,7 +28,7 @@ pipeline {
                         TAG = 'latest'
                     }
                     steps {
-                        sh 'echo $DOCKERHUB_CREDS_PWD | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
+                        // sh 'echo $DOCKERHUB_CREDS_PWD | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
                         sh '. ${WORKSPACE}/.env'
                         sh '''/kaniko/executor
                             --context ${MATRIX_CONTEXT}
@@ -53,7 +53,7 @@ pipeline {
                         TAG = 'latest'
                     }
                     steps {
-                        sh 'echo $DOCKERHUB_CREDS_PWD | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
+                        // sh 'echo $DOCKERHUB_CREDS_PWD | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
                         sh '. ${WORKSPACE}/.env'
                         sh '''/kaniko/executor
                             --context ${MATRIX_CONTEXT}
