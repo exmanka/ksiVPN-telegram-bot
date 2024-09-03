@@ -28,17 +28,16 @@ pipeline {
                     }
                     steps {
                         // sh 'echo $DOCKERHUB_CREDS_PWD | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
-                        sh '. ${WORKSPACE}/.env'
-                        script {
-                            readProperties(file: "${WORKSPACE}/.env").each {key, value -> env[key] = value }
-                        }
-                        sh 'printenv'
-                        sh '''/kaniko/executor \
+                        sh '''
+                            . ${WORKSPACE}/.env
+                            printenv
+                            /kaniko/executor \
                             --context ${PARALLEL_CONTEXT} \
                             --dockerfile ${WORKSPACE}/${PARALLEL_DOCKERFILE} \
                             --destination ${PARALLEL_IMAGE_NAME}:${PARALLEL_TAG} \
                             --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE} \
-                            --cache=true'''
+                            --cache=true
+                        '''
                     }
                 }
                 stage('Build tgbot-postgres') {
@@ -56,17 +55,16 @@ pipeline {
                     }
                     steps {
                         // sh 'echo $DOCKERHUB_CREDS_PWD | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
-                        sh '. ${WORKSPACE}/.env'
-                        script {
-                            readProperties(file: "${WORKSPACE}/.env").each {key, value -> env[key] = value }
-                        }
-                        sh 'printenv'
-                        sh '''/kaniko/executor \
+                        sh '''
+                            . ${WORKSPACE}/.env
+                            printenv
+                            /kaniko/executor \
                             --context ${PARALLEL_CONTEXT} \
                             --dockerfile ${WORKSPACE}/${PARALLEL_DOCKERFILE} \
                             --destination ${PARALLEL_IMAGE_NAME}:${PARALLEL_TAG} \
                             --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE} \
-                            --cache=true'''
+                            --cache=true
+                        '''
                     }
                 }
             }
