@@ -72,22 +72,12 @@ pipeline {
                     }
                 }
             }
+            post {
+                always {
+                    sh 'rm -rf /kaniko/.docker/config.json'
+                }
+            }
         }
-
-        // parallel {
-        //     steps {
-        //         sh 'pwd'
-        //         sh 'ls -al'
-        //         sh 'printenv'
-        //         sh 'source ${WORKSPACE}/.env'
-        //         sh '''/kaniko/executor
-        //             --context ${MATRIX_CONTEXT}
-        //             --dockerfile ${CI_PROJECT_DIR}/${MATRIX_DOCKERFILE}
-        //             --destination ${CI_REGISTRY_IMAGE}/${MATRIX_IMAGE_NAME}:${TAG}
-        //             --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE}
-        //             --cache=true'''
-        //     }
-        // }
 
         stage('Test') {
             steps {
