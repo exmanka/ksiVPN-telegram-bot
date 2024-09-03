@@ -21,20 +21,20 @@ pipeline {
                         }
                     }
                     environment {
-                        PARALLEL_IMAGE_NAME = 'tgbot'
+                        PARALLEL_IMAGE_NAME = 'exmanka/ksivpn-telegram-bot'
                         PARALLEL_DOCKERFILE = 'build/bot/Dockerfile'
                         PARALLEL_CONTEXT = "${WORKSPACE}"
-                        IMAGE = 'exmanka/ksivpn-telegram-bot'
-                        TAG = 'latest'
+                        PARALLEL_TAG = 'latest'
                     }
                     steps {
                         // sh 'echo $DOCKERHUB_CREDS_PWD | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
                         sh '. ${WORKSPACE}/.env'
+                        readProperties(file: '${WORKSPACE}/.env').each {key, value -> env[key] = value }
                         sh 'printenv'
                         sh '''/kaniko/executor \
-                            --context ${MATRIX_CONTEXT} \
-                            --dockerfile ${WORKSPACE}/${MATRIX_DOCKERFILE} \
-                            --destination ${IMAGE}:${TAG} \
+                            --context ${PARALLEL_CONTEXT} \
+                            --dockerfile ${WORKSPACE}/${PARALLEL_DOCKERFILE} \
+                            --destination ${PARALLEL_IMAGE_NAME}:${PARALLEL_TAG} \
                             --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE} \
                             --cache=true'''
                     }
@@ -47,20 +47,20 @@ pipeline {
                         }
                     }
                     environment {
-                        PARALLEL_IMAGE_NAME = 'tgbot-postgres'
+                        PARALLEL_IMAGE_NAME = 'exmanka/ksivpn-telegram-bot-postgres'
                         PARALLEL_DOCKERFILE = 'build/database/Dockerfile'
                         PARALLEL_CONTEXT = "${WORKSPACE}/build/database"
-                        IMAGE = 'exmanka/ksivpn-telegram-bot-postgres'
-                        TAG = 'latest'
+                        PARALLEL_TAG = 'latest'
                     }
                     steps {
                         // sh 'echo $DOCKERHUB_CREDS_PWD | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
                         sh '. ${WORKSPACE}/.env'
+                        readProperties(file: '${WORKSPACE}/.env').each {key, value -> env[key] = value }
                         sh 'printenv'
                         sh '''/kaniko/executor \
-                            --context ${MATRIX_CONTEXT} \
-                            --dockerfile ${WORKSPACE}/${MATRIX_DOCKERFILE} \
-                            --destination ${IMAGE}:${TAG} \
+                            --context ${PARALLEL_CONTEXT} \
+                            --dockerfile ${WORKSPACE}/${PARALLEL_DOCKERFILE} \
+                            --destination ${PARALLEL_IMAGE_NAME}:${PARALLEL_TAG} \
                             --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE} \
                             --cache=true'''
                     }
