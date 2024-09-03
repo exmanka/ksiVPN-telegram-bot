@@ -18,7 +18,7 @@ pipeline {
                 stage('Build tgbot') {
                     agent {
                         docker {
-                            image 'gcr.io/kaniko-project/executor:v1.23.2-debug'
+                            image 'gcr.io/kaniko-project/executor:v1.14.0-debug'
                             args '--entrypoint="" -v ${CONTAINER_REGISTRY_JSON}:/kaniko/.docker/config.json'
                         }
                     }
@@ -44,7 +44,7 @@ pipeline {
                 stage('Build tgbot-postgres') {
                     agent {
                         docker {
-                            image 'gcr.io/kaniko-project/executor:v1.23.2-debug'
+                            image 'gcr.io/kaniko-project/executor:v1.14.0-debug'
                             args '--entrypoint="" -v ${CONTAINER_REGISTRY_JSON}:/kaniko/.docker/config.json'
                         }
                     }
