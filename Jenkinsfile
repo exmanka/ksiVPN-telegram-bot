@@ -20,7 +20,7 @@ pipeline {
                         PARALLEL_CONTEXT = "${WORKSPACE}"
                     }
                     steps {
-                        sh 'source ${WORKSPACE}/.env'
+                        sh '. ${WORKSPACE}/.env'
                         sh '''/kaniko/executor
                             --context ${MATRIX_CONTEXT}
                             --dockerfile ${WORKSPACE}/${MATRIX_DOCKERFILE}
@@ -36,7 +36,7 @@ pipeline {
                         PARALLEL_CONTEXT = "${WORKSPACE}/build/database"
                     }
                     steps {
-                        sh 'source ${WORKSPACE}/.env'
+                        sh '. ${WORKSPACE}/.env'
                         sh '''/kaniko/executor
                             --context ${MATRIX_CONTEXT}
                             --dockerfile ${WORKSPACE}/${MATRIX_DOCKERFILE}
