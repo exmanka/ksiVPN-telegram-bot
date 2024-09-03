@@ -2,78 +2,78 @@ pipeline {
     agent any
 
     stages {
-        // stage('Build') {
-        //     environment {
-        //         CONTAINER_REGISTRY_URL = 'https://index.docker.io/v1/'
-        //         CONTAINER_REGISTRY_CREDS = credentials('dockerhub-creds')
-        //         CONTAINER_REGISTRY_JSON = credentials('dockerhub-json')
-        //     }
-        //     failFast true
-        //     parallel {
-        //         stage('Build tgbot') {
-        //             agent {
-        //                 docker {
-        //                     label 'russia_moscow-maria && shell'
-        //                     image 'gcr.io/kaniko-project/executor:v1.14.0-debug'
-        //                     args '--entrypoint="" -v ${CONTAINER_REGISTRY_JSON}:/kaniko/.docker/config.json -u 0:1001'
-        //                 }
-        //             }
-        //             environment {
-        //                 PARALLEL_IMAGE_NAME = 'exmanka/ksivpn-telegram-bot'
-        //                 PARALLEL_DOCKERFILE = 'build/bot/Dockerfile'
-        //                 PARALLEL_CACHE_REPO = 'exmanka/cache'
-        //                 PARALLEL_CONTEXT = "${WORKSPACE}"
-        //                 PARALLEL_TAG = 'latest'
-        //             }
-        //             steps {
-        //                 sh '''
-        //                     . ${WORKSPACE}/.env
-        //                     /kaniko/executor \
-        //                     --context ${PARALLEL_CONTEXT} \
-        //                     --dockerfile ${WORKSPACE}/${PARALLEL_DOCKERFILE} \
-        //                     --destination ${PARALLEL_IMAGE_NAME}:${PARALLEL_TAG} \
-        //                     --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE} \
-        //                     --cache=true \
-        //                     --cache-repo=${PARALLEL_CACHE_REPO}
-        //                 '''
-        //             }
-        //         }
-        //         stage('Build tgbot-postgres') {
-        //             agent {
-        //                 docker {
-        //                     label 'russia_moscow-maria && shell'
-        //                     image 'gcr.io/kaniko-project/executor:v1.14.0-debug'
-        //                     args '--entrypoint="" -v ${CONTAINER_REGISTRY_JSON}:/kaniko/.docker/config.json -u 0:1001'
-        //                 }
-        //             }
-        //             environment {
-        //                 PARALLEL_IMAGE_NAME = 'exmanka/ksivpn-telegram-bot-postgres'
-        //                 PARALLEL_DOCKERFILE = 'build/database/Dockerfile'
-        //                 PARALLEL_CACHE_REPO = 'exmanka/cache'
-        //                 PARALLEL_CONTEXT = "${WORKSPACE}/build/database"
-        //                 PARALLEL_TAG = 'latest'
-        //             }
-        //             steps {
-        //                 sh '''
-        //                     . ${WORKSPACE}/.env
-        //                     /kaniko/executor \
-        //                     --context ${PARALLEL_CONTEXT} \
-        //                     --dockerfile ${WORKSPACE}/${PARALLEL_DOCKERFILE} \
-        //                     --destination ${PARALLEL_IMAGE_NAME}:${PARALLEL_TAG} \
-        //                     --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE} \
-        //                     --cache=true \
-        //                     --cache-repo=${PARALLEL_CACHE_REPO}
-        //                 '''
-        //             }
-        //         }
-        //     }
-        //     post {
-        //         always {
-        //             sh 'ls -al'
-        //             sh 'rm -rf /kaniko/.docker/config.json'
-        //         }
-        //     }
-        // }
+        stage('Build') {
+            environment {
+                CONTAINER_REGISTRY_URL = 'https://index.docker.io/v1/'
+                CONTAINER_REGISTRY_CREDS = credentials('dockerhub-creds')
+                CONTAINER_REGISTRY_JSON = credentials('dockerhub-json')
+            }
+            failFast true
+            parallel {
+                stage('Build tgbot') {
+                    agent {
+                        docker {
+                            label 'russia_moscow-maria && shell'
+                            image 'gcr.io/kaniko-project/executor:v1.14.0-debug'
+                            args '--entrypoint="" -v ${CONTAINER_REGISTRY_JSON}:/kaniko/.docker/config.json -u 0:1001'
+                        }
+                    }
+                    environment {
+                        PARALLEL_IMAGE_NAME = 'exmanka/ksivpn-telegram-bot'
+                        PARALLEL_DOCKERFILE = 'build/bot/Dockerfile'
+                        PARALLEL_CACHE_REPO = 'exmanka/cache'
+                        PARALLEL_CONTEXT = "${WORKSPACE}"
+                        PARALLEL_TAG = 'latest'
+                    }
+                    steps {
+                        sh '''
+                            . ${WORKSPACE}/.env
+                            /kaniko/executor \
+                            --context ${PARALLEL_CONTEXT} \
+                            --dockerfile ${WORKSPACE}/${PARALLEL_DOCKERFILE} \
+                            --destination ${PARALLEL_IMAGE_NAME}:${PARALLEL_TAG} \
+                            --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE} \
+                            --cache=true \
+                            --cache-repo=${PARALLEL_CACHE_REPO}
+                        '''
+                    }
+                }
+                stage('Build tgbot-postgres') {
+                    agent {
+                        docker {
+                            label 'russia_moscow-maria && shell'
+                            image 'gcr.io/kaniko-project/executor:v1.14.0-debug'
+                            args '--entrypoint="" -v ${CONTAINER_REGISTRY_JSON}:/kaniko/.docker/config.json -u 0:1001'
+                        }
+                    }
+                    environment {
+                        PARALLEL_IMAGE_NAME = 'exmanka/ksivpn-telegram-bot-postgres'
+                        PARALLEL_DOCKERFILE = 'build/database/Dockerfile'
+                        PARALLEL_CACHE_REPO = 'exmanka/cache'
+                        PARALLEL_CONTEXT = "${WORKSPACE}/build/database"
+                        PARALLEL_TAG = 'latest'
+                    }
+                    steps {
+                        sh '''
+                            . ${WORKSPACE}/.env
+                            /kaniko/executor \
+                            --context ${PARALLEL_CONTEXT} \
+                            --dockerfile ${WORKSPACE}/${PARALLEL_DOCKERFILE} \
+                            --destination ${PARALLEL_IMAGE_NAME}:${PARALLEL_TAG} \
+                            --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE} \
+                            --cache=true \
+                            --cache-repo=${PARALLEL_CACHE_REPO}
+                        '''
+                    }
+                }
+            }
+            post {
+                always {
+                    sh 'ls -al'
+                    sh 'rm -rf /kaniko/.docker/config.json'
+                }
+            }
+        }
 
         stage('Deploy:Dev') {
             environment {
@@ -92,10 +92,10 @@ pipeline {
                 sh 'docker compose --ansi=always logs -f'
             }
         }
-        // stage('Deploy:Test') {
-        //     steps {
-        //         echo 'Deploying....'
-        //     }
-        // }
+        stage('Deploy:Test') {
+            steps {
+                echo 'Deploying....'
+            }
+        }
     }
 }
