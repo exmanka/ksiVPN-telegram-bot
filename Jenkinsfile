@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent none
     environment {
         POSTGRES_PASSWORD = credentials('postgres-password')
         ADMIN_ID = credentials('admin-id')
@@ -30,9 +30,6 @@ pipeline {
                         PARALLEL_TAG = 'latest'
                     }
                     steps {
-                        sh 'ls -al'
-                        sh 'ls -al /kaniko/'
-                        sh 'ls -al /kaniko/.docker'
                         sh '''
                             . ${WORKSPACE}/.env
                             /kaniko/executor \
@@ -60,9 +57,6 @@ pipeline {
                         PARALLEL_TAG = 'latest'
                     }
                     steps {
-                        sh 'ls -al'
-                        sh 'ls -al /kaniko/'
-                        sh 'ls -al /kaniko/.docker'
                         sh '''
                             . ${WORKSPACE}/.env
                             /kaniko/executor \
