@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: ./build/bot/Dockerfile
-    image: ${CI_REGISTRY_IMAGE}/tgbot:${TAG}
+    image: exmanka/ksivpn-telegram-bot:${TAG:-latest}
     container_name: tgbot
     restart: unless-stopped
     env_file:
@@ -24,7 +24,7 @@ services:
       context: ./build/database
       args:
         ADDITIONAL_LANGUAGE: ${ADDITIONAL_LANGUAGE}
-    image: ${CI_REGISTRY_IMAGE}/tgbot-postgres:${TAG}
+    image: exmanka/ksivpn-telegram-bot-postgres:${TAG:-latest}
     container_name: tgbot-postgres
     restart: unless-stopped
     environment:
