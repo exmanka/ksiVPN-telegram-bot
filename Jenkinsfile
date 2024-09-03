@@ -11,15 +11,15 @@ pipeline {
 
     stages {
         stage('Build') {
-            agent {
-                docker {
-                    image 'gcr.io/kaniko-project/executor:v1.14.0-debug'
-                    args '--entrypoint=""'
-                }
-            }
             failFast true
             parallel {
                 stage('Build tgbot') {
+                    agent {
+                        docker {
+                            image 'gcr.io/kaniko-project/executor:v1.14.0-debug'
+                            args '--entrypoint=""'
+                        }
+                    }
                     environment {
                         PARALLEL_IMAGE_NAME = 'tgbot'
                         PARALLEL_DOCKERFILE = 'build/bot/Dockerfile'
@@ -36,6 +36,12 @@ pipeline {
                     }
                 }
                 stage('Build tgbot-postgres') {
+                    agent {
+                        docker {
+                            image 'gcr.io/kaniko-project/executor:v1.14.0-debug'
+                            args '--entrypoint=""'
+                        }
+                    }
                     environment {
                         PARALLEL_IMAGE_NAME = 'tgbot-postgres'
                         PARALLEL_DOCKERFILE = 'build/database/Dockerfile'
