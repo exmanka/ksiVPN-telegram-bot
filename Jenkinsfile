@@ -18,7 +18,7 @@ pipeline {
                 stage('Build tgbot') {
                     agent {
                         docker {
-                            image 'gcr.io/kaniko-project/executor:v1.14.0-debug'
+                            image 'gcr.io/kaniko-project/executor:v1.23.2-debug'
                             args '--entrypoint=""'
                         }
                     }
@@ -31,7 +31,7 @@ pipeline {
                     steps {
                         sh 'echo $PWD'
                         sh 'ls -al'
-                        sh 'ls -al /kaniko/'
+                        sh 'ls -al /kaniko/.docker'
                         sh 'sudo echo "{\"auths\":{\"${CONTAINER_REGISTRY_URL}\":{\"auth\":\"$(printf "%s:%s" "${CONTAINER_REGISTRY_CREDS_USR}" "${CONTAINER_REGISTRY_CREDS_PSW}" | base64 | tr -d "\n")\"}}}" > /kaniko/.docker/config.json'
                         sh 'cat /kaniko/.docker/config.json'
                         // sh 'echo $DOCKERHUB_CREDS_PWD | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
@@ -49,7 +49,7 @@ pipeline {
                 stage('Build tgbot-postgres') {
                     agent {
                         docker {
-                            image 'gcr.io/kaniko-project/executor:v1.14.0-debug'
+                            image 'gcr.io/kaniko-project/executor:v1.23.2-debug'
                             args '--entrypoint=""'
                         }
                     }
@@ -62,7 +62,7 @@ pipeline {
                     steps {
                         sh 'echo $PWD'
                         sh 'ls -al'
-                        sh 'ls -al /kaniko/'
+                        sh 'ls -al /kaniko/.docker'
                         sh 'sudo echo "{\"auths\":{\"${CONTAINER_REGISTRY_URL}\":{\"auth\":\"$(printf "%s:%s" "${CONTAINER_REGISTRY_CREDS_USR}" "${CONTAINER_REGISTRY_CREDS_PSW}" | base64 | tr -d "\n")\"}}}" > /kaniko/.docker/config.json'
                         sh 'cat /kaniko/.docker/config.json'
                         // sh 'echo $DOCKERHUB_CREDS_PWD | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
