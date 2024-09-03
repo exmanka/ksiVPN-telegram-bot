@@ -1,18 +1,13 @@
 pipeline {
     agent any
-    environment {
-        POSTGRES_PASSWORD = credentials('postgres-password')
-        ADMIN_ID = credentials('admin-id')
-        BOT_TOKEN = credentials('bot-token')
-        YOOMONEY_TOKEN = credentials('yoomoney-token')
-        YOOMONEY_ACCOUNT_NUMBER = credentials('yoomoney-account-number')
-        CONTAINER_REGISTRY_URL = 'https://index.docker.io/v1/'
-        CONTAINER_REGISTRY_CREDS = credentials('dockerhub-creds')
-        CONTAINER_REGISTRY_JSON = credentials('dockerhub-json')
-    }
 
     stages {
         stage('Build') {
+            environment {
+                CONTAINER_REGISTRY_URL = 'https://index.docker.io/v1/'
+                CONTAINER_REGISTRY_CREDS = credentials('dockerhub-creds')
+                CONTAINER_REGISTRY_JSON = credentials('dockerhub-json')
+            }
             failFast true
             parallel {
                 stage('Build tgbot') {
@@ -74,14 +69,23 @@ pipeline {
             }
             post {
                 always {
+                    sh 'ls -al'
                     sh 'rm -rf /kaniko/.docker/config.json'
                 }
             }
         }
 
         stage('Test') {
+            environment {
+                POSTGRES_PASSWORD = credentials('postgres-password')
+                ADMIN_ID = credentials('admin-id')
+                BOT_TOKEN = credentials('bot-token')
+                YOOMONEY_TOKEN = credentials('yoomoney-token')
+                YOOMONEY_ACCOUNT_NUMBER = credentials('yoomoney-account-number')
+            }
             steps {
                 echo 'Testing..'
+                sh 'printenv'
             }
         }
         stage('Deploy') {
