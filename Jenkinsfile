@@ -26,6 +26,7 @@ pipeline {
                         PARALLEL_CONTEXT = "${WORKSPACE}"
                     }
                     steps {
+                        sh 'echo $DOCKERHUB_CREDS_PWD | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
                         sh '. ${WORKSPACE}/.env'
                         sh '''/kaniko/executor
                             --context ${MATRIX_CONTEXT}
@@ -48,6 +49,7 @@ pipeline {
                         PARALLEL_CONTEXT = "${WORKSPACE}/build/database"
                     }
                     steps {
+                        sh 'echo $DOCKERHUB_CREDS_PWD | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
                         sh '. ${WORKSPACE}/.env'
                         sh '''/kaniko/executor
                             --context ${MATRIX_CONTEXT}
