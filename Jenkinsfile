@@ -1,5 +1,5 @@
 pipeline {
-    agent none
+    agent any
     environment {
         POSTGRES_PASSWORD = credentials('postgres-password')
         ADMIN_ID = credentials('admin-id')
