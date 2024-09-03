@@ -19,7 +19,7 @@ pipeline {
                     agent {
                         docker {
                             image 'gcr.io/kaniko-project/executor:v1.23.2-debug'
-                            args '--entrypoint="" -v test:/kaniko/.docker'
+                            args '--entrypoint="" -v .env:/kaniko/.docker/config.json'
                         }
                     }
                     environment {
@@ -50,7 +50,7 @@ pipeline {
                     agent {
                         docker {
                             image 'gcr.io/kaniko-project/executor:v1.23.2-debug'
-                            args '--entrypoint="" -v test:/kaniko/.docker'
+                            args '--entrypoint="" -v .env:/kaniko/.docker/config.json'
                         }
                     }
                     environment {
