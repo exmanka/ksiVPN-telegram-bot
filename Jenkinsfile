@@ -24,6 +24,8 @@ pipeline {
                         PARALLEL_IMAGE_NAME = 'tgbot'
                         PARALLEL_DOCKERFILE = 'build/bot/Dockerfile'
                         PARALLEL_CONTEXT = "${WORKSPACE}"
+                        IMAGE = 'exmanka/ksivpn-telegram-bot'
+                        TAG = 'latest'
                     }
                     steps {
                         sh 'echo $DOCKERHUB_CREDS_PWD | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
@@ -31,7 +33,7 @@ pipeline {
                         sh '''/kaniko/executor
                             --context ${MATRIX_CONTEXT}
                             --dockerfile ${WORKSPACE}/${MATRIX_DOCKERFILE}
-                            --destination ${CI_REGISTRY_IMAGE}/${MATRIX_IMAGE_NAME}:${TAG}
+                            --destination ${IMAGE}:${TAG}
                             --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE}
                             --cache=true'''
                     }
@@ -47,6 +49,8 @@ pipeline {
                         PARALLEL_IMAGE_NAME = 'tgbot-postgres'
                         PARALLEL_DOCKERFILE = 'build/database/Dockerfile'
                         PARALLEL_CONTEXT = "${WORKSPACE}/build/database"
+                        IMAGE = 'exmanka/ksivpn-telegram-bot-postgres'
+                        TAG = 'latest'
                     }
                     steps {
                         sh 'echo $DOCKERHUB_CREDS_PWD | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
@@ -54,7 +58,7 @@ pipeline {
                         sh '''/kaniko/executor
                             --context ${MATRIX_CONTEXT}
                             --dockerfile ${WORKSPACE}/${MATRIX_DOCKERFILE}
-                            --destination ${CI_REGISTRY_IMAGE}/${MATRIX_IMAGE_NAME}:${TAG}
+                            --destination ${IMAGE}:${TAG}
                             --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE}
                             --cache=true'''
                     }
