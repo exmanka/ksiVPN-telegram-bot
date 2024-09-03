@@ -11,6 +11,12 @@ pipeline {
 
     stages {
         stage('Build') {
+            agent {
+                docker {
+                    image 'gcr.io/kaniko-project/executor:v1.14.0-debug'
+                    args '--entrypoint=""'
+                }
+            }
             failFast true
             parallel {
                 stage('Build tgbot') {
