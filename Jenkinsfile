@@ -25,6 +25,7 @@ pipeline {
                     environment {
                         PARALLEL_IMAGE_NAME = 'exmanka/ksivpn-telegram-bot'
                         PARALLEL_DOCKERFILE = 'build/bot/Dockerfile'
+                        PARALLEL_CACHE_REPO = 'exmanka/cache'
                         PARALLEL_CONTEXT = "${WORKSPACE}"
                         PARALLEL_TAG = 'latest'
                     }
@@ -39,7 +40,8 @@ pipeline {
                             --dockerfile ${WORKSPACE}/${PARALLEL_DOCKERFILE} \
                             --destination ${PARALLEL_IMAGE_NAME}:${PARALLEL_TAG} \
                             --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE} \
-                            --cache=true
+                            --cache=true \
+                            --cache-repo=${PARALLEL_CACHE_REPO}
                         '''
                     }
                 }
@@ -53,6 +55,7 @@ pipeline {
                     environment {
                         PARALLEL_IMAGE_NAME = 'exmanka/ksivpn-telegram-bot-postgres'
                         PARALLEL_DOCKERFILE = 'build/database/Dockerfile'
+                        PARALLEL_CACHE_REPO = 'exmanka/cache'
                         PARALLEL_CONTEXT = "${WORKSPACE}/build/database"
                         PARALLEL_TAG = 'latest'
                     }
@@ -67,7 +70,8 @@ pipeline {
                             --dockerfile ${WORKSPACE}/${PARALLEL_DOCKERFILE} \
                             --destination ${PARALLEL_IMAGE_NAME}:${PARALLEL_TAG} \
                             --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE} \
-                            --cache=true
+                            --cache=true \
+                            --cache-repo=${PARALLEL_CACHE_REPO}
                         '''
                     }
                 }
