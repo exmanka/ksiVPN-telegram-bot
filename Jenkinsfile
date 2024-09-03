@@ -85,6 +85,7 @@ pipeline {
             environment {
                 CONTAINER_REGISTRY_URL = 'https://index.docker.io/v1/'
                 CONTAINER_REGISTRY_CREDS = credentials('dockerhub-creds')
+                HOME = "$WORKSPACE"
                 POSTGRES_PASSWORD = credentials('postgres-password')
                 ADMIN_ID = credentials('admin-id')
                 BOT_TOKEN = credentials('bot-token')
