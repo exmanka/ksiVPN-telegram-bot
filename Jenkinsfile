@@ -19,7 +19,7 @@ pipeline {
                     agent {
                         docker {
                             image 'gcr.io/kaniko-project/executor:v1.14.0-debug'
-                            args '--entrypoint="" -v ${CONTAINER_REGISTRY_JSON}:/kaniko/.docker/config.json'
+                            args '--entrypoint="" -v ${CONTAINER_REGISTRY_JSON}:/kaniko/.docker/config.json -u root:root'
                         }
                     }
                     environment {
@@ -37,8 +37,7 @@ pipeline {
                             --dockerfile ${WORKSPACE}/${PARALLEL_DOCKERFILE} \
                             --destination ${PARALLEL_IMAGE_NAME}:${PARALLEL_TAG} \
                             --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE} \
-                            --cache=true \
-                            --whitelist-var-run=false
+                            --cache=true
                         '''
                     }
                 }
@@ -63,8 +62,7 @@ pipeline {
                             --dockerfile ${WORKSPACE}/${PARALLEL_DOCKERFILE} \
                             --destination ${PARALLEL_IMAGE_NAME}:${PARALLEL_TAG} \
                             --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE} \
-                            --cache=true \
-                            --whitelist-var-run=false
+                            --cache=true
                         '''
                     }
                 }
