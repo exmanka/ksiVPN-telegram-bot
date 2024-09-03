@@ -30,7 +30,7 @@ pipeline {
                         // sh 'echo $DOCKERHUB_CREDS_PWD | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
                         sh '. ${WORKSPACE}/.env'
                         script {
-                            readProperties(file: '${WORKSPACE}/.env').each {key, value -> env[key] = value }
+                            readProperties(file: "${WORKSPACE}/.env").each {key, value -> env[key] = value }
                         }
                         sh 'printenv'
                         sh '''/kaniko/executor \
@@ -58,7 +58,7 @@ pipeline {
                         // sh 'echo $DOCKERHUB_CREDS_PWD | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
                         sh '. ${WORKSPACE}/.env'
                         script {
-                            readProperties(file: '${WORKSPACE}/.env').each {key, value -> env[key] = value }
+                            readProperties(file: "${WORKSPACE}/.env").each {key, value -> env[key] = value }
                         }
                         sh 'printenv'
                         sh '''/kaniko/executor \
