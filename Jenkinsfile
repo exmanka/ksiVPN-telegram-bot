@@ -32,6 +32,8 @@ pipeline {
                         sh 'echo $PWD'
                         sh 'ls -al'
                         sh 'ls -al /kaniko/.docker'
+                        sh 'sudo chown -r 1001:1001 /kaniko/.docker'
+                        sh 'ls -al /kaniko/.docker'
                         sh 'sudo echo "{\"auths\":{\"${CONTAINER_REGISTRY_URL}\":{\"auth\":\"$(printf "%s:%s" "${CONTAINER_REGISTRY_CREDS_USR}" "${CONTAINER_REGISTRY_CREDS_PSW}" | base64 | tr -d "\n")\"}}}" > /kaniko/.docker/config.json'
                         sh 'cat /kaniko/.docker/config.json'
                         // sh 'echo $DOCKERHUB_CREDS_PWD | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
@@ -62,6 +64,8 @@ pipeline {
                     steps {
                         sh 'echo $PWD'
                         sh 'ls -al'
+                        sh 'ls -al /kaniko/.docker'
+                        sh 'sudo chown -r 1001:1001 /kaniko/.docker'
                         sh 'ls -al /kaniko/.docker'
                         sh 'sudo echo "{\"auths\":{\"${CONTAINER_REGISTRY_URL}\":{\"auth\":\"$(printf "%s:%s" "${CONTAINER_REGISTRY_CREDS_USR}" "${CONTAINER_REGISTRY_CREDS_PSW}" | base64 | tr -d "\n")\"}}}" > /kaniko/.docker/config.json'
                         sh 'cat /kaniko/.docker/config.json'
