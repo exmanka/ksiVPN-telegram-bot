@@ -18,7 +18,7 @@ pipeline {
                 stage('Build tgbot') {
                     agent {
                         docker {
-                            image 'gcr.io/kaniko-project/executor:debug-v0.15.0'
+                            image 'gcr.io/kaniko-project/executor:v1.14.0-debug'
                             args '--entrypoint="" -v ${CONTAINER_REGISTRY_JSON}:/kaniko/.docker/config.json'
                         }
                     }
@@ -37,14 +37,15 @@ pipeline {
                             --dockerfile ${WORKSPACE}/${PARALLEL_DOCKERFILE} \
                             --destination ${PARALLEL_IMAGE_NAME}:${PARALLEL_TAG} \
                             --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE} \
-                            --cache=true
+                            --cache=true \
+                            --whitelist-var-run=false
                         '''
                     }
                 }
                 stage('Build tgbot-postgres') {
                     agent {
                         docker {
-                            image 'gcr.io/kaniko-project/executor:debug-v0.15.0'
+                            image 'gcr.io/kaniko-project/executor:v1.14.0-debug'
                             args '--entrypoint="" -v ${CONTAINER_REGISTRY_JSON}:/kaniko/.docker/config.json'
                         }
                     }
@@ -62,7 +63,8 @@ pipeline {
                             --dockerfile ${WORKSPACE}/${PARALLEL_DOCKERFILE} \
                             --destination ${PARALLEL_IMAGE_NAME}:${PARALLEL_TAG} \
                             --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE} \
-                            --cache=true
+                            --cache=true \
+                            --whitelist-var-run=false
                         '''
                     }
                 }
