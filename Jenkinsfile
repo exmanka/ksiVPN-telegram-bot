@@ -88,8 +88,6 @@ pipeline {
             }
             steps {
                 sh 'echo $CONTAINER_REGISTRY_CREDS_PSW | docker login -u $CONTAINER_REGISTRY_CREDS_USR --password-stdin'
-                sh 'ls -al /var/run/docker.sock'
-                sh 'id'
                 sh 'docker compose up --pull always --quiet-pull -d'
                 sh 'docker compose logs -f'
             }
