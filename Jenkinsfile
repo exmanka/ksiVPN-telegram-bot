@@ -30,6 +30,7 @@ pipeline {
                     steps {
                         // sh 'echo $DOCKERHUB_CREDS_PWD | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
                         sh '. ${WORKSPACE}/.env'
+                        sh 'printenv'
                         sh '''/kaniko/executor
                             --context ${MATRIX_CONTEXT}
                             --dockerfile ${WORKSPACE}/${MATRIX_DOCKERFILE}
@@ -55,6 +56,7 @@ pipeline {
                     steps {
                         // sh 'echo $DOCKERHUB_CREDS_PWD | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
                         sh '. ${WORKSPACE}/.env'
+                        sh 'printenv'
                         sh '''/kaniko/executor
                             --context ${MATRIX_CONTEXT}
                             --dockerfile ${WORKSPACE}/${MATRIX_DOCKERFILE}
