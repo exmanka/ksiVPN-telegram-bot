@@ -31,11 +31,11 @@ pipeline {
                         // sh 'echo $DOCKERHUB_CREDS_PWD | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
                         sh '. ${WORKSPACE}/.env'
                         sh 'printenv'
-                        sh '''/kaniko/executor
-                            --context ${MATRIX_CONTEXT}
-                            --dockerfile ${WORKSPACE}/${MATRIX_DOCKERFILE}
-                            --destination ${IMAGE}:${TAG}
-                            --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE}
+                        sh '''/kaniko/executor \
+                            --context ${MATRIX_CONTEXT} \
+                            --dockerfile ${WORKSPACE}/${MATRIX_DOCKERFILE} \
+                            --destination ${IMAGE}:${TAG} \
+                            --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE} \
                             --cache=true'''
                     }
                 }
@@ -57,11 +57,11 @@ pipeline {
                         // sh 'echo $DOCKERHUB_CREDS_PWD | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
                         sh '. ${WORKSPACE}/.env'
                         sh 'printenv'
-                        sh '''/kaniko/executor
-                            --context ${MATRIX_CONTEXT}
-                            --dockerfile ${WORKSPACE}/${MATRIX_DOCKERFILE}
-                            --destination ${IMAGE}:${TAG}
-                            --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE}
+                        sh '''/kaniko/executor \
+                            --context ${MATRIX_CONTEXT} \
+                            --dockerfile ${WORKSPACE}/${MATRIX_DOCKERFILE} \
+                            --destination ${IMAGE}:${TAG} \
+                            --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE} \
                             --cache=true'''
                     }
                 }
