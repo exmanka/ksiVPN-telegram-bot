@@ -12,7 +12,7 @@ services:
       - ${BOT_HTTP_PORT:-80}:80
       - ${BOT_HTTPS_PORT:-443}:443
     networks:
-      - app-net
+      - ksivpn-net
     volumes:
       - tgbot-db-backups:${BACKUP_PATH}
     depends_on:
@@ -41,14 +41,17 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - app-net
+      - ksivpn-net
     volumes:
       - tgbot-db-data:/var/lib/postgresql/data
       - tgbot-db-backups:/var/lib/postgresql/backups
 
 networks:
-  app-net:
+  ksivpn-net:
+    name: ksivpn-net
 
 volumes:
   tgbot-db-data:
+    name: tgbot-db-data
   tgbot-db-backups:
+    name: tgbot-db-backups
