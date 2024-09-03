@@ -14,7 +14,7 @@ services:
     networks:
       - app-net
     volumes:
-      - db-backups:${BACKUP_PATH}
+      - tgbot-db-backups:${BACKUP_PATH}
     depends_on:
       tgbot-db:
         condition: service_healthy
