@@ -75,8 +75,16 @@ pipeline {
             }
         }
 
-        stage('Test') {
+        stage('Deploy:Dev') {
+            agent {
+                docker {
+                    label 'russia_moscow-maria && shell'
+                    image 'docker:26.1.4'
+                }
+            }
             environment {
+                CONTAINER_REGISTRY_URL = 'https://index.docker.io/v1/'
+                CONTAINER_REGISTRY_CREDS = credentials('dockerhub-creds')
                 POSTGRES_PASSWORD = credentials('postgres-password')
                 ADMIN_ID = credentials('admin-id')
                 BOT_TOKEN = credentials('bot-token')
@@ -84,11 +92,12 @@ pipeline {
                 YOOMONEY_ACCOUNT_NUMBER = credentials('yoomoney-account-number')
             }
             steps {
-                echo 'Testing..'
-                sh 'printenv'
+                sh 'echo $CONTAINER_REGISTRY_CREDS_PSW | docker login -u $CONTAINER_REGISTRY_CREDS_USR --password-stdin'
+                sh 'docker compose up --pull always --quiet-pull -d'
+                sh 'docker compose logs -f'
             }
         }
-        stage('Deploy') {
+        stage('Deploy:Test') {
             steps {
                 echo 'Deploying....'
             }
