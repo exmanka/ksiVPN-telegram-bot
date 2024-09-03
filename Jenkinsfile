@@ -94,6 +94,7 @@ pipeline {
             }
             steps {
                 sh 'echo $CONTAINER_REGISTRY_CREDS_PSW | docker login -u $CONTAINER_REGISTRY_CREDS_USR --password-stdin'
+                sh 'systemctl status docker'
                 sh 'docker compose up --pull always --quiet-pull -d'
                 sh 'docker compose logs -f'
             }
