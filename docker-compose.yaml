@@ -3,14 +3,14 @@ services:
     build:
       context: .
       dockerfile: ./build/bot/Dockerfile
-    image: exmanka/ksivpn-telegram-bot:${TAG:-latest}
+    image: exmanka/ksivpn-telegram-bot:${TAG}
     container_name: ksivpn-tgbot
     restart: unless-stopped
     env_file:
       - .env
     ports:
-      - ${BOT_HTTP_PORT:-80}:80
-      - ${BOT_HTTPS_PORT:-443}:443
+      - ${BOT_HTTP_PORT}:80
+      - ${BOT_HTTPS_PORT}:443
     networks:
       - ksivpn-net
     volumes:
@@ -24,7 +24,7 @@ services:
       context: ./build/database
       args:
         ADDITIONAL_LANGUAGE: ${ADDITIONAL_LANGUAGE}
-    image: exmanka/ksivpn-telegram-bot-postgres:${TAG:-latest}
+    image: exmanka/ksivpn-telegram-bot-postgres:${TAG}
     container_name: ksivpn-tgbot-postgres
     restart: unless-stopped
     environment:
@@ -34,7 +34,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_INITDB_ARGS: ${POSTGRES_INITDB_ARGS}
     ports:
-      - ${POSTGRES_PORT:-5432}:5432
+      - ${POSTGRES_PORT}:5432
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
