@@ -1,5 +1,5 @@
 services:
-  tgbot:
+  ksivpn-tgbot:
     build:
       context: .
       dockerfile: ./build/bot/Dockerfile
@@ -14,12 +14,12 @@ services:
     networks:
       - ksivpn-net
     volumes:
-      - tgbot-db-backups:${BACKUP_PATH}
+      - ksivpn-tgbot-postgres-backups:${BACKUP_PATH}
     depends_on:
-      tgbot-db:
+      ksivpn-tgbot-postgres:
         condition: service_healthy
 
-  tgbot-db:
+  ksivpn-tgbot-postgres:
     build:
       context: ./build/database
       args:
@@ -43,15 +43,15 @@ services:
     networks:
       - ksivpn-net
     volumes:
-      - tgbot-db-data:/var/lib/postgresql/data
-      - tgbot-db-backups:/var/lib/postgresql/backups
+      - ksivpn-tgbot-postgres-data:/var/lib/postgresql/data
+      - ksivpn-tgbot-postgres-backups:/var/lib/postgresql/backups
 
 networks:
   ksivpn-net:
     name: ksivpn-net
 
 volumes:
-  tgbot-db-data:
-    name: tgbot-db-data
-  tgbot-db-backups:
-    name: tgbot-db-backups
+  ksivpn-tgbot-postgres-data:
+    name: ksivpn-tgbot-postgres-data
+  ksivpn-tgbot-postgres-backups:
+    name: ksivpn-tgbot-postgres-backups
