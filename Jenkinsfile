@@ -10,7 +10,7 @@ pipeline {
             }
             failFast true
             parallel {
-                stage('Build tgbot') {
+                stage('Build exmanka/ksivpn-tgbot') {
                     agent {
                         docker {
                             label 'russia_moscow-maria && shell'
@@ -38,7 +38,7 @@ pipeline {
                         '''
                     }
                 }
-                stage('Build tgbot-postgres') {
+                stage('Build exmanka/ksivpn-tgbot-postgres') {
                     agent {
                         docker {
                             label 'russia_moscow-maria && shell'
@@ -88,6 +88,7 @@ pipeline {
             }
             steps {
                 sh 'echo $CONTAINER_REGISTRY_CREDS_PSW | docker login -u $CONTAINER_REGISTRY_CREDS_USR --password-stdin'
+                sh 'docker compose down -v'
                 sh 'docker compose up --pull always --quiet-pull -d'
                 sh 'docker compose --ansi=always logs -f'
             }
