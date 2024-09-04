@@ -10,7 +10,7 @@ pipeline {
             }
             failFast true
             parallel {
-                stage('Build exmanka/ksivpn-tgbot') {
+                stage('Build ksivpn-tgbot') {
                     agent {
                         docker {
                             label 'russia_moscow-maria && shell'
@@ -38,7 +38,7 @@ pipeline {
                         '''
                     }
                 }
-                stage('Build exmanka/ksivpn-tgbot-postgres') {
+                stage('Build ksivpn-tgbot-postgres') {
                     agent {
                         docker {
                             label 'russia_moscow-maria && shell'
