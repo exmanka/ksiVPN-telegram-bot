@@ -20,8 +20,8 @@ pipeline {
                     }
                     environment {
                         PARALLEL_IMAGE_NAME = 'exmanka/ksivpn-telegram-bot'
-                        PARALLEL_DOCKERFILE = 'build/bot/Dockerfile'
                         PARALLEL_CACHE_REPO = 'exmanka/cache'
+                        PARALLEL_DOCKERFILE = 'build/bot/Dockerfile'
                         PARALLEL_CONTEXT = "${WORKSPACE}"
                         PARALLEL_TAG = 'latest'
                     }
@@ -48,8 +48,8 @@ pipeline {
                     }
                     environment {
                         PARALLEL_IMAGE_NAME = 'exmanka/ksivpn-telegram-bot-postgres'
-                        PARALLEL_DOCKERFILE = 'build/database/Dockerfile'
                         PARALLEL_CACHE_REPO = 'exmanka/cache'
+                        PARALLEL_DOCKERFILE = 'build/database/Dockerfile'
                         PARALLEL_CONTEXT = "${WORKSPACE}/build/database"
                         PARALLEL_TAG = 'latest'
                     }
@@ -77,14 +77,26 @@ pipeline {
 
         stage('Deploy:Dev') {
             environment {
-                CONTAINER_REGISTRY_URL = 'https://index.docker.io/v1/'
                 CONTAINER_REGISTRY_CREDS = credentials('dockerhub-creds')
                 HOME = "$WORKSPACE"
-                POSTGRES_PASSWORD = credentials('postgres-password')
+
+                TZ = 'Europe/Moscow'
+                POSTGRES_CREDS = credentials('postgres-creds')
+                POSTGRES_USER = POSTGRES_CREDS_USR
+                POSTGRES_PASSWORD = POSTGRES_CREDS_PSW
+                POSTGRES_DB = credentials('postgres-db')
+                POSTGRES_INITDB_ARGS = '--locale=en_US.UTF-8 --lc-time=ru_RU.UTF-8'
+                ADDITIONAL_LANGUAGE = 'ru_RU'
                 ADMIN_ID = credentials('admin-id')
                 BOT_TOKEN = credentials('bot-token')
                 YOOMONEY_TOKEN = credentials('yoomoney-token')
                 YOOMONEY_ACCOUNT_NUMBER = credentials('yoomoney-account-number')
+                BACKUP_PATH = credentials('backup-path')
+                LOCALIZATION_LANGUAGE = 'ru'
+                BOT_HTTP_PORT = credentials('port-bot-http')
+                BOT_HTTPS_PORT = credentials('port-bot-https')
+                POSTGRES_PORT = credentials('port-postgres')
+                TAG = 'latest'
             }
             steps {
                 sh 'echo $CONTAINER_REGISTRY_CREDS_PSW | docker login -u $CONTAINER_REGISTRY_CREDS_USR --password-stdin'
