@@ -82,8 +82,8 @@ pipeline {
 
                 TZ = 'Europe/Moscow'
                 POSTGRES_CREDS = credentials('postgres-creds')
-                POSTGRES_USER = POSTGRES_CREDS_USR
-                POSTGRES_PASSWORD = POSTGRES_CREDS_PSW
+                POSTGRES_USER = "${POSTGRES_CREDS_USR}"
+                POSTGRES_PASSWORD = "${POSTGRES_CREDS_PSW}"
                 POSTGRES_DB = credentials('postgres-db')
                 POSTGRES_INITDB_ARGS = '--locale=en_US.UTF-8 --lc-time=ru_RU.UTF-8'
                 ADDITIONAL_LANGUAGE = 'ru_RU'
