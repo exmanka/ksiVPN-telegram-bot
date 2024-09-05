@@ -3,17 +3,21 @@ pipeline {
     options {
         disableConcurrentBuilds(abortPrevious: true)
     }
+    environment {
+        CONTAINER_REGISTRY_URL = 'https://index.docker.io/v1/'
+        CONTAINER_REGISTRY_CREDS = credentials('dockerhub-creds')
+        IMAGE_TAG = 'latest'
+    }
 
     stages {
         stage('Build') {
             environment {
-                CONTAINER_REGISTRY_URL = 'https://index.docker.io/v1/'
-                CONTAINER_REGISTRY_CREDS = credentials('dockerhub-creds')
                 CONTAINER_REGISTRY_JSON = credentials('dockerhub-json')
+                CONTAINER_REGISTRY_CACHE_REPO = 'exmanka/cache'
             }
             failFast true
             parallel {
-                stage('Build ksivpn-tgbot') {
+                stage('Build tgbot') {
                     agent {
                         docker {
                             label 'russia_moscow-maria && shell'
@@ -23,25 +27,23 @@ pipeline {
                     }
                     environment {
                         PARALLEL_IMAGE_NAME = 'exmanka/ksivpn-telegram-bot'
-                        PARALLEL_CACHE_REPO = 'exmanka/cache'
                         PARALLEL_DOCKERFILE = 'build/bot/Dockerfile'
                         PARALLEL_CONTEXT = "${WORKSPACE}"
-                        PARALLEL_TAG = 'latest'
                     }
                     steps {
                         sh '''
                             . ${WORKSPACE}/.env
                             /kaniko/executor \
                             --context ${PARALLEL_CONTEXT} \
-                            --dockerfile ${WORKSPACE}/${PARALLEL_DOCKERFILE} \
-                            --destination ${PARALLEL_IMAGE_NAME}:${PARALLEL_TAG} \
-                            --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE} \
+                            --dockerfile $WORKSPACE/${PARALLEL_DOCKERFILE} \
+                            --destination ${PARALLEL_IMAGE_NAME}:${IMAGE_TAG} \
+                            --build-arg ADDITIONAL_LANGUAGE=$ADDITIONAL_LANGUAGE \
                             --cache=true \
-                            --cache-repo=${PARALLEL_CACHE_REPO}
+                            --cache-repo=${CONTAINER_REGISTRY_CACHE_REPO}
                         '''
                     }
                 }
-                stage('Build ksivpn-tgbot-postgres') {
+                stage('Build tgbot-postgres') {
                     agent {
                         docker {
                             label 'russia_moscow-maria && shell'
@@ -51,10 +53,8 @@ pipeline {
                     }
                     environment {
                         PARALLEL_IMAGE_NAME = 'exmanka/ksivpn-telegram-bot-postgres'
-                        PARALLEL_CACHE_REPO = 'exmanka/cache'
                         PARALLEL_DOCKERFILE = 'build/database/Dockerfile'
                         PARALLEL_CONTEXT = "${WORKSPACE}/build/database"
-                        PARALLEL_TAG = 'latest'
                     }
                     steps {
                         sh '''
@@ -62,25 +62,18 @@ pipeline {
                             /kaniko/executor \
                             --context ${PARALLEL_CONTEXT} \
                             --dockerfile ${WORKSPACE}/${PARALLEL_DOCKERFILE} \
-                            --destination ${PARALLEL_IMAGE_NAME}:${PARALLEL_TAG} \
-                            --build-arg ADDITIONAL_LANGUAGE=${ADDITIONAL_LANGUAGE} \
+                            --destination ${PARALLEL_IMAGE_NAME}:${IMAGE_TAG} \
+                            --build-arg ADDITIONAL_LANGUAGE=$ADDITIONAL_LANGUAGE \
                             --cache=true \
-                            --cache-repo=${PARALLEL_CACHE_REPO}
+                            --cache-repo=${CONTAINER_REGISTRY_CACHE_REPO}
                         '''
                     }
-                }
-            }
-            post {
-                always {
-                    sh 'ls -al'
-                    sh 'rm -rf /kaniko/.docker/config.json'
                 }
             }
         }
 
         stage('Deploy:Dev') {
             environment {
-                CONTAINER_REGISTRY_CREDS = credentials('dockerhub-creds')
                 HOME = "$WORKSPACE"
 
                 TZ = 'Europe/Moscow'
@@ -102,7 +95,7 @@ pipeline {
                 TAG = 'latest'
             }
             steps {
-                sh 'echo $CONTAINER_REGISTRY_CREDS_PSW | docker login -u $CONTAINER_REGISTRY_CREDS_USR --password-stdin'
+                sh 'echo $CONTAINER_REGISTRY_CREDS_PSW | docker login $CONTAINER_REGISTRY_URL -u $CONTAINER_REGISTRY_CREDS_USR --password-stdin'
                 sh 'docker compose down -v'
                 sh 'docker compose up --pull always --quiet-pull -d'
                 sh 'docker compose --ansi=always logs -f'
