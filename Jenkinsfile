@@ -78,7 +78,6 @@ pipeline {
             }
             environment {
                 HOME = "$WORKSPACE"
-
                 TZ = 'Europe/Moscow'
                 POSTGRES_CREDS = credentials('postgres-creds')
                 POSTGRES_USER = "${POSTGRES_CREDS_USR}"
