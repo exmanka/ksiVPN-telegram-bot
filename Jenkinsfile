@@ -76,6 +76,10 @@ pipeline {
             agent {
                 label 'russia_moscow-maria && shell'
             }
+            when {
+                not { branch 'main' }
+                beforeAgent true
+            }
             environment {
                 HOME = "$WORKSPACE"
                 TZ = 'Europe/Moscow'
@@ -108,6 +112,10 @@ pipeline {
             agent {
                 label 'ltrinvestment-bot-1t && shell'
             }
+            when {
+                branch 'main'
+                beforeAgent true
+            }
             environment {
                 HOME = "$WORKSPACE"
 
@@ -137,6 +145,11 @@ pipeline {
         }
 
         stage('Deploy:Prod') {
+            agent none
+            when {
+                branch 'main'
+                beforeAgent true
+            }
             steps {
                 echo 'Deploying....'
             }
