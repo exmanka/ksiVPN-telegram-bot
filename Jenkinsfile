@@ -133,7 +133,6 @@ pipeline {
             }
             steps {
                 sh 'echo $CONTAINER_REGISTRY_CREDS_PSW | docker login $CONTAINER_REGISTRY_URL -u $CONTAINER_REGISTRY_CREDS_USR --password-stdin'
-                sh 'pwd'
                 sh 'cat docker-compose.yaml'
                 sh 'docker compose down -v'
                 sh 'docker compose up --pull always --quiet-pull -d'
