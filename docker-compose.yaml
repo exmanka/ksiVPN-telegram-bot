@@ -1,3 +1,5 @@
+name: ksivpn-tgbot
+
 services:
   ksivpn-tgbot:
     build:
