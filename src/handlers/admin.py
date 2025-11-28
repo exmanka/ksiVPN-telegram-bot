@@ -6,7 +6,7 @@ from aiogram import Dispatcher
 from aiogram.types import Message, CallbackQuery
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
-from aiogram.utils.exceptions import ChatNotFound, BotBlocked
+from aiogram.utils.exceptions import ChatNotFound, BotBlocked, UserDeactivated
 from src.middlewares import admin_mw
 from src.keyboards import admin_kb
 from src.states import admin_fsm
@@ -53,6 +53,10 @@ async def notifications_send_message_everyone(message: Message, state: FSMContex
         ignored_clients_str = ''
         async with state.proxy() as data:
 
+            # TODO: перенести обработки ошибок в internal_functions.send_message_by_telegram_id
+            # TODO: перенести обработки ошибок в internal_functions.send_message_by_telegram_id
+            # TODO: перенести обработки ошибок в internal_functions.send_message_by_telegram_id
+            
             # for every client
             for idx, [telegram_id] in enumerate(await postgres_dbms.get_clients_telegram_ids()):
                 try:
@@ -70,6 +74,15 @@ async def notifications_send_message_everyone(message: Message, state: FSMContex
                     _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
                     logger.info(f"Can't send message to client {name} {telegram_id}: {bb}")
                     ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, name, surname, username, telegram_id) + '(has blocked bot)\n'
+                
+                except UserDeactivated as ud:
+                    # add him to message list of clients who didn't receive message
+                    _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
+                    ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, name, surname, username, telegram_id)
+
+                except Exception as e:
+                    logger.warning(f"Can't send message to client [{name} {telegram_id}] due to unexpected error: {e}")
+
 
         # if some clients didn't receive message because they didn't write to bot at all
         if ignored_clients_str:

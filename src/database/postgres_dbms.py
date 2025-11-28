@@ -937,10 +937,22 @@ async def update_payment_successful(payment_id: int, client_id: int, paid_months
             '''
             UPDATE clients_subscriptions
             SET paid_months_counter = paid_months_counter + $1,
-            expiration_date = expiration_date + make_interval(months => $2)
-            WHERE client_id = $3;
+            expiration_date =
+            CASE
+                -- If client renews blank subscription
+                WHEN expiration_date < TIMESTAMP 'EPOCH' + INTERVAL '10 years'
+                THEN expiration_date + make_interval(months => $1)
+
+                -- If client renews expired subscription
+                WHEN expiration_date <= CURRENT_TIMESTAMP
+                THEN CURRENT_TIMESTAMP + make_interval(months => $1)
+
+                -- If client renews active subscription
+                ELSE expiration_date + make_interval(months => $1)
+            END
+            WHERE client_id = $2;
             ''',
-            paid_months, paid_months, client_id)
+            paid_months, client_id)
 
 
 async def update_payment_telegram_message_id(payment_id: int, telegram_message_id: int) -> None:

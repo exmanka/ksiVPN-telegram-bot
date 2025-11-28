@@ -122,7 +122,7 @@ CREATE TABLE configurations (
 	location_id SMALLINT NOT NULL REFERENCES configurations_locations(id) ON DELETE CASCADE,
 	os osEnum NOT NULL,
 	file_type fileTypeEnum NOT NULL,
-	telegram_file_id VARCHAR(256) UNIQUE NOT NULL,
+	telegram_file_id VARCHAR(512) UNIQUE NOT NULL,
 	date_of_receipt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(1, 1, 1, 'Android', 'link', 'vless://link_or_telegram_file_id_here', 'EPOCH');
