@@ -29,7 +29,7 @@ CREATE TABLE clients_subscriptions (
 	paid_months_counter INT NOT NULL DEFAULT 0,
 	expiration_date TIMESTAMP NOT NULL
 );
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(1, 1, 10, TIMESTAMP '2024-01-01 00:00');								-- '@exmanka'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(1, 1, 10, TIMESTAMP '2024-01-01 00:00');
 
 
 CREATE OR REPLACE FUNCTION create_ref_promocode() RETURNS text
