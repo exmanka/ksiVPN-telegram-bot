@@ -16,4 +16,5 @@ service cron start
 echo -e "${LOG_COLOR}[init-database-backup-cron.sh] Adding cron job to schedule database backups${LOG_COLOR_CLEAR}"
 (echo "55 19 * * * pg_dump -U $POSTGRES_USER --no-password --clean --if-exists --format=plain $POSTGRES_DB | gzip > /var/lib/postgresql/backups/db-backup.gz") | crontab -
 echo -e "${LOG_COLOR}[init-database-backup-cron.sh] Executing Postgres entrypoint${LOG_COLOR_CLEAR}"
+echo
 exec docker-entrypoint.sh "$@"
