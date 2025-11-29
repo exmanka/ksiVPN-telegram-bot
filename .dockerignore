@@ -1,0 +1,12 @@
+# Git
+.git
+.gitignore
+
+# GitLab
+.gitlab-ci.yml
+
+# Jenkins
+Jenkinsfile
+
+# Dotenv
+.env

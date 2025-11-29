@@ -29,7 +29,7 @@ CREATE TABLE clients_subscriptions (
 	paid_months_counter INT NOT NULL DEFAULT 0,
 	expiration_date TIMESTAMP NOT NULL
 );
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(1, 1, 10, TIMESTAMP '2024-01-01 00:00');								-- '@exmanka'
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date) VALUES(1, 1, 10, TIMESTAMP '2024-01-01 00:00');
 
 
 CREATE OR REPLACE FUNCTION create_ref_promocode() RETURNS text
@@ -122,7 +122,7 @@ CREATE TABLE configurations (
 	location_id SMALLINT NOT NULL REFERENCES configurations_locations(id) ON DELETE CASCADE,
 	os osEnum NOT NULL,
 	file_type fileTypeEnum NOT NULL,
-	telegram_file_id VARCHAR(256) UNIQUE NOT NULL,
+	telegram_file_id VARCHAR(512) UNIQUE NOT NULL,
 	date_of_receipt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) VALUES(1, 1, 1, 'Android', 'link', 'vless://link_or_telegram_file_id_here', 'EPOCH');
