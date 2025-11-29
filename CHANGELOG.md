@@ -4,8 +4,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2024-02-30
+## [Unreleased] - 2026-01-30
 Aiogram 3.x support.
+
+## [1.0.3] - 2025-11-29
+Fix annoying bugs
+
+### Added
+- [`469f3bc`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/469f3bc) — add Poetry package manager
+
+### Changed
+- [`5e9244f`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/5e9244f) — update PostgreSQL version to 17.7
+- [`5e9244f`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/5e9244f) — update PostgreSQL Dockerfile
+- [`469f3bc`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/469f3bc) — update telegram-bot Dockerfile
+
+### Fixed
+- [`9e94475`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/9e94475) — fix telegram_file_id VARCHAR size
+- [`9e94475`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/9e94475) — fix expired subscription renew bug
+- [`9e94475`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/9e94475) — fix sending message to everyone error
 
 ## [1.0.2] - 2024-02-07
 
