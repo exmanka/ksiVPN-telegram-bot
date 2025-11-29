@@ -1,28 +1,31 @@
 name: ksivpn-tgbot
 
+x-service-defaults: &service-defaults
+  restart: unless-stopped
+  networks: [ ksivpn-net ]
+
 services:
   ksivpn-tgbot:
+    <<: *service-defaults
+    container_name: ksivpn-tgbot
     build:
       context: .
       dockerfile: ./build/bot/Dockerfile
     image: exmanka/ksivpn-telegram-bot:${TAG}
-    container_name: ksivpn-tgbot
-    restart: unless-stopped
     env_file: [ .env ]
-    networks: [ ksivpn-net ]
     volumes: [ "ksivpn-tgbot-postgres-backups:${BACKUP_PATH}" ]
     depends_on:
       ksivpn-tgbot-postgres:
         condition: service_healthy
 
   ksivpn-tgbot-postgres:
+    <<: *service-defaults
+    container_name: ksivpn-tgbot-postgres
     build:
       context: ./build/database
       args:
         ADDITIONAL_LANGUAGE: ${ADDITIONAL_LANGUAGE}
     image: exmanka/ksivpn-telegram-bot-postgres:${TAG}
-    container_name: ksivpn-tgbot-postgres
-    restart: unless-stopped
     environment:
       TZ: ${TZ}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -35,7 +38,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    networks: [ ksivpn-net ]
     volumes:
       - ksivpn-tgbot-postgres-data:/var/lib/postgresql/data
       - ksivpn-tgbot-postgres-backups:/var/lib/postgresql/backups
