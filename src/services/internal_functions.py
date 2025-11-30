@@ -493,12 +493,13 @@ async def autocheck_payment_status(payment_id: int) -> str:
     """
     wallet = aiomoney.YooMoneyWallet(YOOMONEY_TOKEN)
 
-    # wait for user to redirect to Yoomoney site first 10 seconds
-    await asyncio.sleep(10)
+    # wait for user to redirect to Yoomoney site first 5 seconds
+    await asyncio.sleep(5)
 
-    # after that check Yoomoney payment status using linear equation
-    k = 0.04
-    b = 1
+    # After that check Yoomoney payment status using quadratic equation
+    a = 0.01
+    b = 5
+    max_waiting_time = 60   # seconds
     for x in range(100):
 
         # if user has already checked successful payment and it was added to account subscription
@@ -509,7 +510,7 @@ async def autocheck_payment_status(payment_id: int) -> str:
         if await wallet.check_payment_on_successful(payment_id):
             return 'success'
 
-        await asyncio.sleep(k * x + b)
+        await asyncio.sleep(min(a * x * x + b, max_waiting_time))
 
     return 'failure'
 
