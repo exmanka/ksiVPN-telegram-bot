@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
-PROXY_SOCS5_URL = os.getenv('PROXY_SOCS5_URL')
+PROXY_SOCKS5_URL = os.getenv('PROXY_SOCKS5_URL')
 POSTGRES_USER = os.getenv('POSTGRES_USER')
 POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
 POSTGRES_DB = os.getenv('POSTGRES_DB')
@@ -21,8 +21,8 @@ LOCALIZATION_LANGUAGE = os.getenv('LOCALIZATION_LANGUAGE')
 TIMEZONE = os.getenv('TZ')
 
 
-if PROXY_SOCS5_URL:
-    bot = Bot(token=BOT_TOKEN, proxy=PROXY_SOCS5_URL)
+if PROXY_SOCKS5_URL:
+    bot = Bot(token=BOT_TOKEN, proxy=PROXY_SOCKS5_URL)
     logger.info(f"Bot starts using SOCKS5 proxy")
 else:
     bot = Bot(BOT_TOKEN)
