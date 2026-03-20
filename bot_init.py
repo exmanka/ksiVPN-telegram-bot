@@ -1,12 +1,15 @@
 import os
+import logging
 from aiogram import Bot
 from aiogram.dispatcher import Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
 
-storage = MemoryStorage()
-bot = Bot(token=os.getenv('BOT_TOKEN'))
-dp = Dispatcher(bot, storage=storage)
+logger = logging.getLogger(__name__)
+
+
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+PROXY_SOCS5_URL = os.getenv('PROXY_SOCS5_URL')
 POSTGRES_USER = os.getenv('POSTGRES_USER')
 POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
 POSTGRES_DB = os.getenv('POSTGRES_DB')
@@ -16,3 +19,14 @@ YOOMONEY_ACCOUNT_NUMBER = os.getenv('YOOMONEY_ACCOUNT_NUMBER')
 BACKUP_PATH = os.getenv('BACKUP_PATH')
 LOCALIZATION_LANGUAGE = os.getenv('LOCALIZATION_LANGUAGE')
 TIMEZONE = os.getenv('TZ')
+
+
+if PROXY_SOCS5_URL:
+    bot = Bot(token=BOT_TOKEN, proxy=PROXY_SOCS5_URL)
+    logger.info(f"Bot starts using SOCKS5 proxy")
+else:
+    bot = Bot(BOT_TOKEN)
+    logger.debug(f"Bot starts in normal mode without SOCKS5 proxy")
+
+storage = MemoryStorage()
+dp = Dispatcher(bot, storage=storage)
