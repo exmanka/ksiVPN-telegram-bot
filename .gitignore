@@ -7,7 +7,10 @@ __pycache__/
 *.so
 
 # Python virtual environments
-.venv
+.venv/
 
 # Log files
 *.log
+
+# Dotenv
+.env

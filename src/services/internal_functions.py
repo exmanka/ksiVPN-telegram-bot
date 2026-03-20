@@ -498,7 +498,7 @@ async def autocheck_payment_status(payment_id: int) -> str:
 
     # After that check Yoomoney payment status using quadratic equation
     a = 0.01
-    b = 5
+    b = 10
     max_waiting_time = 60   # seconds
     for x in range(100):
 
