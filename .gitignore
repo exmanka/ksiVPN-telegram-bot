@@ -3,14 +3,17 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# C extensions
-*.so
-
-# Python virtual environments
-.venv/
+# Environment
+.venv
+venv
 
 # Log files
 *.log
 
-# Dotenv
-.env
+# macOS directory custom attributes
+*.DS_Store
+
+# PyCharm system folder
+.idea/
+
+*.local.*

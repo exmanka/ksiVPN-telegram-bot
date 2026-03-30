@@ -1,12 +1,13 @@
-# Git
+# Git and GitLab .files
 .git
 .gitignore
-
-# GitLab
 .gitlab-ci.yml
 
-# Jenkins
-Jenkinsfile
+# Docker Ops files
+build/**/Dockerfile
+docker-compose.yml
+docker-compose.yaml
+.dockerignore
 
 # Dotenv
 .env
