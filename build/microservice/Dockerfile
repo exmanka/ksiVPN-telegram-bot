@@ -28,7 +28,7 @@ RUN curl -sSL https://install.python-poetry.org | python3 -
 WORKDIR ${TGBOT_HOME}
 
 # Copy and install dependencies
-COPY --chown=ksivpn-tgbot:ksivpn-tgbot build/bot/pyproject.toml build/bot/poetry.lock ./
+COPY --chown=ksivpn-tgbot:ksivpn-tgbot build/microservice/pyproject.toml build/microservice/poetry.lock ./
 RUN poetry install --no-ansi
 
 # Copy source
