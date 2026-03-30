@@ -1,0 +1,173 @@
+stages:
+  - echo
+  - build
+  - deploy:test
+  - deploy:prod
+
+variables:
+  # Дефолтные значение переменных GITLAB_DCD_FLAGS и GITLAB_TAG
+  GITLAB_DCD_FLAGS: ""
+  GITLAB_TAG: $CI_COMMIT_REF_SLUG
+
+workflow:
+  rules:
+    # Не разрешаем запускать branch pipeline, когда открыт MR
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+
+    # Разрешаем запуск merge request pipeline, когда меняются файлы *.sql в директории build/postgres/ или всех ее поддиректориях.
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes: [ build/postgres/**/*.sql ]
+      variables:
+        GITLAB_DCD_FLAGS: --volumes
+
+    # Разрешаем запуск merge request pipeline, когда файлы в директории и поддиректориях для build/postgres/ не меняются
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+    # Разрешаем запуск tag pipeline
+    - if: $CI_COMMIT_TAG
+      variables:
+        GITLAB_TAG: $CI_COMMIT_TAG
+
+    # Разрешаем запуск branch pipeline из non-default веток, когда меняются файлы *.sql в директории build/postgres/ или всех ее поддиректориях.
+    # Сравнение с $CI_COMMIT_BEFORE_SHA необходимо, чтобы пайплайн не запускался в пустой ветке (при создании ветки)
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA != '0000000000000000000000000000000000000000'
+      changes: [ build/postgres/**/*.sql ]
+      variables:
+        GITLAB_DCD_FLAGS: --volumes
+
+    # Разрешаем запуск branch pipeline из non-default веток, когда файлы в директории поддиректориях для build/postgres/ не меняются.
+    # changes.compare_to необходимо, чтобы пайплайн не запускался в пустой ветке (при создании ветки)
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      changes:
+        compare_to: main
+        paths: [ '**/*' ]
+
+    # Разрешаем запуск branch pipeline из дефолтной ветки (main), когда меняются файлы *.sql в директории build/postgres/ или всех ее поддиректориях.
+    # Сравнение с $CI_COMMIT_BEFORE_SHA необходимо, чтобы пайплайн не запускался в пустой ветке (при создании ветки)
+    - if: $CI_COMMIT_BRANCH == $CI_COMMIT_BRANCH && $CI_COMMIT_BEFORE_SHA != '0000000000000000000000000000000000000000'
+      changes: [ build/postgres/**/*.sql ]
+      variables:
+        GITLAB_DCD_FLAGS: --volumes
+        GITLAB_TAG: latest
+
+    # Разрешаем запуск branch pipeline из дефолтной ветки (main), когда файлы в директории и поддиректориях для build/postgres/ не меняются.
+    # Сравнение с $CI_COMMIT_BEFORE_SHA необходимо, чтобы пайплайн не запускался в пустой ветке (при создании ветки)
+    - if: $CI_COMMIT_BRANCH == $CI_COMMIT_BRANCH && $CI_COMMIT_BEFORE_SHA != '0000000000000000000000000000000000000000'
+      variables:
+        GITLAB_TAG: latest
+
+echo-pipeline-config:
+  tags: [ docker, non-socket ]
+  stage: echo
+  environment: internal
+  image: alpine:3.22
+  script:
+    - >
+      echo -e "\e[95m
+      Pipeline configuration:\n
+      GITLAB_TAG: $GITLAB_TAG\n
+      GITLAB_DCD_FLAGS: $GITLAB_DCD_FLAGS
+      \e[0m"
+  interruptible: true
+
+include:
+  - component: ${CI_SERVER_FQDN}/${CICD_CATALOG_PATH}/kaniko/kaniko@1.0.1
+    inputs:
+      kaniko-destination: [ "${CI_REGISTRY_IMAGE}/ksivpn-tgbot:${GITLAB_TAG}" ]
+      kaniko-dockerfile: ${CI_PROJECT_DIR}/build/microservice/Dockerfile
+      kaniko-context: ${CI_PROJECT_DIR}/
+      kaniko-additional-env-file: .env
+      job-name: ksivpn-tgbot
+      job-stage: build
+      job-interruptible: true
+
+  - component: ${CI_SERVER_FQDN}/${CICD_CATALOG_PATH}/kaniko/kaniko@1.0.1
+    inputs:
+      kaniko-destination: [ "${CI_REGISTRY_IMAGE}/ksivpn-tgbot-postgres:${GITLAB_TAG}" ]
+      kaniko-dockerfile: ${CI_PROJECT_DIR}/build/postgres/Dockerfile
+      kaniko-context: ${CI_PROJECT_DIR}/build/postgres
+      kaniko-build-args: [ "ADDITIONAL_LANGUAGE=${DOTENV_POSTGRES_ADDITIONAL_LANGUAGE}" ]
+      kaniko-additional-env-file: .env
+      job-name: postgres
+      job-stage: build
+      job-interruptible: true
+
+  - component: ${CI_SERVER_FQDN}/${CICD_CATALOG_PATH}/docker-cd/compose-host@1.1.0
+    inputs:
+      docker-compose-down-flags: ${GITLAB_DCD_FLAGS}
+      docker-compose-logs-show: true
+      docker-compose-logs-duration: 3h
+      vault-enabled: true
+      vault-address: ${VAULT_URL}
+      vault-secrets: |-
+        GITLAB_POSTGRES_DB=ksivpn-kv2-test/data/tgbot/postgresql/credentials,database
+        GITLAB_POSTGRES_USER=ksivpn-kv2-test/data/tgbot/postgresql/credentials,username
+        GITLAB_POSTGRES_PASSWORD=ksivpn-kv2-test/data/tgbot/postgresql/credentials,password
+        GITLAB_TGBOT_BOT_TOKEN=ksivpn-kv2-test/data/tgbot/bot/credentials,token
+        GITLAB_TGBOT_PROXY_URL=ksivpn-kv2-test/data/tgbot/bot/proxy,url
+        GITLAB_TGBOT_YOOMONEY_TOKEN=ksivpn-kv2-test/data/tgbot/yoomoney/credentials,token
+        GITLAB_TGBOT_YOOMONEY_ACCOUNT=ksivpn-kv2-test/data/tgbot/yoomoney/credentials,account
+      vault-jwt-role: gitlab.ksivpn.tgbot.test
+      job-name: deploy-test
+      job-stage: deploy:test
+      job-environment: test
+      job-timeout: 3h 15m
+      job-interruptible: true
+      job-rules:
+        # Не добавляем джобу, если текущий пайплайн запущен как tag pipeline
+        - if: $CI_COMMIT_TAG
+          when: never
+
+        # Добавляем джобу, если текущая ветка non-default branch (не main)
+        - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+          when: on_success
+
+  - component: ${CI_SERVER_FQDN}/${CICD_CATALOG_PATH}/docker-cd/compose-ssh@1.1.0
+    inputs:
+      docker-compose-down-flags: ${GITLAB_DCD_FLAGS}
+      ssh-host: ${GITLAB_SSH_IP}
+      ssh-port: ${GITLAB_SSH_PORT}
+      ssh-username: ${GITLAB_SSH_USER}
+      ssh-hostcheck-enabled: true
+      ssh-known-hosts: ${GITLAB_SSH_KNOWN_HOSTS}
+      ssh-password-enabled: false
+      ssh-key-enabled: true
+      ssh-key-base64: ${GITLAB_SSH_PRIVATE_KEY}
+      ssh-key-password: ${GITLAB_SSH_PRIVATE_KEY_PASSWORD}
+      ssh-additional-env: |-
+        CI_REGISTRY_IMAGE=$CI_REGISTRY_IMAGE
+        CI_ENVIRONMENT_NAME=$CI_ENVIRONMENT_NAME
+        GITLAB_TAG=$GITLAB_TAG
+        GITLAB_POSTGRES_USER=$GITLAB_POSTGRES_USER
+        GITLAB_POSTGRES_PASSWORD=$GITLAB_POSTGRES_PASSWORD
+        GITLAB_POSTGRES_DB=$GITLAB_POSTGRES_DB
+        GITLAB_TGBOT_BOT_TOKEN=$GITLAB_TGBOT_BOT_TOKEN
+        GITLAB_TGBOT_PROXY_URL=$GITLAB_TGBOT_PROXY_URL
+        GITLAB_TGBOT_YOOMONEY_TOKEN=$GITLAB_TGBOT_YOOMONEY_MAIN_TOKEN
+        GITLAB_TGBOT_YOOMONEY_ACCOUNT=$GITLAB_TGBOT_YOOMONEY_MAIN_ACCOUNT
+      vault-enabled: true
+      vault-address: ${VAULT_URL}
+      vault-secrets: |-
+        GITLAB_POSTGRES_DB=ksivpn-kv2-prod/data/tgbot/postgresql/credentials,database
+        GITLAB_POSTGRES_USER=ksivpn-kv2-prod/data/tgbot/postgresql/credentials,username
+        GITLAB_POSTGRES_PASSWORD=ksivpn-kv2-prod/data/tgbot/postgresql/credentials,password
+        GITLAB_TGBOT_BOT_TOKEN=ksivpn-kv2-prod/data/tgbot/bot/credentials,token
+        GITLAB_TGBOT_PROXY_URL=ksivpn-kv2-prod/data/tgbot/bot/proxy,url
+        GITLAB_TGBOT_YOOMONEY_TOKEN=ksivpn-kv2-prod/data/tgbot/yoomoney/credentials,token
+        GITLAB_TGBOT_YOOMONEY_ACCOUNT=ksivpn-kv2-prod/data/tgbot/yoomoney/credentials,account
+      vault-jwt-role: gitlab.ksivpn.tgbot.prod
+      job-name: deploy-prod
+      job-stage: deploy:prod
+      job-environment: prod
+      job-authorization-enabled: true
+      job-authorization-users: KSIVA
+      job-rules:
+        # Добавляем джобу, если текущая ветка — это main
+        - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+          when: manual
+          allow_failure: false
+        # Добавляем джобу, если текущий пайплайн запущен как tag pipeline
+        - if: $CI_COMMIT_TAG
+          when: manual
+          allow_failure: false
