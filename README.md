@@ -69,5 +69,3 @@ Now you can write to your bot and enjoy all its pre-installed features. You are 
 - [3x-ui](https://github.com/MHSanaei/3x-ui)
 - [nekoray](https://github.com/MatsuriDayo/nekoray)
 - [v2rayNG](https://github.com/2dust/v2rayNG)
-
-`PROMO_GITHUB_2049`
