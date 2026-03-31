@@ -60,7 +60,7 @@ async def notifications_send_message_everyone(message: Message, state: FSMContex
             # for every client
             for idx, [telegram_id] in enumerate(await postgres_dbms.get_clients_telegram_ids()):
                 try:
-                    await internal_functions.send_message_by_telegram_id(telegram_id, data['message'])
+                    await bot.copy_message(telegram_id, data['message_chat_id'], data['message_id'])
 
                 # add him to message list of clients who didn't receive message
                 except ChatNotFound as _t:
@@ -74,7 +74,7 @@ async def notifications_send_message_everyone(message: Message, state: FSMContex
                     _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
                     logger.info(f"Can't send message to client {name} {telegram_id}: {bb}")
                     ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, name, surname, username, telegram_id) + '(has blocked bot)\n'
-                
+
                 except UserDeactivated as ud:
                     # add him to message list of clients who didn't receive message
                     _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
@@ -100,11 +100,12 @@ async def notifications_send_message_everyone(message: Message, state: FSMContex
     await message.answer(loc.admn.msgs['how_message_looks'])
 
     # echo message showing how will be displayed admin's message for clients
-    await internal_functions.send_message_by_telegram_id(message.from_user.id, message)
+    await bot.copy_message(message.from_user.id, message.chat.id, message.message_id)
 
     # save last message to send it if admin write /perfect
     async with state.proxy() as data:
-        data['message'] = message
+        data['message_chat_id'] = message.chat.id
+        data['message_id'] = message.message_id
 
 
 @admin_mw.admin_only()
@@ -166,7 +167,7 @@ async def notifications_send_message_selected(message: Message, state: FSMContex
             # for every existing in db selected client
             for idx, telegram_id in enumerate(data['selected_telegram_ids']):
                 try:
-                    await internal_functions.send_message_by_telegram_id(telegram_id, data['message'])
+                    await bot.copy_message(telegram_id, data['message_chat_id'], data['message_id'])
 
                 # add him to message list of clients who didn't receive message
                 except ChatNotFound as _t:
@@ -197,11 +198,12 @@ async def notifications_send_message_selected(message: Message, state: FSMContex
     await message.answer('Вот так будет выглядеть Ваше сообщение:')
 
     # echo message showing how will be displayed admin's message for clients
-    await internal_functions.send_message_by_telegram_id(message.from_user.id, message)
+    await bot.copy_message(message.from_user.id, message.chat.id, message.message_id)
 
     # save last message to send it if admin write /perfect
     async with state.proxy() as data:
-        data['message'] = message
+        data['message_chat_id'] = message.chat.id
+        data['message_id'] = message.message_id
 
 
 @admin_mw.admin_only()
