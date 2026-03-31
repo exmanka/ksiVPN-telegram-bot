@@ -2,7 +2,7 @@ import os
 import logging
 from aiogram import Bot
 from aiogram.dispatcher import Dispatcher
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.contrib.fsm_storage.redis import RedisStorage2
 
 
 logger = logging.getLogger(__name__)
@@ -13,6 +13,11 @@ PROXY_URL = os.getenv('PROXY_URL')
 POSTGRES_USER = os.getenv('POSTGRES_USER')
 POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
 POSTGRES_DB = os.getenv('POSTGRES_DB')
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_PORT = int(os.getenv("REDIS_PORT"))
+REDIS_DB = int(os.getenv("REDIS_DB"))
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
+FSM_PREFIX = os.getenv("FSM_PREFIX")
 ADMIN_ID = int(os.getenv('ADMIN_ID'))
 YOOMONEY_TOKEN = os.getenv('YOOMONEY_TOKEN')
 YOOMONEY_ACCOUNT_NUMBER = os.getenv('YOOMONEY_ACCOUNT_NUMBER')
@@ -28,5 +33,11 @@ else:
     bot = Bot(BOT_TOKEN)
     logger.debug(f"Bot starts in normal mode without SOCKS5 proxy")
 
-storage = MemoryStorage()
+storage = RedisStorage2(
+    host=REDIS_HOST,
+    port=REDIS_PORT,
+    db=REDIS_DB,
+    password=REDIS_PASSWORD,
+    prefix=FSM_PREFIX,
+)
 dp = Dispatcher(bot, storage=storage)

@@ -4,7 +4,7 @@ from src.middlewares import user_authorized_mw, user_unauthorized_mw, admin_mw, 
 from src.handlers import user_authorized, user_unauthorized, admin, other
 from src.database import postgres_dbms
 from src.services import scheduler
-from bot_init import dp
+from bot_init import dp, bot
 
 
 async def on_startup(_):
@@ -18,6 +18,10 @@ async def on_shutdown(_):
     """Disconnect from database and finish scheduler during bot shutdown."""
     await postgres_dbms.asyncpg_close()
     await scheduler.apscheduler_finish()
+    await dp.storage.close()
+    await dp.storage.wait_closed()
+    session = await bot.get_session()
+    await session.close()
     logger.info('Bot has been successfully shut down!')
 
 
