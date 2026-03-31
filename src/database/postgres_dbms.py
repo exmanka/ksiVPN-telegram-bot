@@ -28,9 +28,7 @@ async def asyncpg_run() -> None:
 async def asyncpg_close() -> None:
     """Close asyncpg connection."""
     await pool.close()
-
-    if pool.is_closed():
-        logger.info('Database has been successfully disconnected!')
+    logger.info('Database has been successfully disconnected!')
 
 
 async def get_tables_names() -> list[asyncpg.Record]:
