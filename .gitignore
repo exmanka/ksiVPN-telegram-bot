@@ -17,3 +17,7 @@ venv
 .idea/
 
 *.local.*
+
+# Claude tests
+.claude/
+CLAUDE.md
