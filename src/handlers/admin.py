@@ -66,19 +66,19 @@ async def notifications_send_message_everyone(message: Message, state: FSMContex
                 except ChatNotFound as _t:
                     # add him to message list of clients who didn't receive message
                     _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
-                    ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, name, surname, username, telegram_id)
+                    ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, html.escape(name), html.escape(str(surname)), html.escape(str(username)), telegram_id)
 
                 # if client blocked bot
                 except BotBlocked as bb:
                     # add him to message list of clients who didn't receive message and add info to log
                     _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
                     logger.info(f"Can't send message to client {name} {telegram_id}: {bb}")
-                    ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, name, surname, username, telegram_id) + '(has blocked bot)\n'
+                    ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, html.escape(name), html.escape(str(surname)), html.escape(str(username)), telegram_id) + '(has blocked bot)\n'
 
                 except UserDeactivated as ud:
                     # add him to message list of clients who didn't receive message
                     _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
-                    ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, name, surname, username, telegram_id)
+                    ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, html.escape(name), html.escape(str(surname)), html.escape(str(username)), telegram_id)
 
                 except Exception as e:
                     logger.warning(f"Can't send message to client [{name} {telegram_id}] due to unexpected error: {e}")
@@ -144,7 +144,7 @@ async def notifications_send_message_selected_list(message: Message, state: FSMC
     selected_clients_str = ''
     for idx, telegram_id in enumerate(selected_clients_telegram_ids):
         _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
-        selected_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, name, surname, username, telegram_id)
+        selected_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, html.escape(name), html.escape(str(surname)), html.escape(str(username)), telegram_id)
 
     # if at least 1 selected client exists in db
     if selected_clients_str:
@@ -173,14 +173,14 @@ async def notifications_send_message_selected(message: Message, state: FSMContex
                 except ChatNotFound as _t:
                     # add him to message list of clients who didn't receive message
                     _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
-                    ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, name, surname, username, telegram_id)
+                    ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, html.escape(name), html.escape(str(surname)), html.escape(str(username)), telegram_id)
 
                 # if client blocked bot
                 except BotBlocked as bb:
                     # add him to message list of clients who didn't receive message and add info to log
                     _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
                     logger.info(f"Can't send message to client {name} {telegram_id}: {bb}")
-                    ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, name, surname, username, telegram_id) + '(has blocked bot)\n'
+                    ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, html.escape(name), html.escape(str(surname)), html.escape(str(username)), telegram_id) + '(has blocked bot)\n'
 
         # if some clients didn't receive message because they didn't write to bot at all
         if ignored_clients_str:
