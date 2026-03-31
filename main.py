@@ -1,4 +1,6 @@
 import logging
+import asyncio
+import signal
 from aiogram.utils import executor
 from src.middlewares import user_authorized_mw, user_unauthorized_mw, admin_mw, throttling_mw
 from src.handlers import user_authorized, user_unauthorized, admin, other
@@ -39,6 +41,8 @@ def main() -> None:
     other.register_handlers_other(dp)
 
     # launch bot
+    loop = asyncio.get_event_loop()
+    loop.add_signal_handler(signal.SIGTERM, lambda: signal.raise_signal(signal.SIGINT))
     executor.start_polling(dp, skip_updates=True, on_startup=on_startup, on_shutdown=on_shutdown)
 
 
