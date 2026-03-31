@@ -2,6 +2,7 @@ import os
 import apscheduler
 import logging
 from datetime import datetime
+from aiogram.utils.exceptions import ChatNotFound, BotBlocked, UserDeactivated
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram.types.input_file import InputFile
 from src.database import postgres_dbms
@@ -43,7 +44,11 @@ async def send_subscription_expiration_notifications():
             logger.info(f'Send message to client: {telegram_id} {name}. Subscription has expired.')
 
             # send message to client
-            await bot.send_message(telegram_id, loc.auth.msgs['sub_expired'], 'HTML')
+            try:
+                await bot.send_message(telegram_id, loc.auth.msgs['sub_expired'], 'HTML')
+
+            except Exception as e:
+                logger.warning(f"Can't send message to client [{name} {telegram_id}] due to unexpected error: {e}")
 
             # send message to admin
             # convert surname and username for beautiful formatting
@@ -64,7 +69,11 @@ async def send_subscription_expiration_notifications():
             logger.info(f'Send message to client: {telegram_id} {name}. Subscription expires in 1 day.')
 
             # send message to client
-            await bot.send_message(telegram_id, loc.auth.msgs['sub_expires_1d'], 'HTML')
+            try:
+                await bot.send_message(telegram_id, loc.auth.msgs['sub_expires_1d'], 'HTML')
+
+            except Exception as e:
+                logger.warning(f"Can't send message to client [{name} {telegram_id}] due to unexpected error: {e}")
 
             # send message to admin
             # convert surname and username for beautiful formatting
@@ -80,7 +89,11 @@ async def send_subscription_expiration_notifications():
             logger.info(f'Send message to client: {telegram_id} {name}. Subscription expires in 3 days.')
 
             # send message to client
-            await bot.send_message(telegram_id, loc.auth.msgs['sub_expires_3d'], 'HTML')
+            try:
+                await bot.send_message(telegram_id, loc.auth.msgs['sub_expires_3d'], 'HTML')
+
+            except Exception as e:
+                logger.warning(f"Can't send message to client [{name} {telegram_id}] due to unexpected error: {e}")
 
             # send message to admin
             # convert surname and username for beautiful formatting
@@ -96,7 +109,11 @@ async def send_subscription_expiration_notifications():
             logger.info(f'Send message to client: {telegram_id} {name}. Subscription expires in 7 days.')
 
             # send message to client
-            await bot.send_message(telegram_id, loc.auth.msgs['sub_expires_7d'], 'HTML')
+            try:
+                await bot.send_message(telegram_id, loc.auth.msgs['sub_expires_7d'], 'HTML')
+
+            except Exception as e:
+                logger.warning(f"Can't send message to client [{name} {telegram_id}] due to unexpected error: {e}")
 
             # send message to admin
             # convert surname and username for beautiful formatting
