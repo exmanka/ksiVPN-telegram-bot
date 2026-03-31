@@ -19,6 +19,11 @@ services:
       POSTGRES_USER: ${DOTENV_POSTGRES_USER}
       POSTGRES_PASSWORD: ${DOTENV_POSTGRES_PASSWORD}
       POSTGRES_DB: ${DOTENV_POSTGRES_DB}
+      REDIS_HOST: ksivpn-tgbot-redis
+      REDIS_PORT: 6379
+      REDIS_DB: 1
+      REDIS_PASSWORD: ${DOTENV_REDIS_PASSWORD}
+      FSM_PREFIX: ${DOTENV_TGBOT_REDIS_FSM_PREFIX}
       YOOMONEY_TOKEN: ${DOTENV_TGBOT_YOOMONEY_TOKEN}
       YOOMONEY_ACCOUNT_NUMBER: ${DOTENV_TGBOT_YOOMONEY_ACCOUNT}
       ADMIN_ID: ${DOTENV_TGBOT_ADMIN_ID}
@@ -27,6 +32,8 @@ services:
     volumes: [ "ksivpn-tgbot-postgres-backups:${DOTENV_TGBOT_BACKUP_PATH}" ]
     depends_on:
       ksivpn-tgbot-postgres:
+        condition: service_healthy
+      ksivpn-tgbot-redis:
         condition: service_healthy
 
   ksivpn-tgbot-postgres:
@@ -55,6 +62,28 @@ services:
       - ksivpn-tgbot-postgres-data:/var/lib/postgresql/data
       - ksivpn-tgbot-postgres-backups:/var/lib/postgresql/backups
 
+  ksivpn-tgbot-redis:
+    <<: *service-defaults
+    container_name: ksivpn-tgbot-redis
+    image: redis:8.6.2-alpine3.23
+    command:
+      - redis-server
+      - --requirepass
+      - ${DOTENV_REDIS_PASSWORD}
+      - --appendonly
+      - "yes"
+      - --save
+      - "60"
+      - "1000"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --pass ${DOTENV_REDIS_PASSWORD} ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    volumes:
+      - ksivpn-tgbot-redis-data:/data
+
 networks:
   ksivpn:
     name: ksivpn
@@ -64,3 +93,5 @@ volumes:
     name: ksivpn-tgbot-postgres-data
   ksivpn-tgbot-postgres-backups:
     name: ksivpn-tgbot-postgres-backups
+  ksivpn-tgbot-redis-data:
+    name: ksivpn-tgbot-redis-data
