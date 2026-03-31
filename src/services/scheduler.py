@@ -2,7 +2,6 @@ import os
 import apscheduler
 import logging
 from datetime import datetime
-from aiogram.utils.exceptions import ChatNotFound, BotBlocked, UserDeactivated
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram.types.input_file import InputFile
 from src.database import postgres_dbms
