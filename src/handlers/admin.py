@@ -427,7 +427,7 @@ async def show_clients_info(message: Message):
             f"| configs: {config_num} "\
             f"| paid: {float(paid_sum):g}₽ "\
             f"| <code>{ref_promo_phrase}</code> "
-            
+
         # if client was invited by another client
         who_invited_str = ''
         if used_ref_promo_id is not None:
@@ -439,21 +439,9 @@ async def show_clients_info(message: Message):
         answer_message_row += who_invited_str
         answer_message += answer_message_row + '\n' + '\n' * int(is_human_readable)
 
-        # if human readable format: send message for every 10 client_id to avoid telegram message length restrictions
-        if is_human_readable and client_id % 10 == 0:
-            await message.answer(answer_message, parse_mode='HTML')
-            answer_message = ''
-
-        # if standard format: send message for every 25 client_id to avoid telegram message length restrictions
-        elif not is_human_readable and client_id % 25 == 0:
-            await message.answer(f"<pre>{answer_message}</pre>", parse_mode='HTML')
-            answer_message = ''
-    
-    # send remaining info
-    if answer_message and is_human_readable:
-        await message.answer(answer_message, parse_mode='HTML')
-    elif answer_message and not is_human_readable:
-        await message.answer(f"<pre>{answer_message}</pre>", 'HTML')
+    # send collected info with automatic pagination
+    wrapper = None if is_human_readable else '<pre>{text}</pre>'
+    await internal_functions.send_long_message(message, answer_message, wrapper=wrapper)
 
 
 @admin_mw.admin_only()
@@ -494,7 +482,7 @@ async def show_logs(message: Message):
         last_lines = (await f.read()).decode()
 
     # set markdown YAML code block language because it has acceptable log file syntax highlighting
-    await message.answer(f"<pre>{html.escape(last_lines)}</pre>", parse_mode='HTML')
+    await internal_functions.send_long_message(message, html.escape(last_lines), wrapper='<pre>{text}</pre>')
 
 
 @admin_mw.admin_only()
