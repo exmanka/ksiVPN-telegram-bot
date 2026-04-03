@@ -411,7 +411,8 @@ async def show_clients_info(message: Message):
         sub_expiration_date_parsed = await postgres_dbms.get_subscription_expiration_date(telegram_id)
         config_num = await postgres_dbms.get_configurations_number(client_id)
         paid_sum: Decimal = await postgres_dbms.get_payments_successful_sum(client_id)
-        _, ref_promo_phrase, *_ = await postgres_dbms.get_refferal_promo_info_by_clientCreatorID(client_id)
+        ref_promo_info = await postgres_dbms.get_refferal_promo_info_by_clientCreatorID(client_id)
+        ref_promo_phrase = ref_promo_info[1] if ref_promo_info else '—'
 
         answer_message_row = ''
         if await postgres_dbms.is_subscription_active(telegram_id) or await postgres_dbms.is_subscription_free(telegram_id):
