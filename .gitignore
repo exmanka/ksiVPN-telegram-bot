@@ -16,7 +16,7 @@ venv
 # PyCharm system folder
 .idea/
 
-*.local.*
+*.local*
 
 # Claude tests
 .claude/
