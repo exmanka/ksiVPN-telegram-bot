@@ -423,11 +423,11 @@ async def show_clients_info(message: Message):
         # hope that telegram add ability to send markdown's spreadsheets in message to api, but for now
         answer_message_row +=\
             f"| <b>{client_id}</b> "\
-            f"|{await internal_functions.format_none_string(username)} <code>{name}{await internal_functions.format_none_string(surname)}</code> <code>{telegram_id}</code>, {register_date_parsed[:-8]} "\
+            f"|{await internal_functions.format_none_string(html.escape(str(username)) if username else None)} <code>{html.escape(str(name))}{await internal_functions.format_none_string(html.escape(str(surname)) if surname else None)}</code> <code>{telegram_id}</code>, {register_date_parsed[:-8]} "\
             f"| {sub_price}₽/мес, <b>{sub_expiration_date_parsed}</b> "\
             f"| configs: {config_num} "\
             f"| paid: {float(paid_sum):g}₽ "\
-            f"| <code>{ref_promo_phrase}</code> "
+            f"| <code>{html.escape(str(ref_promo_phrase))}</code> "
 
         # if client was invited by another client
         who_invited_str = ''
@@ -435,7 +435,7 @@ async def show_clients_info(message: Message):
             _, who_invited_client_id, *_ = await postgres_dbms.get_refferal_promo_info_by_promoID(used_ref_promo_id)
             who_invited_name, who_invited_surname, who_invited_username, who_invited_telegram_id, *_ = await postgres_dbms.get_client_info_by_clientID(who_invited_client_id)
             who_invited_str +=\
-                f"| {await internal_functions.format_none_string(who_invited_username)} <code>{who_invited_name}{await internal_functions.format_none_string(who_invited_surname)}</code> <code>{who_invited_telegram_id}</code>"
+                f"| {await internal_functions.format_none_string(html.escape(str(who_invited_username)) if who_invited_username else None)} <code>{html.escape(str(who_invited_name))}{await internal_functions.format_none_string(html.escape(str(who_invited_surname)) if who_invited_surname else None)}</code> <code>{who_invited_telegram_id}</code>"
 
         answer_message_row += who_invited_str
         answer_message += answer_message_row + '\n' + '\n' * int(is_human_readable)
