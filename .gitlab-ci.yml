@@ -80,8 +80,9 @@ include:
       job-stage: build
       job-interruptible: true
 
-  - component: ${CI_SERVER_FQDN}/${CICD_CATALOG_PATH}/docker-cd/compose-host@1.1.0
+  - component: ${CI_SERVER_FQDN}/${CICD_CATALOG_PATH}/docker-cd/compose-host@1.1.1
     inputs:
+      docker-compose-flags: --env-file .env --env-file .env.gitlab
       docker-compose-down-flags: ${GITLAB_DCD_FLAGS}
       docker-compose-logs-show: true
       docker-compose-logs-duration: 3h
@@ -107,8 +108,9 @@ include:
         - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
           when: on_success
 
-  - component: ${CI_SERVER_FQDN}/${CICD_CATALOG_PATH}/docker-cd/compose-ssh@1.1.0
+  - component: ${CI_SERVER_FQDN}/${CICD_CATALOG_PATH}/docker-cd/compose-ssh@1.1.1
     inputs:
+      docker-compose-flags: --env-file .env --env-file .env.gitlab
       docker-compose-down-flags: ${GITLAB_DCD_FLAGS}
       ssh-host: ${GITLAB_SSH_IP}
       ssh-port: ${GITLAB_SSH_PORT}
