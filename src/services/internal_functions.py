@@ -26,6 +26,34 @@ async def format_none_string(string: str | None, prefix: str = ' ', postfix: str
     return '' if string is None else prefix + string + postfix
 
 
+async def send_long_message(message: Message, text: str, parse_mode: str | None = 'HTML', wrapper: str | None = None, max_length: int = 4096):
+    """Split long text into multiple messages to fit Telegram's 4096 char limit.
+
+    :param message: aiogram Message to reply to
+    :param text: full text to send
+    :param parse_mode: parse mode for messages, defaults to 'HTML'
+    :param wrapper: optional wrapper format string with {text} placeholder, e.g. '<pre>{text}</pre>'
+    """
+    lines = text.split('\n')
+    chunk = ''
+
+    for line in lines:
+        candidate = chunk + line + '\n' if chunk else line + '\n'
+        # check length with wrapper applied
+        formatted = wrapper.format(text=candidate) if wrapper else candidate
+        if len(formatted) > max_length and chunk:
+            # send accumulated chunk
+            formatted_chunk = wrapper.format(text=chunk) if wrapper else chunk
+            await message.answer(formatted_chunk, parse_mode=parse_mode)
+            chunk = line + '\n'
+        else:
+            chunk = candidate
+
+    if chunk.strip():
+        formatted_chunk = wrapper.format(text=chunk) if wrapper else chunk
+        await message.answer(formatted_chunk, parse_mode=parse_mode)
+
+
 async def send_photo_safely(telegram_user_id: int,
                             telegram_file_id: str,
                             caption: str | None,
