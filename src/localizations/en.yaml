@@ -1,0 +1,684 @@
+user_unauthorized:
+  messages:
+    return_to_main_menu: <i>Returning to the main menu</i>
+    need_define_config: To connect, I need to define your configuration
+    ask_four_questions: 🙋‍♂️ <b>I will ask 4 short questions!</b>
+    choose_your_platform: <b>Choose your platform</b>
+    choose_your_os: <b>Specify the operating system</b>
+    choose_chatgpt_option: <b>Do you use ChatGPT?</b>
+    chatgpt_info: <b>ChatGPT</b> is a neural network in the form of a chatbot capable of answering complex questions and conducting a meaningful dialogue!
+    enter_ref_promo: "<b>And the last step: enter the referral promo code, if available</b>"
+    ref_promo_accepted: Wow! A promo code has been accepted from <b>client {0}</b>, giving <b>{1} days</b> of free subscription!
+    sub_info: 🌟 Connected <b>{0}</b> with <b>cost {1:g}</b>₽ per month.
+    invalid_promo: There is no such promo code! Try to enter it again
+    need_renew_sub: ❗️ <b>To get the first configuration, you need to renew your subscription</b>
+  keyboard_buttons:
+    join: 🔥 Connect!
+    project_info: About project
+    smartphone: 📱 Smartphone
+    pc: 💻 PC
+    cancel: Cancel
+    android: Android
+    ios: IOS (iPhone)
+    windows: Windows
+    macos: macOS
+    linux: Linux
+    use_chatgpt: Using
+    dont_use_chatgpt: Not using
+    what_is_chatgpt: What is it?
+    no_promo: No promo code
+  telegram_file_ids: {}
+user_authorized:
+  messages:
+    rules: |-
+      <b>By using the service, you agree to the rules:</b>
+
+      <b>1. It is forbidden to share configurations with other people.</b>
+      One configuration can only be used for one of your devices. At the same time, you can request an unlimited number of additional configurations for your use within a reasonable framework.
+
+      <b>2. It is forbidden to download files via torrent clients using a VPN.</b>
+      However, the files themselves of the <code>*.torrent</code> extension can be downloaded.
+      <i>Example: You want to download the movie, but the website hosting the files is not available from Russia. You turn on the VPN, go to the site and download the file film-example.torrent. Next, you turn off the VPN and start downloading the movie itself in your torrent client.</i>
+
+      <b>3. It is recommended not to use a VPN when it is not necessary.</b>
+      Thanks to this, you will not experience problems with your applications.
+
+      ❌ <b>Violation of rules 1-2 may result in immediate blocking of the user.</b>
+    sub_isnt_active: The subscription has not been activated yet, as the administrator has not yet sent the configuration! Don't worry, the subscription expiration time report will start only after you receive it!
+    sub_active: 🔥 <b>The subscription is active!</b>
+    sub_is_free: 🔥 <b>The subscription is active forever!</b>
+    sub_inactive: 😒 <b>The subscription has been deactivated!</b>
+    sub_expiration_date: "Subscription expiration date: <b>{0}</b>."
+    return_to_main_menu: <i>Returning to the main menu</i>
+    go_sub_renewal_menu: <i>Going to the subscription renewal menu</i>
+    sub_renewal_free: <pre><code class="language-matrix">You are the One, Neo! There is no need to pay for a subscription 🐇</code></pre>
+    payment_history_message: |-
+      🌟 <b>{0}</b> was extended for {1} months for {2:g}₽.
+
+      <b>Payment date</b>: {3}
+
+      Payment identifier: #{4}
+    cant_find_payments: Alas! I could not find information about successful payments
+    restore_payments: "To restore long-standing payments, use the \n/restore_payments command"
+    cant_find_payments_restore: |-
+      Unfortunately, I could not find the paid payments, perhaps the payment has not been completed yet, or information about it is still on the way!
+
+      If you are sure that the payment was completed successfully, please contact the help section /help
+    cancel_payment: <i>Payment canceled</i>
+    check_payment_hour: Checking all created payments in the last hour!
+    payment_found: Payment for an order with a unique identifier <b>#{0}</b> found!
+    go_personal_account: <i>Going to personal account</i>
+    client_info_surname_str: |-
+      <b>Last name</b>: {0}
+    client_info_username_str: |-
+      <b>Nickname</b>: {0}
+    client_info: |-
+      👾 That's what I know:
+
+      {username_str}<b>Name</b>: {0}
+      {surname_str}<b>Telegram ID</b>: {1}
+      <b>Registration date</b>: {2}
+    subscription_info: |-
+      🌟 Subscription information:
+
+      <b>{0}</b>
+      {1}
+
+      <b>Cost</b>: {2:g}₽ per month.
+    go_config_menu: <i>Going to the configuration menu</i>
+    ref_program_info: |-
+      <b>Invite your friends to join the project and get a subscription for free!</b>
+
+      When registering, ask for your referral promo code: a friend will immediately receive a month of use for free, as well as your subscription level. When he makes the payment for the first time, you will receive a month of subscription for free!
+    go_promo_menu: <i>Going to the promo codes menu</i>
+    enter_promo: <b>🎟 Send me the promo code by message!</b>
+    go_settings: <i>Going to settings</i>
+    return_to_personal_account: <i>Returning to personal account</i>
+    configs_info: |-
+      Information about all your configurations, now you do not need to search for them through the dialogue with the bot!
+
+      All configurations <b>{0}</b>.
+    configs_rules: |-
+      <b>I remind you of the basic rules /rules:
+
+      1. One device is one configuration.
+      2. Sharing configurations with other people is prohibited!
+      3. Downloading files via torrent clients is prohibited!
+
+      ❌ Violation of any of the rules may result in the immediate blocking of the user.</b>
+    return_to_configs_menu: <i>Returning to the configuration menu</i>
+    cant_request_config: To request a new configuration, you need to renew your subscription!
+    ask_three_questions: |-
+      You will need to answer 3 questions to request a new configuration from the administrator!
+
+      More of your configurations: <b>{0}</b>
+    wait_for_admin: |-
+      🎉 <b>Great, now we are waiting for a response from the developer!</b>
+
+      He will check your current configurations soon and send a new one!
+    i_wanna_sleep: Please do not forget that he is also a human being, and periodically sleeps (although in fact extremely rarely)
+    return_to_settings: <i>Returning to the settings</i>
+    go_settings_chatgpt: <i>Going to the ChatGPT mode settings</i>
+    settings_chatgpt_info: 💥 When this mode is enabled, I will consciously respond to any of your messages using the full power of the ChatGPT neural network!
+    chatgpt_on: <b>ChatGPT mode is enabled for the bot</b>
+    chatgpt_off: <b>ChatGPT mode is disabled for the bot</b>
+    go_settings_notifications: <i>Going to the notification settings</i>
+    settings_notifications_info: In this menu, you can configure receiving notifications about the imminent expiration of your subscription!
+    1d_on: <b>Sending a notification 1 day before the subscription expiration date is enabled</b>
+    1d_off: <b>Sending a notification 1 day before the subscription expiration date is disabled</b>
+    3d_on: <b>Sending a notification 3 days before the subscription expiration date is enabled</b>
+    3d_off: <b>Sending a notification 3 days before the subscription expiration date is disabled</b>
+    7d_on: <b>Sending a notification 7 days before the subscription expiration date is enabled</b>
+    7d_off: <b>Sending a notification 7 days before the subscription expiration date is disabled</b>
+    invited_by: 🚀 You were invited <b>by client {0}{1}</b>
+    invited_by_nobody: Wow! You found out about the existence of this project yourself and registered without an invitation from another client!
+    who_was_invited_str: |-
+      {0}. User <b>{1}{2}</b>
+    who_was_invited: |-
+      🕊 The users you invited who joined the project:
+
+      {invited_str}
+    nobody_was_invited: You haven't invited any users yet. Tell your friends about our project and get free months of subscription!
+    ref_program_invites_texts:
+    - |-
+      Are you guys kidding me? I understand that you just want to go on Instagram and enjoy life. But why do you use such terrible VPN services?I am recruiting a team of guys, we will make a cache on foreign services: https://t.me/ksiVPN_bot.
+
+      При after registration, enter my referral promo code <code>{0}</code> and you will get a month of use for free!
+    - "In short, Marked, I saved you and I will not play nobility: you will register in the service https://t.me/ksiVPN_bot – and we're even.At the same time, let's see how quickly your head clears up after using free VPNs. And I will try to find out about referral promo codes.Who knows why you gave up this month of free subscription, but I'm not meddling in other people's business, if you want to use my referral promo code <code>{0}</code>, then there's something..."
+    - |-
+      Hello! I use a VPN, which is really convenient and secure. If you want to try it, enter my referral code <code>{0}</code> at registration https://t.me/ksiVPN_bot . Both will benefit! 🚀
+
+      <tg-spoiler><i>This text is generated by the ChatGPT neural network, which can be easily accessed through the above VPN service 😉</i></tg-spoiler>
+    - |-
+      Greetings! I am opening the doors to the world of unlimited Internet with a cool VPN service. Register by following the link https://t.me/ksiVPN_bot and enter my referral code <code>{0}</code>. Both will receive bonuses for safe online surfing! 🌐🔒
+
+      <tg-spoiler><i>This text is generated by the ChatGPT neural network, which can be easily accessed through the above VPN service 😉</i></tg-spoiler>
+    - |-
+      Hello there! I want to share my discovery – an excellent VPN service. Register using the link https://t.me/ksiVPN_bot and specify my referral promo code <code>{0}</code>. I promise you won't regret it! 🌍🔐
+
+      <tg-spoiler><i>This text is generated by the ChatGPT neural network, which can be easily accessed through the above VPN service 😉</i></tg-spoiler>
+    your_ref_code: "\U0001F54A Your referral promo code: <b><code>{0}</code></b>"
+    error_promo_entered_ref_code: Unfortunately, you can only enter referral promo codes when registering 😪
+    error_promo_limit_activations: Unfortunately, the number of possible activations of this promo code exhausted 🤧
+    error_promo_expired: Unfortunately, the promo code has expired 🤧
+    error_promo_already_entered: You have already entered this promo code earlier!
+    error_promo_inaccessible: Unfortunately, you cannot use this special promo code 😪
+    error_promo_not_exist: There is no such promo code! Try to enter it again
+    global_promo_accepted: ✨ Hooray! Promo code for <b>{0} days</b> free subscription accepted!
+    new_sub_str: |2-
+
+
+      «<b>{0}</b>» — Your new subscription type with a cost of {1:g}₽ per month
+    loсal_promo_accepted: ✨ Hooray! Special promo code for <b>{0} days</b> free subscription accepted!{new_sub_str}
+    ref_promo_str: |-
+      <b>🕊 Used referral promo code</b>:
+      <code>{0}</code> from client {1}.
+    global_promos_str: |-
+      <b>📣 Used public promo codes</b>:
+      {global_promo_row_str}
+    global_promo_row_str: |-
+      {0}. <code>{1}</code> for {2} days of subscription.
+      LED {3}.
+    local_promos_str: |-
+      <b>💎 Used special promo codes</b>:
+      {local_promo_row_str}
+    local_promo_row_str: |-
+      {0}. <code>{1}</code> for {2} days of subscription.
+      LED {3}.
+    no_promo_entered: You have not entered any promo codes yet. Follow the news! 🚀
+    config_was_received: ✨ <b>Hooray, the configuration is received!</b>
+    sub_expired: |-
+      👾 <b>Oh, oh! The subscription has expired, the VPN will have to be disabled</b>
+
+      We hope that this is temporary, and you will definitely come back to us! ♥️
+    sub_expires_1d: |-
+      👾 <b>Notifying: the subscription expires in 1 day</b>
+
+      Don't forget to renew your subscription!
+
+      <tg-spoiler><i>You can disable the reminder by going to «Personal Account» — «Settings» — «Notifications».</i></tg-spoiler>
+    sub_expires_3d: |-
+      👾 <b>Notifying: the subscription expires in 3 days</b>
+
+      Don't forget to renew your subscription!
+
+      <tg-spoiler><i>You can disable the reminder by going to «Personal Account» — «Settings» — «Notifications».</i></tg-spoiler>
+    sub_expires_7d: |-
+      👾 <b>Notifying: the subscription expires in 7 days</b>
+
+      Don't forget to renew your subscription!
+
+      <tg-spoiler><i>You can disable the reminder by going to «Personal Account» — «Settings» — «Notifications».</i></tg-spoiler>
+    instructions:
+      wireguard:
+        android: |-
+          ⚙️ <b>Instructions for installing WireGuard on Android:</b>
+          <b>1.</b> Download and install the official Wireguard app (<a href="https://play.google.com/store/apps/details?id=com.wireguard.android">link to the Play Market</a>).
+          <b>2.</b> After launching, click on the <b>«+»</b> icon in the lower right corner of the screen.
+          <b>3.</b> Select the option <b>«Create from QR code»</b>/<b>«Scan from QR code»</b>, allow access to the camera and scan the QR code.
+          <b>4.</b> Enter the name of your VPN tunnel! You can specify any name, but it is recommended to name the tunnel by the country of location (Netherlands/Germany/Latvia/USA).
+
+          🎉 <b>Instructions for use:</b>
+          <b>1.</b> To turn on the VPN, just click on the switch to the right of the tunnel name. For the first time, the phone may issue a notification about adding a new VPN connection - you must agree.
+          <b>2.</b> To turn off the VPN, you need to change the switch position again.
+        ios: |-
+          ⚙️ <b>Instructions for installing WireGuard on iOS:</b>
+          <b>1.</b> Download and install the official Wireguard app (<a href="https://apps.apple.com/ru/app/wireguard/id1441195209">link in the App Store</a>).
+          <b>2.</b> After launching, click on the <b>«+»</b> icon in the lower right corner of the screen.
+          <b>3.</b> Select the option <b>«Create from QR code»</b>/<b>«Scan from QR code»</b>, allow access to the camera and scan the QR code.
+          <b>4.</b> Enter the name of your VPN tunnel! You can specify any name, but it is recommended to name the tunnel by the country of location (Netherlands/Germany/Latvia/USA).
+
+          🎉 <b>Instructions for use:</b>
+          <b>1.</b> To turn on the VPN, just click on the switch to the right of the tunnel name. For the first time, the phone may issue a notification about adding a new VPN connection - you must agree.
+          <b>2.</b> To turn off the VPN, you need to change the switch position again.
+        windows: |-
+          ⚙️ <b>Instructions for installing WireGuard on Windows:</b>
+          <b>1.</b> Download and install the Wireguard app (<a href="https://www.wireguard.com/install/">link to the official website</a>).
+          <b>2.</b> After launching, click <b>«Add tunnel»</b>/<b>«Add tunnel»</b> and select the extension file <code>*.conf</code> sent to you.
+
+          🎉 <b>Instructions for use:</b>
+          <b>1.</b> To enable VPN, just select a tunnel and click <b>«Connect»</b>.
+          <b>2.</b> To turn off the VPN, just click <b>«Disable»</b>.
+        macos: |-
+          ⚙️ <b>Instructions for installing WireGuard on macOS:</b>
+          <b>1.</b> Download and install the official Wireguard app (<a href="https://apps.apple.com/ru/app/wireguard/id1451685025">link in the App Store</a>).
+          <b>2.</b> After launching, click <b>«Add tunnel»</b>/<b>«Add tunnel»</b> and select the extension file <code>*.conf</code> sent to you.
+
+          🎉 <b>Instructions for use:</b>
+          <b>1.</b> To enable VPN, just select a tunnel and click <b>«Connect»</b>.
+          <b>2.</b> To turn off the VPN, just click <b>«Disable»</b>.
+        linux: "⚙️ <b>Instructions for installing and using WireGuard on GNU/Linux:</b>\nOh, you're not little anymore, since you're using Linux!\nI send you great respect and a link to the documentation: https://www.wireguard.com/install/#ubuntu-module-tools\n\nInstallation instructions can be also found here: https://shrub-coriander-4a3.notion.site/Linux-Mint-Cinnamon-21-1-29cda1060f4d4ab48c483cfa70948e46?pvs=4 "
+      xray vless xtls-reality:
+        android: |-
+          ⚙️ <b>Instructions for installing XTLS-Reality on Android:</b>
+          <b>1.</b> Download and install the official v2rayNG app (<a href="https://play.google.com/store/apps/details?id=com.v2ray.ang">link to the Play Market</a>).
+          <b>2.</b> After launching, click on the <b>«+»</b> icon next to the Profile.
+          <b>3.</b> Select <b>«Import profile from QR code»</b>, allow access to the camera and scan the QR code.
+
+          🎉 <b>Instructions for use:</b>
+          <b>1.</b> To turn on the VPN, just click on the switch in the lower right corner.For the first time, the phone may issue a notification about adding a new VPN connection — you must agree.
+          <b>2.</b> To turn off the VPN, you need to change the switch position again.
+        ios: |-
+          ⚙️ <b>Instructions for installing XTLS-Reality on iOS:</b>
+          <b>1.</b> Download and install the official Streisand app (<a href="https://apps.apple.com/ru/app/streisand/id6450534064">link in the App Store</a>).
+          <b>2.</b> After launching, click on the <b>«+»</b> in the upper right corner of the application.
+          <b>3.</b> Select <b>«Scan QRcode»</b> from the drop-down menu, allow access to the camera and scan the sent QR code.
+
+          🎉 <b>Instructions for use:</b>
+          <b>1.To turn on the VPN, just click on the switch at the top in the center of the screen.
+          For the first time, the phone may issue a notification about adding a new VPN connection — you must agree.
+          <b>2.</b> To turn off the VPN, you need to change the switch position again.
+        windows: |-
+          ⚙️ <b>Instructions for installing XTLS-Reality on Windows:</b>
+          <b>1.</b> Upgrade to the latest release of the nekoray app <a href="https://github.com/MatsuriDayo/nekoray/releases/tag/3.21">by the link</a>.
+          <b>2.</b> Download the Windows version.
+          <b>3.</b> Unzip the archive (<b>RMB archive</b> — <b>«Extract all...»</b> — <b>«Extract»</b>)
+          <b>4.</b> Run the file in the archive <b>nekoray.exe </b>.
+          <b>5.</b> At the first launch, Windows will notify you that the application is being released by an unknown publisher. Don't be scared, NekoBox is an open source application. <b>It is completely safe and does not carry any viruses.</b>
+          <b>6.</b> To continue, click <b>«More details»</b> — <b>«Execute anyway»</b>.
+          <b>7.</b> Select <b>«sing-box»</b> in the start dialog box.
+          <b>8.</b> Copy the link given to you and hold <b>Ctrl+V</b> in the application. The configuration will be added automatically.
+
+          🎉 <b>Instructions for use:</b>
+          <b>1.</b> <u>Before switching on, be sure to select <b>«TUN mode»</b>. To do this, you will need to restart the program as an administrator.</u>
+          <b>2.</b> You can enable and disable VPN in the program itself or in the tray.
+        macos: |-
+          ⚙️ <b>Instructions for installing XTLS-Reality on macOS:</b>
+          <b>1.</b> Download and install the official FoXray app (<a href="https://apps.apple.com/ru/app/foxray/id6448898396">link in the App Store</a>).
+          <b>2.</b> After launching, click on the <b>Notepad icon</b> and paste the link sent to you.
+
+          🎉 <b>Instructions for use:</b>
+          <b>1.</b> To enable VPN, just click on the switch to the right of the configuration name.For the first time, the device may issue a notification about adding a new VPN connection — It is necessary to agree.
+          <b>2.</b> To turn off the VPN, you need to change the switch position again.
+        linux: "⚙️ <b>Instructions for installing and using XTLS-Reality on GNU/Linux:</b>\nOh, you're not little anymore, since you use Linux!\nI send you great respect and a link to the documentation: https://github.com/MatsuriDayo/nekoray/tree/3.21 "
+      shadowsocks-2022:
+        android: |-
+          <b>The Shadowsocks-2022 protocol is currently used only by the testing team.</b>
+
+          If you are reading this message without being a tester, it means that the administrator made a mistake when creating the configuration. Write to him to clarify the problem!
+        ios: |-
+          <b>The Shadowsocks-2022 protocol is currently used only by the testing team.</b>
+
+          If you are reading this message without being a tester, it means that the administrator made a mistake when creating the configuration. Write to him to clarify the problem!
+        windows: |-
+          <b>The Shadowsocks-2022 protocol is currently used only by the testing team.</b>
+
+          If you are reading this message without being a tester, it means that the administrator made a mistake when creating the configuration. Write to him to clarify the problem!
+        macos: |-
+          <b>The Shadowsocks-2022 protocol is currently used only by the testing team.</b>
+
+          If you are reading this message without being a tester, it means that the administrator made a mistake when creating the configuration. Write to him to clarify the problem!
+        linux: |-
+          <b>The Shadowsocks-2022 protocol is currently used only by the testing team.</b>
+
+          If you are reading this message without being a tester, it means that the administrator made a mistake when creating the configuration. Write to him to clarify the problem!
+  keyboard_buttons:
+    sub_renewal: ❤️‍🔥 Renew subscription!
+    sub_status: Subscription status
+    personal_account: Personal account
+    rules: Rules
+    payment_1mnth: 1 month
+    payment_3mnth: 3 months (-10%)
+    payment_12mnth: 12 months (-15%)
+    payment_history: Payment history
+    return_main_menu: Return to main menu
+    payment_check: Check payment
+    payment_cancel: Cancel payment
+    pay: Pay
+    ref_program: 🕊 Referral program
+    about_client: About client
+    about_sub: About subscription
+    configs: Configurations
+    promo: Promo Codes
+    settings: Settings
+    current_configs: My configurations
+    request_config: New configuration
+    return_to_account_menu_1: Return
+    return_to_account_menu_2: Cancel input
+    return_to_configs_menu: Cancel selection
+    used_promos: Used promo codes
+    ref_program_participation: Participation in referral program
+    generate_invite: Generate an invitation
+    show_ref_code: Referral promo code
+    settings_chatgpt_mode: ChatGPT mode
+    settings_notifications: Notifications
+    1d_off: Turn off in 1 day
+    1d_on: Turn on in 1 day
+    3d_off: Turn off in 3 days
+    3d_on: Turn on in 3 days
+    7d_off: Turn off in 7 days
+    7d_on: Turn on in 7 days
+    return_to_settings: Back
+    chatgpt_off: Disable
+    chatgpt_on: Enable
+    installation_instruction: Installation instructions
+  telegram_file_ids:
+    rules: AgACAgIAAxkBAAJUyGWoBkWcqxDLR5T7rxSAgxD9k8LJAALd1DEbxdRBSUXUhjzY2aggAQADAgADcwADNAQ
+    ref_program_info: AgACAgIAAxkBAAJUv2WoBaYCCxzAlLwaiIEttY5NnqytAALa1DEbxdRBSdtn1kU78RbOAQADAgADcwADNAQ
+    instructions:
+      wireguard:
+        android:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        ios:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        windows:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        macos:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        linux:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+      xray vless xtls-reality:
+        android:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        ios:
+        - AgACAgIAAxkBAAJvWGXD0VibK59Bxm5_eUdmHtRbCJ3XAAJp1zEb57UhSu67X4QQY5aAAQADAgADcwADNAQ
+        - AgACAgIAAxkBAAJvWmXD0V7LP7qESkMTVyRSh5nEjfo4AAJq1zEb57UhSgLT77qi1cg_AQADAgADcwADNAQ
+        - AgACAgIAAxkBAAJvXGXD0WjYoKP6sPcNWEyabD3LObPeAAJr1zEb57UhShgOtje3O2JmAQADAgADcwADNAQ
+        windows:
+        - AgACAgIAAxkBAAJVQmWoIG23wCiME_papPi_ji5-CPGMAAKV1jEb7uNASf1LfFIT-ON3AQADAgADcwADNAQ
+        - AgACAgIAAxkBAAJVRGWoIHJzBe6c6xp-InaOVX0pOqoQAAJk1TEbxdRBSc-fRhGfNPwwAQADAgADcwADNAQ
+        macos:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        linux:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+      shadowsocks-2022:
+        android:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        ios:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        windows:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        macos:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        linux:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+admin:
+  messages:
+    reset_fsm_keyboard: <i>Reset the machine state and keyboard</i>
+    fsm_start: <i>The machine state is activated</i>
+    admin_kb_info: "To open this menu, use /admin.\b\b Available commands:\n\n/fileid (/fid)\n/sql_user\n/sql_config\n/clients\n/configs <i>telegram_id</i> | <i>username</i>"
+    go_send_message_menu: <i>Going to the menu for sending messages to clients</i>
+    message_everyone_info: |-
+      Enter the necessary information with the following message, and attach files if necessary!
+
+      Enter /perfect to confirm the selection of the last sent message!
+    clients_row_str: |-
+      {0}. {1} {2} {3} <code>{4}</code>
+    message_everyone_was_sent: <b>Okay, the message has been sent!</b>
+    message_everyone_everybody_received: <b>Hooray, all clients of the service will receive the message!</b>
+    message_everyone_somebody_didnt_recieve: |-
+      <b>Users who did not receive the message</b>:
+      {ignored_clients_str}
+    how_message_looks: "This is how your message will look like:"
+    message_selected_info: Enter a comma separated <i><b>username</b></i> or <i><b>telegram_id</b></i> of the clients for whom the newsletter is intended.
+    message_selected_somebody_received: |-
+      <b>The message will be sent to the clients</b>:
+
+      {selected_clients_str}
+    message_selected_nobody_received: You made a mistake when entering clients! The message will not reach anyone!
+    message_selected_enter_message_info: |-
+      Now enter the necessary information with the following message, and also attach files if necessary!
+
+      Enter /perfect to confirm the selection of the last sent message!
+    sql_insert_client_info: Forward the message to me and I will output all possible information!
+    cant_read_user: Unfortunately, I cannot read the user information 😭
+    sql_insert_config_info: |-
+      Send me a message in the format (spaces are used instead of line breaks):
+
+      <b>client_id</b> - client_username | client_telegram_id
+      <b>protocol_id</b> - <code>w</code> (WireGuard) | <code>x</code> (XTLS-Reality) | <code>s</code> (ShadowSocks)
+      <b>location_id</b> - <code>n</code> (Netherlands) | <code>l</code> (Latvia) | <code>g</code> (Germany) | <code>u</code> (USA)
+      <b>os</b> - <code>Android</code> | <code>IOS</code> | <code>Windows</code> | <code>Linux</code>
+      <b>date_of_receipt</b> - date of receipt of the configuration in the format <code>YYYY-MM-DD HH-MI</code>
+      <b>link</b> - if instead of a photo or a *.conf file, you need a link for XTLS/SS for PC
+
+      <b>Do not forget to attach the file if required!</b>
+    sql_insert_config_check_config_info: "By the way, you can check which configurations are available to the user in the admin menu with the command \n/configs <i>telegram_id</i> | <i>username</i>"
+    error_not_enough_flags: The flags are entered incorrectly, there are too few of them!
+    error_bad_attachment: You didn't attach the file, or you added the wrong attachment type!
+    error_too_many_flags: Flags entered incorrectly, there are too many of them!
+    error_bad_protocol: Protocol entered incorrectly!
+    error_bad_location: Location entered incorrectly!
+    sql_query_enter_password: Enter the password from the database
+    sql_query_correct_password: 🔥 Great, the password is entered correctly! Now enter the SQL-query!
+    sql_query_wrong_password: The password was entered incorrectly!
+    sql_query_tables_row: |-
+      {0}. <code>{1}</code>
+    sql_query_tables_list: |-
+      List of all database tables <b>{0}</b>:
+
+      {tables_names_str}
+    sql_query_error: "Error occurred: {0}"
+    clients_info: 🚀 Displaying information about all clients!
+    clients_info_sub_active: "✅  "
+    clients_info_sub_inactive: "❌  "
+    show_earnings: So-so! Earnings for the current month are <b>{0:g}</b>₽!
+    file_id_photo: |-
+      <b>file_id photo</b>:
+      <code>{0}</code>
+    file_id_document: |-
+      <b>document file_id</b>:
+      <code>{0}</code>
+    error_no_file_for_file_id: The file was not attached along with the /fileid (/fid) command call!
+    send_configuration_info: |-
+      Send me a message in the format (use spaces instead of line breaks):
+
+      <b>protocol</b> — <code>wireguard/wg/w</code> | <code>xtls-reality/xtls/reality/x</code> | <code>shadosocks/ss/s</code>
+      <b>location</b> — <code>netherlands/n</code> | <code>latvia/l</code> | <code>germany/g</code> | <code>usa/u</code>
+      <b>os</b> — <code>android</code> | <code>ios</code> | <code>windows</code> | <code>macos/mac</code> | <code>linux</code>
+      <b>link</b> — if instead of a photo or a *.conf file, you need a link for XTLS/SS for PC
+
+      <b>Do not forget to attach the file if required!</b>
+    config_was_sent: Excellent, configuration type <b>{0}</b> has been sent!
+    error_bad_flags_number: |-
+      Error: {0}
+      Most likely, you specified the wrong number of flags!
+    error_unrecognized: "Error: {0}"
+    sub_expired: |-
+      👾 <b>The user's subscription has expired. Disable its configurations (there are {0} in total)!</b>
+
+      <b>Client ID</b>: <code>{1}</code>
+      <b>Telegram INFO</b>:{2} <code>{3}{4}</code> <code>{5}</code>
+    sub_expires_1d: |-
+      👾 <b>The user's subscription expires in 1 day.</b>
+
+      <b>Client ID</b>: <code>{0}</code>
+      <b>Telegram INFO</b>:{1} <code>{2}{3}</code> <code>{4}</code>
+    sub_expires_3d: |-
+      👾 <b>The user's subscription expires in 3 days.</b>
+
+      <b>Client ID</b>: <code>{0}</code>
+      <b>Telegram INFO</b>:{1} <code>{2}{3}</code> <code>{4}</code>
+    sub_expires_7d: |-
+      👾 <b>The user's subscription expires in 7 days.</b>
+
+      <b>Client ID</b>: <code>{0}</code>
+      <b>Telegram INFO</b>:{1} <code>{2}{3}</code> <code>{4}</code>
+  keyboard_buttons:
+    sql_insert_config: |-
+      SQL config
+      👾
+    sql_insert_client: |-
+      SQL client
+      👾
+    sql_query: |-
+      SQL query
+      👾
+    get_file_id: |-
+      File ID
+      👾
+    send_message: |-
+      Send message
+      👾
+    clients_info: |-
+      About clients
+      👾
+    show_earnings: |-
+      Earnings
+      👾
+    show_logs: |-
+      Logs
+      👾
+    reset_fsm_1: |-
+      Reset FSM
+      👾
+    send_message_everyone: |-
+      Send to all
+      👾
+    send_message_selected: |-
+      Send to favorites
+      👾
+    reset_fsm_2: |-
+      Return
+      👾
+    config_answer_inline: |-
+      Reply
+      👾
+  telegram_file_ids: {}
+other:
+  messages:
+    hello_message: |-
+      👋 <b>Hi! I am a bot of the ksiVPN project — an unlimited, fast and completely secure VPN service for 200</b>₽<b>/month!</b>
+
+      I will help you configure the connection, pay for the subscription, extend it for free, as well as solve many other tasks! If desired, you can even discuss <code>human</code> topics with me!
+    more_info: More information about the service is available by clicking the <b>«About project»</b> button from below
+    help: |-
+      You can easily write to my creator if you have any problems, as well as if you have ideas to improve my work!
+
+      <b>If I do not perceive button clicks, reset my state using the /start command</b>
+    project_info: Unlimited, fast and completely secure service that allows you to establish a VPN connection in various countries of the world through your own VPS for 200₽ per month.
+    faq_info: |-
+      💬 <b>How much does the subscription cost?</b>
+      The cost of a basic subscription is 200rubles per month.
+
+      💬 <b>What do I get for this cost?</b>
+      VPN connection at maximum speed with no traffic limit on all project servers. The number of VPN connections is also unlimited within reason! And additional bot functions will be available.
+
+      💬 <b>How does the connection work?</b>
+      In the question-answer mode, the BOT learns the necessary information from you, sends instructions and configuration. You need to download the application from the official store (PlayMarket or App Store) and, following the instructions, add the configuration (usually you just need to scan the QR code).
+
+      💬 <b>Is the subscription price fixed?</b>
+      No, the cost of a subscription depends on its type, there are several of them. For example, a discounted subscription is available to testers and some others. The final subscription price will be displayed after entering the referral promo code.
+
+      💬 <b>Are ChatGPT-type services available with this VPN?</b>
+      Always available! Do not forget to specify their use when answering the bot's questions when creating the configuration.
+
+      💬 <b>Which operating systems are supported?</b>
+      The service is available on all possible operating systems, including Android, iOS, Windows, macOS, Linux.
+
+      💬 <b>Which servers are provided?</b>
+      There are currently four servers available:
+      1. Netherlands, Amsterdam — speed up to 1 Gb/s, ping 30 ms.
+      2. Latvia, Riga — speed up to 1 Gb/s, ping 20 ms.
+      3. Germany, Nuremberg — speed up to 500 Mb/s, ping 40 ms.
+      4. USA, Silicon Valley — speed up to 50 Mb/s, ping 150 ms.
+    chatgpt_only_for_active_sub: ChatGPT mode is available only to clients with an active subscription!
+    unrecognized_message: |-
+      <b>Sorry, I don't understand you</b> 🤔
+
+      <tg-spoiler><i>You can give me unlimited power by enabling ChatGPT mode in the settings or by entering the command /chatgpt_mode</i></tg-spoiler>
+    restart: <i>Oh, oh! Rebooting</i>
+    github: |-
+      <b>Special thanks</b>
+
+      <b>to the UX/UI designer of the project:</b>
+      🦩 to Olga @KoberO https://band.link/Dmt3l
+
+      <b>The testing team:</b>
+      🍒 Egor @Y0gu4t
+      🎀 Karina @Howtofindmee
+      🍆 Denis @seregin_denis
+  keyboard_buttons:
+    help: Help
+    about_project: About project
+    about_service: About service
+    faq_inline: FAQ
+    faq_inline_callback: faq
+    tg_channel_inline: Telegram channel
+    tg_channel_inline_url: https://t.me/+5cDIKThNG-kzZjgy
+  telegram_file_ids:
+    project_info: AgACAgIAAxkBAAJVOWWoH2RGI7pBEGUSvAt_xGjPM9ufAAJW1TEbxdRBSc9pyZvrLmwWAQADAgADcwADNAQ
+    hello_message: AgACAgIAAxkBAAJVN2WoH0QQIRjdL-9ZoL8wqhQvEsY4AAJU1TEbxdRBSaknQL9Gkxc1AQADAgADcwADNAQ
+internal_functions:
+  messages:
+    wait_payment: <b>Waiting for the subscription payment!</b>
+    payment_form: |-
+      💳 Payment information:
+
+      <b>Subscription type</b>: {0}
+      <b>Amount to be paid</b>: {2:g}₽ {discount_str}
+      <b>Extension for the period</b>: {1} months.
+
+      Payment identifier: #{3}
+    config_info: |-
+      {link_str}<b>Created</b>: {0}
+      {platform_str}<b>Protocol</b>: {1}
+      <b>VPN location</b>: {2}, {3}, the speed is up to {4} Mbit/s, the expected ping is {5} ms.
+    config_request_new_client: |-
+      👾 <b>Connection request from a new client!</b>
+
+      <b>Client ID</b>: <code>{6}</code>
+      <b>Telegram INFO</b>:{1} <code>{0}</code> <code>{2}</code>
+      <b>Configuration</b>: {3}, {4}, {5} ChatGPT
+      <b>Referral promo code</b>: {ref_promo_str}
+    config_request_new_client_no_ref_promo_str: |-
+      The client did not use the promo code, the configuration can be sent <b>ONLY AFTER PAYING FOR THE SUBSCRIPTION OR ENTERING the PROMO CODE</b>
+    config_request_new_client_ref_promo_str: |-
+      <code>{0}</code> from client{3} <code>{1}{2}</code> <code>{4}</code> for {5} free days by subscription {6:g}₽/month.
+    config_request_old_client: |-
+      👾 <b>Request additional configuration from the client!</b>
+
+      <b>Client ID</b>: <code>{6}</code>
+      <b>Telegram INFO</b>:{1} <code>{0}</code> <code>{2}</code>
+      <b>Configuration</b>: {3}, {4}, {5} ChatGPT
+    admin_promo_was_etnered_local_promo_new_sub_str: providing subscription for {0:g}₽/month,
+    admin_promo_was_entered: |-
+      👾 <b>A promo code has been entered!</b>
+
+      <b>Client ID</b>: <code>{0}</code>
+      <b>Telegram INFO</b>:{1} <code>{2}{3}</code> <code>{4}</code>
+      <b>About the promo code</b>: {5} with id {6} for {7} subscription days{new_sub_str} ending {8}
+    admin_successful_payment: |-
+      👾 <b>Successful subscription renewal for {0} months!</b>
+
+      <b>Client ID</b>: <code>{1}</code>
+      <b>Telegram INFO</b>:{2} <code>{3}{4}</code> <code>{5}</code>
+    ref_promo_was_entered: |-
+      Wow! User {0}{1} used your referral promo code when registering!
+
+      <b>After he pays for the subscription for the first time, you will receive {2} days of subscription for free!</b>
+    platform_str_chatgpt: |-
+      <b>Platform</b>: {0} with access to ChatGPT
+    platform_str_no_chatgpt: |-
+      <b>Platform</b>: {0}
+    error_no_telegram_file_id: when trying to create a configuration, the telegram_file_id was not specified!
+    error_bad_file_type: when trying to create a configuration, an invalid file_type was specified!
+    error_bad_protocol: incorrect protocol input (first argument)!
+    error_bad_country: incorrect country input (second argument)!
+    error_bad_os: incorrect OS input (third argument)!
+    error_bad_link: incorrect vless link input (fourth argument)!
+    ref_client_paid_for_sub: |-
+      🕊 Wow! The client {0}{1} who joined the project using your referral promo code has paid for the subscription for the first time!
+
+      <b>You get a month of subscription for free!</b>
+    wait_for_admin_answer: |-
+      🎉 <b>Great, now we are waiting for a response from the developer!</b>
+
+      He will check your registration soon and send you the configuration. In the meantime, you can explore the bot's functions!
+    discount_str: (discount {0:g}₽)
+    payment_successful: |-
+      The payment was made successfully!
+
+      Payment identifier: #{0}
+  keyboard_buttons: {}
+  telegram_file_ids:
+    template_image_url: https://github.com/exmanka/ksiVPN-telegram-bot/assets/74555362/38b4bf5b-bfa8-4904-b8e8-4c492c4eb872
+middlewares:
+  messages:
+    authorized_only: 👾 Oops! This feature is only available to registered users!
+    unauthorized_only: You have already registered!
+    admin_only: 👾 Oh, oh! This function is only available to the administrator!
+    antiflood: 🤖 Please do not spam with requests!
+    nonblank_only: 👾 Eh! This feature is only available to clietns with an activated subscription!
+  keyboard_buttons: {}
+  telegram_file_ids: {}
