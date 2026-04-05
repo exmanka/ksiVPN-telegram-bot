@@ -413,7 +413,7 @@ user_authorized:
 admin:
   messages:
     reset_fsm_keyboard: <i>Сброс машинного состояния и клавиатуры</i>
-    fsm_start: <i>Активировано машенное состояние</i>
+    fsm_start: <i>Активировано машинное состояние</i>
     admin_kb_info: "Для вызова данного меню используйте /admin.\b\bДоступные команды:\n\n/fileid (/fid)\n/sql_user\n/sql_config\n/clients\n/configs <i>telegram_id</i> | <i>username</i>"
     go_send_message_menu: <i>Перехожу в меню отправки сообщений пользователям</i>
     message_everyone_info: |-
@@ -444,8 +444,8 @@ admin:
       Пришлите мне сообщение в формате (вместо переноса строк используются пробелы):
 
       <b>client_id</b> - client_username | client_telegram_id
-      <b>protocol_id</b> - <code>w</code> (WireGuard) | <code>x</code> (XTLS-Reality) | <code>s</code> (ShadowSocks)
-      <b>location_id</b> - <code>n</code> (Netherlands) | <code>l</code> (Latvia) | <code>g</code> (Germany) | <code>u</code> (USA)
+      <b>protocol</b> - alias протокола (напр. <code>wg</code>, <code>x</code>, <code>ss</code>)
+      <b>server</b> - alias сервера (напр. <code>nl1</code>, <code>lv1</code>, <code>de1</code>, <code>us1</code>)
       <b>os</b> - <code>Android</code> | <code>IOS</code> | <code>Windows</code> | <code>Linux</code>
       <b>date_of_receipt</b> - дата получения конфигурации в формате <code>YYYY-MM-DD HH-MI</code>
       <b>link</b> - если вместо фото или файла *.conf нужна ссылка для XTLS/SS для ПК
@@ -483,8 +483,8 @@ admin:
     send_configuration_info: |-
       Пришлите мне сообщение в формате (вместо переноса строк используйте пробелы):
 
-      <b>protocol</b> — <code>wireguard/wg/w</code> | <code>xtls-reality/xtls/reality/x</code> | <code>shadosocks/ss/s</code>
-      <b>location</b> — <code>netherlands/n</code> | <code>latvia/l</code> | <code>germany/g</code> | <code>usa/u</code>
+      <b>protocol</b> — alias протокола (напр. <code>wg</code>, <code>x</code>, <code>ss</code>)
+      <b>server</b> — alias сервера (напр. <code>nl1</code>, <code>lv1</code>, <code>de1</code>, <code>us1</code>)
       <b>os</b> — <code>android</code> | <code>ios</code> | <code>windows</code> | <code>macos/mac</code> | <code>linux</code>
       <b>link</b> — если вместо фото или файла *.conf нужна ссылка для XTLS/SS для ПК
 
@@ -637,9 +637,15 @@ internal_functions:
 
       💫 Используйте кнопку «Проверить оплату» для проверки совершенного платежа
     config_info: |-
-      {link_str}<b>Создана</b>: {0}
-      {platform_str}<b>Протокол</b>: {1}
-      <b>Локация VPN</b>: {2}, {3}, скорость до {4} Мбит/с, ожидаемый пинг {5} мс.
+      <b>Сервер</b>: {0}
+      <b>Локация</b>: {1}, {2}
+      <b>Характеристики</b>: скорость до {3} Мбит/с, ожидаемый пинг {4} мс.
+      <b>Доступны сервисы</b>: {5}
+
+      <b>Протокол</b>: {6}
+      <b>Платформа</b>: {7}
+
+      <i>Создана {8}, ID — {9}</i>
     config_request_new_client: |-
       👾 <b>Запрос на подключение от нового пользователя!</b>
 
@@ -673,10 +679,6 @@ internal_functions:
       🕊 Ух ты! Пользователь {0}{1} использовал Ваш реферальный промокод при регистрации!
 
       <b>После того, как он (она) впервые оплатит подписку, вы получите {2} дней подписки бесплатно!</b>
-    platform_str_chatgpt: |-
-      <b>Платформа</b>: {0} с доступом к ChatGPT
-    platform_str_no_chatgpt: |-
-      <b>Платформа</b>: {0}
     error_no_telegram_file_id: при попытке создания конфигурации не был указан telegram_file_id!
     error_bad_file_type: при попытке создания конфигурации был указан неверный file_type!
     error_bad_protocol: неверный ввод протокола (первый аргумент)!

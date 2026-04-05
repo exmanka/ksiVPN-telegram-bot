@@ -147,29 +147,33 @@ async def send_configuration(telegram_id: int,
                              configuration_file_type: str,
                              configuration_date_of_receipt: str,
                              configuration_os: str,
-                             configuration_is_chatgpt_available: bool,
                              configuration_protocol_name: str,
                              server_country: str,
                              server_city: str,
                              server_bandwidth: int,
                              server_ping: int,
-                             configuration_telegram_file_id: str):
+                             available_services: list[str],
+                             configuration_telegram_file_id: str,
+                             configuration_id: int,
+                             server_name: str):
     """Send message with specified configuration by telegram_id.
 
     :param telegram_id:
     :param configuration_file_type: file type ('photo', 'document' or 'link)
     :param configuration_date_of_receipt: date the configuration was created
     :param configuration_os: name of OS provided by configuration
-    :param configuration_is_chatgpt_available: is ChatGPT available for configuration
     :param configuration_protocol_name: name of protocol provided by configuration
     :param server_country: name of country where server provided by configuration is situated
     :param server_city: name of city where server provided by configuration is situated
     :param server_bandwidth: bandwidth of server provided by configuration
     :param server_ping: average ping of server provided by configuration
+    :param available_services: list of available services on this server
     :param configuration_telegram_file_id: telegram file id of provided configuration
+    :param configuration_id: configuration ID in database
+    :param server_name: human-readable server name
     :raises Exception: wrong file type
     """
-    answer_text = await create_configuration_description(configuration_date_of_receipt, configuration_os, configuration_is_chatgpt_available, configuration_protocol_name, server_country, server_city, server_bandwidth, server_ping)
+    answer_text = await create_configuration_description(configuration_date_of_receipt, configuration_os, configuration_protocol_name, server_country, server_city, server_bandwidth, server_ping, available_services, configuration_id, server_name)
 
     # if config was generated as photo
     if configuration_file_type == 'photo':
@@ -319,40 +323,37 @@ async def notify_client_if_subscription_must_be_renewed_to_receive_configuration
 
 async def create_configuration_description(configuration_date_of_receipt: str,
                                            configuration_os: str,
-                                           configuration_is_chatgpt_available: bool,
                                            configuration_protocol_name: str,
                                            server_country: str,
                                            server_city: str,
                                            server_bandwidth: int,
                                            server_ping: int,
+                                           available_services: list[str],
+                                           configuration_id: int,
+                                           server_name: str,
                                            link: str | None = None) -> str:
     """Return description for specified configurations.
 
     :param configuration_date_of_receipt: date the configuration was created
     :param configuration_os: name of OS provided by configuration
-    :param configuration_is_chatgpt_available: is ChatGPT available for configuration
     :param configuration_protocol_name: name of protocol provided by configuration
     :param server_country: name of country where server provided by configuration is situated
     :param server_city: name of city where server provided by configuration is situated
     :param server_bandwidth: bandwidth of server provided by configuration
     :param server_ping: average ping of server provided by configuration
-    :param server_link: vless link for XTLS-Reality configuration, defaults to None
+    :param available_services: list of available services on this server
+    :param configuration_id: configuration ID in database
+    :param server_name: human-readable server name
+    :param link: vless link for XTLS-Reality configuration, defaults to None
     :return: description of configurations with HTML-tags
     :rtype: str
     """
-    # convert vless link if exists
-    link_str = await format_none_string(link, prefix='<code>', postfix='</code>\n\n')
+    services_str = ', '.join(available_services) if available_services else '—'
 
-    # creating answer text with ChatGPT option
-    if configuration_is_chatgpt_available:
-        platform_str = loc.internal.msgs['platform_str_chatgpt'].format(configuration_os)
-
-    # creating answer text without ChatGPT option
-    else:
-        platform_str = loc.internal.msgs['platform_str_no_chatgpt'].format(configuration_os)
-
-    return loc.internal.msgs['config_info'].format(configuration_date_of_receipt, configuration_protocol_name, server_country, server_city, server_bandwidth, server_ping,
-                                               link_str=link_str, platform_str=platform_str)
+    return loc.internal.msgs['config_info'].format(server_name, server_country, server_city,
+                                               server_bandwidth, server_ping, services_str, configuration_protocol_name,
+                                               configuration_os, configuration_date_of_receipt,
+                                               configuration_id)
 
 
 async def create_configuration(client_id: int,
@@ -376,85 +377,40 @@ async def create_configuration(client_id: int,
     """
     link = None
     if file_type == 'link':
-        protocol_id, location_id, os_enum, link = await get_configuration_sql_data(flag_protocol, flag_location, flag_os, flag_link)
-        await postgres_dbms.insert_configuration(client_id, protocol_id, location_id, os_enum, file_type, link)
+        protocol_id, server_id, os_enum, link = await get_configuration_sql_data(flag_protocol, flag_location, flag_os, flag_link)
+        await postgres_dbms.insert_configuration(client_id, protocol_id, server_id, os_enum, file_type, link)
 
     elif file_type == 'document' or 'photo':
         if telegram_file_id is None:
             raise Exception(loc.internal.msgs['error_no_telegram_file_id'])
 
-        protocol_id, location_id, os_enum, _ = await get_configuration_sql_data(flag_protocol, flag_location, flag_os, flag_link)
-        await postgres_dbms.insert_configuration(client_id, protocol_id, location_id, os_enum, file_type, telegram_file_id)
+        protocol_id, server_id, os_enum, _ = await get_configuration_sql_data(flag_protocol, flag_location, flag_os, flag_link)
+        await postgres_dbms.insert_configuration(client_id, protocol_id, server_id, os_enum, file_type, telegram_file_id)
 
     else:
         raise Exception(loc.internal.msgs['error_bad_file_type'])
 
 
-async def get_configuration_sql_data(protocol: str, location: str, os: str, link: str | None = None) -> tuple[int, int, str]:
+async def get_configuration_sql_data(protocol: str, location: str, os: str, link: str | None = None) -> tuple[int, str, str]:
     """Return data suitable for SQL-query for configuration creation.
 
-    :param protocol: protocol name in ('wireguar', 'w', 'wg', 'xtls-reality', 'x', 'xtls', 'reality', 'shadowsocks', 's', 'ss')
-    :param location: location name in ('netherlands', 'n', 'latvia', 'l', 'germany', 'g', 'usa', 'u')
+    :param protocol: protocol alias (e.g. 'x', 'wg', 'ss')
+    :param location: server alias (e.g. 'nl1', 'lv1', 'de1', 'us1')
     :param os: os name in ('android', 'ios', 'windows', 'linux', 'macos', 'mac')
     :param link: link for XTLS-Reality starting from 'vless://'
-    :raises Exception: invalid protocol type
-    :raises Exception: invalid country
+    :raises Exception: invalid protocol alias
+    :raises Exception: invalid server alias
     :raises Exception: invalid OS type
     :raises Exception: invalid link
-    :return: tuple (protocol_id, location_id, os_enum, link)
+    :return: tuple (protocol_id, server_id, os_enum, link)
     """
-    protocol_id = None
-    match protocol.lower():
-        case 'wireguard':
-            protocol_id = 1
-        case 'w':
-            protocol_id = 1
-        case 'wg':
-            protocol_id = 1
+    protocol_id = await postgres_dbms.get_protocol_id_by_alias(protocol.lower())
+    if protocol_id is None:
+        raise Exception(loc.internal.msgs['error_bad_protocol'])
 
-        case 'x':
-            protocol_id = 2
-        case 'xtls':
-            protocol_id = 2
-        case 'reality':
-            protocol_id = 2
-        case 'xtls-reality':
-            protocol_id = 2
-
-        case 's':
-            protocol_id = 3
-        case 'ss':
-            protocol_id = 3
-        case 'shadowsocks':
-            protocol_id = 3
-
-        case _:
-            raise Exception(loc.internal.msgs['error_bad_protocol'])
-
-    location_id = None
-    match location.lower():
-        case 'n':
-            location_id = 1
-        case 'netherlands':
-            location_id = 1
-
-        case 'l':
-            location_id = 2
-        case 'latvia':
-            location_id = 2
-
-        case 'g':
-            location_id = 3
-        case 'germany':
-            location_id = 3
-
-        case 'u':
-            location_id = 4
-        case 'usa':
-            location_id = 4
-
-        case _:
-            raise Exception(loc.internal.msgs['error_bad_country'])
+    server_id = await postgres_dbms.get_server_id_by_alias(location.lower())
+    if server_id is None:
+        raise Exception(loc.internal.msgs['error_bad_country'])
 
     os_enum = None
     match os.lower():
@@ -481,7 +437,7 @@ async def get_configuration_sql_data(protocol: str, location: str, os: str, link
     if link and not link.startswith('vless://'):
         raise Exception(loc.internal.msgs['error_bad_link'])
 
-    return protocol_id, location_id, os_enum, link
+    return protocol_id, server_id, os_enum, link
 
 
 async def check_referral_reward(ref_client_id: int):

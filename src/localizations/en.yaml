@@ -426,8 +426,8 @@ admin:
       Send me a message in the format (spaces are used instead of line breaks):
 
       <b>client_id</b> - client_username | client_telegram_id
-      <b>protocol_id</b> - <code>w</code> (WireGuard) | <code>x</code> (XTLS-Reality) | <code>s</code> (ShadowSocks)
-      <b>location_id</b> - <code>n</code> (Netherlands) | <code>l</code> (Latvia) | <code>g</code> (Germany) | <code>u</code> (USA)
+      <b>protocol</b> - protocol alias (e.g. <code>wg</code>, <code>x</code>, <code>ss</code>)
+      <b>server</b> - server alias (e.g. <code>nl1</code>, <code>lv1</code>, <code>de1</code>, <code>us1</code>)
       <b>os</b> - <code>Android</code> | <code>IOS</code> | <code>Windows</code> | <code>Linux</code>
       <b>date_of_receipt</b> - date of receipt of the configuration in the format <code>YYYY-MM-DD HH-MI</code>
       <b>link</b> - if instead of a photo or a *.conf file, you need a link for XTLS/SS for PC
@@ -463,8 +463,8 @@ admin:
     send_configuration_info: |-
       Send me a message in the format (use spaces instead of line breaks):
 
-      <b>protocol</b> — <code>wireguard/wg/w</code> | <code>xtls-reality/xtls/reality/x</code> | <code>shadosocks/ss/s</code>
-      <b>location</b> — <code>netherlands/n</code> | <code>latvia/l</code> | <code>germany/g</code> | <code>usa/u</code>
+      <b>protocol</b> — protocol alias (e.g. <code>wg</code>, <code>x</code>, <code>ss</code>)
+      <b>server</b> — server alias (e.g. <code>nl1</code>, <code>lv1</code>, <code>de1</code>, <code>us1</code>)
       <b>os</b> — <code>android</code> | <code>ios</code> | <code>windows</code> | <code>macos/mac</code> | <code>linux</code>
       <b>link</b> — if instead of a photo or a *.conf file, you need a link for XTLS/SS for PC
 
@@ -611,9 +611,15 @@ internal_functions:
 
       Payment identifier: #{3}
     config_info: |-
-      {link_str}<b>Created</b>: {0}
-      {platform_str}<b>Protocol</b>: {1}
-      <b>VPN location</b>: {2}, {3}, the speed is up to {4} Mbit/s, the expected ping is {5} ms.
+      <b>Server</b>: {0}
+      <b>Locaqtion</b>: {1}, {2}
+      <b>Specifications</b>: speed up to {3} Mbit/s, expected ping 4} ms.
+      <b>Available services</b>: {5}
+
+      <b>Protocol</b>: {6}
+      <b>Platform</b>: {7}
+
+      <i>Created {8}, ID — {9}</i>
     config_request_new_client: |-
       👾 <b>Connection request from a new client!</b>
 
@@ -647,10 +653,6 @@ internal_functions:
       Wow! User {0}{1} used your referral promo code when registering!
 
       <b>After he pays for the subscription for the first time, you will receive {2} days of subscription for free!</b>
-    platform_str_chatgpt: |-
-      <b>Platform</b>: {0} with access to ChatGPT
-    platform_str_no_chatgpt: |-
-      <b>Platform</b>: {0}
     error_no_telegram_file_id: when trying to create a configuration, the telegram_file_id was not specified!
     error_bad_file_type: when trying to create a configuration, an invalid file_type was specified!
     error_bad_protocol: incorrect protocol input (first argument)!

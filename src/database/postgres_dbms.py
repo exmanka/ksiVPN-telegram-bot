@@ -414,21 +414,35 @@ async def get_configurations_info(client_id: int) -> list[asyncpg.Record]:
 
     :param client_id:
     :return: list of asyncgp.Record objects having (file_type, TO_CHAR(date_of_receipt, 'FMDD TMMonth YYYY в HH24:MI'),
-    os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id)
+    os, name, country, city, bandwidth, ping, available_services, telegram_file_id, id, server_name)
     :rtype: list[asyncpg.Record]
     """
     async with pool.acquire() as conn:
         return await conn.fetch(
             '''
             SELECT c.file_type, TO_CHAR(c.date_of_receipt, 'FMDD TMMonth YYYY в HH24:MI'), c.os,
-            cl.is_chatgpt_available, cp.name, cl.country, cl.city, cl.bandwidth, cl.ping, c.telegram_file_id
+            cp.name, s.country, s.city, s.bandwidth, s.ping, s.available_services, c.telegram_file_id, c.id, s.name AS server_name
             FROM configurations AS c
             JOIN configurations_protocols AS cp ON c.protocol_id = cp.id
-            JOIN configurations_locations AS cl ON c.location_id = cl.id
+            JOIN servers AS s ON c.server_id = s.id
             WHERE c.client_id = $1
             ORDER BY c.date_of_receipt;
             ''',
             client_id)
+
+
+async def get_server_id_by_alias(alias: str) -> str | None:
+    """Get server hostname (PK) by short alias."""
+    async with pool.acquire() as conn:
+        return await conn.fetchval(
+            'SELECT id FROM servers WHERE alias = $1;', alias)
+
+
+async def get_protocol_id_by_alias(alias: str) -> int | None:
+    """Get protocol ID by short alias."""
+    async with pool.acquire() as conn:
+        return await conn.fetchval(
+            'SELECT id FROM configurations_protocols WHERE alias = $1;', alias)
 
 
 async def get_configurations_number(client_id: int) -> int | None:
@@ -896,7 +910,7 @@ async def insert_client(name: str,
 
 async def insert_configuration(client_id: int,
                                protocol_id: int,
-                               location_id: int,
+                               server_id: str,
                                os: str,
                                file_type: str,
                                telegram_file_id: str) -> None:
@@ -905,10 +919,10 @@ async def insert_configuration(client_id: int,
         async with conn.transaction():
             await conn.execute(
                 '''
-                INSERT INTO configurations (client_id, protocol_id, location_id, os, file_type, telegram_file_id)
+                INSERT INTO configurations (client_id, protocol_id, server_id, os, file_type, telegram_file_id)
                 VALUES ($1, $2, $3, $4, $5, $6);
                 ''',
-                client_id, protocol_id, location_id, os, file_type, telegram_file_id)
+                client_id, protocol_id, server_id, os, file_type, telegram_file_id)
 
             # execute only for new clients
             await conn.execute(
