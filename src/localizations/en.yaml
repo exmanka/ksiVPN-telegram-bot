@@ -655,10 +655,10 @@ internal_functions:
       <b>After he pays for the subscription for the first time, you will receive {2} days of subscription for free!</b>
     error_no_telegram_file_id: when trying to create a configuration, the telegram_file_id was not specified!
     error_bad_file_type: when trying to create a configuration, an invalid file_type was specified!
-    error_bad_protocol: incorrect protocol input (first argument)!
-    error_bad_country: incorrect country input (second argument)!
-    error_bad_os: incorrect OS input (third argument)!
-    error_bad_link: incorrect vless link input (fourth argument)!
+    error_bad_protocol: incorrect input of <b>protocol</b>
+    error_bad_country: incorrect input of <b>server</b>
+    error_bad_os: incorrect input of <b>os</b>
+    error_bad_link: incorrect input of <b>link</b>
     ref_client_paid_for_sub: |-
       🕊 Wow! The client {0}{1} who joined the project using your referral promo code has paid for the subscription for the first time!
 
