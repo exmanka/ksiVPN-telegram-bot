@@ -16,6 +16,6 @@ sql_query = ReplyKeyboardMarkup(resize_keyboard=True).\
     add(KeyboardButton(loc.admn.btns['reset_fsm_2']))
 
 
-async def configuration_inline(telegram_id: int) -> InlineKeyboardMarkup:
-    """Return dynamic inline keyboard with specified telegram_id as callback_data."""
-    return InlineKeyboardMarkup().add(InlineKeyboardButton(loc.admn.btns['config_answer_inline'], callback_data=telegram_id))
+async def configuration_inline(telegram_id: int, os_alias: str) -> InlineKeyboardMarkup:
+    """Return dynamic inline keyboard with telegram_id and os alias encoded in callback_data."""
+    return InlineKeyboardMarkup().add(InlineKeyboardButton(loc.admn.btns['config_answer_inline'], callback_data=f'{telegram_id}:{os_alias}'))

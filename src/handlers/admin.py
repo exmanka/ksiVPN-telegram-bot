@@ -303,34 +303,20 @@ async def show_user_config_sql(message: Message):
     else:
         client_id = await postgres_dbms.get_clientID_by_telegramID(int(flag_username_or_telegram_id))
 
-    # check 2nd argument as protocol_id
-    match flag_protocol:
-        case 'w':
-            protocol_id = 1
-        case 'x':
-            protocol_id = 2
-        case 's':
-            protocol_id = 3
-        case _:
-            await message.answer(loc.admn.msgs['error_bad_protocol'])
-            return
+    # check 2nd argument as protocol alias
+    protocol_id = await postgres_dbms.get_protocol_id_by_alias(flag_protocol)
+    if protocol_id is None:
+        await message.answer(loc.admn.msgs['error_bad_protocol'])
+        return
 
-    # check 3rd argument as location_id
-    match flag_location:
-        case 'n':
-            location_id = 1
-        case 'l':
-            location_id = 2
-        case 'g':
-            location_id = 3
-        case 'u':
-            location_id = 4
-        case _:
-            await message.answer(loc.admn.msgs['error_bad_location'])
-            return
+    # check 3rd argument as server alias
+    server_id = await postgres_dbms.get_server_id_by_alias(flag_location)
+    if server_id is None:
+        await message.answer(loc.admn.msgs['error_bad_location'])
+        return
 
-    answer_text = '<code>INSERT INTO configurations(client_id, protocol_id, location_id, os, file_type, telegram_file_id, date_of_receipt) '
-    answer_text += f"VALUES({client_id}, {protocol_id}, {location_id}, '{os}', '{file_type}', '{link}', TIMESTAMP '{date_of_receipt_date} {date_of_receipt_time}');</code>"
+    answer_text = '<code>INSERT INTO configurations(client_id, protocol_id, server_id, os, file_type, telegram_file_id, date_of_receipt) '
+    answer_text += f"VALUES({client_id}, {protocol_id}, '{server_id}', '{os}', '{file_type}', '{link}', TIMESTAMP '{date_of_receipt_date} {date_of_receipt_time}');</code>"
     await message.answer(answer_text, parse_mode='HTML')
 
 
@@ -509,8 +495,8 @@ async def check_user_configs(message: Message):
     await message.answer(loc.auth.msgs['configs_info'].format(len(configurations_info)), parse_mode='HTML')
 
     # send message for every configuration
-    for file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id in configurations_info:
-        await internal_functions.send_configuration(message.from_user.id, file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id)
+    for file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, telegram_file_id, config_id, server_name in configurations_info:
+        await internal_functions.send_configuration(message.from_user.id, file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, telegram_file_id, config_id, server_name)
 
 
 @admin_mw.admin_only()
@@ -533,8 +519,10 @@ async def get_file_id(message: Message):
 async def send_configuration_fsm_start(call: CallbackQuery, state: FSMContext):
     """Start FSM for sending configurations for a client after pressing inline button and send instruction."""
     await admin_fsm.SendConfig.ready.set()
+    telegram_id_str, _, os_alias = call.data.partition(':')
     async with state.proxy() as data:
-        data['telegram_id'] = call.data
+        data['telegram_id'] = telegram_id_str
+        data['os_alias'] = os_alias
 
     await call.message.answer(loc.admn.msgs['fsm_start'], parse_mode='HTML')
     await call.message.answer(loc.admn.msgs['send_configuration_info'], parse_mode='HTML')
@@ -546,6 +534,7 @@ async def send_configuration(message: Message, state: FSMContext):
     """Check configuration sended by admin and send it to client."""
     async with state.proxy() as data:
         telegram_id = int(data['telegram_id'])
+        flag_os = data['os_alias']
     client_id = await postgres_dbms.get_clientID_by_telegramID(telegram_id)
 
     try:
@@ -553,27 +542,27 @@ async def send_configuration(message: Message, state: FSMContext):
         if text := message.text:
             # create configuration
             file_type = 'link'
-            flag_protocol, flag_location, flag_os, flag_link = text.split(' ')
+            flag_protocol, flag_location, flag_link = text.split(' ')
             await internal_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, flag_link)
-            _, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id = (await postgres_dbms.get_configurations_info(client_id))[-1]
+            _, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, telegram_file_id, config_id, server_name = (await postgres_dbms.get_configurations_info(client_id))[-1]
 
         # if message is document
         elif document := message.document:
             # create configuration
             file_type = 'document'
-            flag_protocol, flag_location, flag_os = message.caption.split(' ')
+            flag_protocol, flag_location = message.caption.split(' ')
             telegram_file_id = document.file_id
             await internal_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, telegram_file_id=telegram_file_id)
-            file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id = (await postgres_dbms.get_configurations_info(client_id))[-1]
+            file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, telegram_file_id, config_id, server_name = (await postgres_dbms.get_configurations_info(client_id))[-1]
 
         # if message is photo
         elif photo := message.photo:
             # create configuration
             file_type = 'photo'
-            flag_protocol, flag_location, flag_os = message.caption.split(' ')
+            flag_protocol, flag_location = message.caption.split(' ')
             telegram_file_id = photo[0].file_id
             await internal_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, telegram_file_id=telegram_file_id)
-            file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id = (await postgres_dbms.get_configurations_info(client_id))[-1]
+            file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, telegram_file_id, config_id, server_name = (await postgres_dbms.get_configurations_info(client_id))[-1]
 
         # other cases
         else:
@@ -582,7 +571,7 @@ async def send_configuration(message: Message, state: FSMContext):
         
         # send message to client, admin and finish FSM for sending configurations
         await bot.send_message(telegram_id, loc.auth.msgs['config_was_received'], parse_mode='HTML')
-        await internal_functions.send_configuration(telegram_id, file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id)
+        await internal_functions.send_configuration(telegram_id, file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, telegram_file_id, config_id, server_name)
         await bot.send_message(telegram_id, loc.auth.msgs['configs_rules'], parse_mode='HTML')
         await message.reply(loc.admn.msgs['config_was_sent'].format(file_type), parse_mode='HTML')
         await state.finish()
@@ -621,5 +610,5 @@ def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(show_logs, commands=['logs'])
     dp.register_message_handler(get_file_id, Text(loc.admn.btns['get_file_id']), content_types=['text', 'photo', 'document'])
     dp.register_message_handler(get_file_id, commands=['fileid', 'fid'], commands_ignore_caption=False, content_types=['text', 'photo', 'document'])
-    dp.register_callback_query_handler(send_configuration_fsm_start, lambda call: call.data.isdigit(), state='*')
+    dp.register_callback_query_handler(send_configuration_fsm_start, lambda call: ':' in call.data and call.data.split(':', 1)[0].isdigit(), state='*')
     dp.register_message_handler(send_configuration, content_types=['text', 'photo', 'document'], state=admin_fsm.SendConfig.ready)

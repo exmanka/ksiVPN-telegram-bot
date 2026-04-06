@@ -59,8 +59,8 @@ async def send_subscription_expiration_notifications():
                                    parse_mode='HTML')
 
             # send client's configurations to admin
-            for file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id in configurations_info:
-                await internal_functions.send_configuration(ADMIN_ID, file_type, date_of_receipt, os, is_chatgpt_available, name, country, city, bandwidth, ping, telegram_file_id)
+            for file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, telegram_file_id, config_id, server_name in configurations_info:
+                await internal_functions.send_configuration(ADMIN_ID, file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, telegram_file_id, config_id, server_name)
 
         # if client's subscription expires between [CURRENT_TIMESTAMP + INTERVAL '1 day', CURRENT_TIMESTAMP + INTERVAL '1 day 30 minutes')
         if is_sub_expiration_in_1d:
