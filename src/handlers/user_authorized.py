@@ -280,8 +280,15 @@ async def account_configurations_request_fsm_start(message: Message):
         await message.answer(loc.auth.msgs['cant_request_config'])
         return
 
-    configs_number = await postgres_dbms.get_configurations_number(await postgres_dbms.get_clientID_by_telegramID(message.from_user.id))
-    await message.answer(loc.auth.msgs['ask_three_questions'].format(configs_number), parse_mode='HTML')
+    client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
+    configs_number = await postgres_dbms.get_configurations_number(client_id)
+    max_configs = await postgres_dbms.get_max_configurations_by_telegramID(message.from_user.id)
+
+    if configs_number >= max_configs:
+        await message.answer(loc.auth.msgs['configs_limit_reached'].format(configs_number, max_configs))
+        return
+
+    await message.answer(loc.auth.msgs['ask_three_questions'].format(configs_number, max_configs), parse_mode='HTML')
 
     await user_authorized_fsm.ConfigMenu.platform.set()
     await message.answer(loc.unauth.msgs['choose_your_platform'], parse_mode='HTML', reply_markup=user_authorized_kb.config_platform)

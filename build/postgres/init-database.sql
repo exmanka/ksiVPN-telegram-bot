@@ -19,10 +19,11 @@ CREATE TABLE subscriptions (
 	id SMALLSERIAL PRIMARY KEY,
 	price INT NOT NULL,
 	title VARCHAR(32) NOT NULL,
-	description VARCHAR(128)
+	description VARCHAR(128),
+	max_configurations SMALLINT NOT NULL DEFAULT 5
 );
-INSERT INTO subscriptions (price, title, description)
-VALUES(200, 'Standard subscription', 'Here is subscription description.');
+INSERT INTO subscriptions (price, title, description, max_configurations)
+VALUES(200, 'Standard subscription', 'Here is subscription description.', 3);
 
 
 CREATE TABLE clients_subscriptions (

@@ -457,6 +457,20 @@ async def get_configurations_number(client_id: int) -> int | None:
             client_id)
 
 
+async def get_max_configurations_by_telegramID(telegram_id: int) -> int | None:
+    """Return max configurations allowed by the client's subscription."""
+    async with pool.acquire() as conn:
+        return await conn.fetchval(
+            '''
+            SELECT s.max_configurations
+            FROM subscriptions AS s
+            JOIN clients_subscriptions AS cs ON s.id = cs.sub_id
+            JOIN clients AS c ON cs.client_id = c.id
+            WHERE c.telegram_id = $1;
+            ''',
+            telegram_id)
+
+
 async def get_paymentIDs(client_id: int) -> list[asyncpg.Record]:
     """Return all payments ids created by client.
 

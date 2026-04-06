@@ -108,10 +108,14 @@ user_authorized:
       ❌ Violation of any of the rules may result in the immediate blocking of the user.</b>
     return_to_configs_menu: <i>Returning to the configuration menu</i>
     cant_request_config: To request a new configuration, you need to renew your subscription!
+    configs_limit_reached: |-
+      You have reached the configuration limit for your subscription ({0}/{1}) 😪
+      
+      Upgrade your subscription to get more configurations!
     ask_three_questions: |-
-      You will need to answer 3 questions to request a new configuration from the administrator!
+      You will need to answer 3 questions to request a new configuration!
 
-      More of your configurations: <b>{0}</b>
+      Total configurations: <b>{0}/{1}</b>
     wait_for_admin: |-
       🎉 <b>Great, now we are waiting for a response from the developer!</b>
 
