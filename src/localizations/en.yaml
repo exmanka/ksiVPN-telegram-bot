@@ -400,7 +400,14 @@ admin:
   messages:
     reset_fsm_keyboard: <i>Reset the machine state and keyboard</i>
     fsm_start: <i>The machine state is activated</i>
-    admin_kb_info: "To open this menu, use /admin.\b\b Available commands:\n\n/fileid (/fid)\n/sql_user\n/sql_config\n/clients\n/configs <i>telegram_id</i> | <i>username</i>"
+    admin_kb_info: |-
+      To open this menu, use /admin. Available commands:
+      
+      /fileid (/fid)
+      /sql_user
+      /sql_config
+      /clients
+      /configs <i>telegram_id</i> | <i>username</i>
     go_send_message_menu: <i>Going to the menu for sending messages to clients</i>
     message_everyone_info: |-
       Enter the necessary information with the following message, and attach files if necessary!
@@ -581,16 +588,11 @@ other:
 
       <tg-spoiler><i>You can give me unlimited power by enabling ChatGPT mode in the settings or by entering the command /chatgpt_mode</i></tg-spoiler>
     restart: <i>Oh, oh! Rebooting</i>
-    github: |-
+    special_thanks: |-
       <b>Special thanks</b>
 
       <b>to the UX/UI designer of the project:</b>
-      🦩 to Olga @KoberO https://band.link/Dmt3l
-
-      <b>The testing team:</b>
-      🍒 Egor @Y0gu4t
-      🎀 Karina @Howtofindmee
-      🍆 Denis @seregin_denis
+      🦩 to Olga https://music.yandex.ru/artist/23761468
   keyboard_buttons:
     help: Help
     about_project: About project

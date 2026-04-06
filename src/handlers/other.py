@@ -14,7 +14,7 @@ async def command_help(message: Message):
     # if client needs to renew subscription before receiving his first configuration
     await internal_functions.notify_client_if_subscription_must_be_renewed_to_receive_configuration(message.from_user.id)
     
-    await message.answer(markdown.hide_link('https://t.me/exmanka') + loc.other.msgs['help'], parse_mode='HTML')
+    await message.answer(loc.other.msgs['help'], parse_mode='HTML')
 
 
 async def show_project_info(message: Message):
@@ -27,7 +27,7 @@ async def show_project_info(message: Message):
                                                reply_markup=other_kb.faq_inline)
     # if client is registered
     if await postgres_dbms.is_user_registered(message.from_user.id):
-        await message.answer(markdown.hide_link('https://github.com/exmanka/ksiVPN-telegram-bot') + loc.other.msgs['github'], parse_mode='HTML')
+        await message.answer(loc.other.msgs['special_thanks'], parse_mode='HTML')
 
 
 async def show_faq(call: CallbackQuery):
