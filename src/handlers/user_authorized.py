@@ -614,16 +614,34 @@ async def account_promo_info(message: Message):
 @user_authorized_mw.nonblank_subscription_only()
 async def configuration_instruction(call: CallbackQuery):
     """Send message with instruction for configuration specified by inline button."""
-    configuration_protocol_name, configuration_os = call.data.split('--')
+    _, configuration_protocol_name, configuration_os = call.data.split('--')
 
     # answer without photos
-    # await call.message.reply(loc.auth.msgs['instructions'][configuration_protocol_name.lower()][configuration_os.lower()],
+    # await call.message.reply(loc.auth.msgs['basic_instructions'][configuration_protocol_name.lower()][configuration_os.lower()],
     #                          parse_mode='HTML', disable_web_page_preview=True)
 
     # get objects from localization
-    instruction_text = loc.auth.msgs['instructions'][configuration_protocol_name.lower()][configuration_os.lower()]
-    instruction_images_list = loc.auth.tfids['instructions'][configuration_protocol_name.lower()][configuration_os.lower()]
-    
+    instruction_text = loc.auth.msgs['basic_instructions'][configuration_protocol_name.lower()][configuration_os.lower()]
+    instruction_images_list = loc.auth.tfids['basic_instructions'][configuration_protocol_name.lower()][configuration_os.lower()]
+
+    # use safe sending in case new bot tries to send photos using ksiVPN's bot files_ids
+    await internal_functions.reply_media_group_safely(call.message,
+                                                      telegram_files_ids_list=instruction_images_list,
+                                                      caption=instruction_text,
+                                                      parse_mode='HTML')
+    await call.answer()
+
+
+@user_authorized_mw.authorized_only()
+@user_authorized_mw.nonblank_subscription_only()
+async def configuration_advanced_instruction(call: CallbackQuery):
+    """Send message with advanced instruction for configuration specified by inline button."""
+    _, configuration_protocol_name, configuration_os = call.data.split('--')
+
+    # get objects from localization
+    instruction_text = loc.auth.msgs['advanced_instructions'][configuration_protocol_name.lower()][configuration_os.lower()]
+    instruction_images_list = loc.auth.tfids['advanced_instructions'][configuration_protocol_name.lower()][configuration_os.lower()]
+
     # use safe sending in case new bot tries to send photos using ksiVPN's bot files_ids
     await internal_functions.reply_media_group_safely(call.message,
                                                       telegram_files_ids_list=instruction_images_list,
@@ -739,7 +757,8 @@ def register_handlers_authorized_client(dp: Dispatcher):
     dp.register_message_handler(account_settings_notifications_1d, Text([loc.auth.btns[key] for key in ('1d_on', '1d_off')]), state=user_authorized_fsm.SettingsMenu.notifications)
     dp.register_message_handler(account_settings_notifications_3d, Text([loc.auth.btns[key] for key in ('3d_on', '3d_off')]), state=user_authorized_fsm.SettingsMenu.notifications)
     dp.register_message_handler(account_settings_notifications_7d, Text([loc.auth.btns[key] for key in ('7d_on', '7d_off')]), state=user_authorized_fsm.SettingsMenu.notifications)
-    dp.register_callback_query_handler(configuration_instruction, lambda call: '--' in call.data, state='*')
+    dp.register_callback_query_handler(configuration_instruction, lambda call: call.data.startswith('basic--'), state='*')
+    dp.register_callback_query_handler(configuration_advanced_instruction, lambda call: call.data.startswith('advanced--'), state='*')
     dp.register_message_handler(show_project_rules, Text(loc.auth.btns['rules']))
     dp.register_message_handler(show_project_rules, commands=['rules'], state='*')
     dp.register_message_handler(restore_payments, commands=['restore_payments'], state='*')

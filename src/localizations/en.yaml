@@ -213,7 +213,7 @@ user_authorized:
       Don't forget to renew your subscription!
 
       <tg-spoiler><i>You can disable the reminder by going to «Personal Account» — «Settings» — «Notifications».</i></tg-spoiler>
-    instructions:
+    basic_instructions:
       wireguard:
         android: |-
           ⚙️ <b>Instructions for installing WireGuard on Android:</b>
@@ -254,7 +254,7 @@ user_authorized:
         linux: "⚙️ <b>Instructions for installing and using WireGuard on GNU/Linux:</b>\nOh, you're not little anymore, since you're using Linux!\nI send you great respect and a link to the documentation: https://www.wireguard.com/install/#ubuntu-module-tools\n\nInstallation instructions can be also found here: https://shrub-coriander-4a3.notion.site/Linux-Mint-Cinnamon-21-1-29cda1060f4d4ab48c483cfa70948e46?pvs=4 "
       xray vless xtls-reality:
         android: |-
-          ⚙️ <b>Instructions for installing XTLS-Reality on Android:</b>
+          ⚙️ <b>Instructions for installing xray on Android:</b>
           <b>1.</b> Download and install the official v2rayNG app (<a href="https://play.google.com/store/apps/details?id=com.v2ray.ang">link to the Play Market</a>).
           <b>2.</b> After launching, click on the <b>«+»</b> icon next to the Profile.
           <b>3.</b> Select <b>«Import profile from QR code»</b>, allow access to the camera and scan the QR code.
@@ -263,7 +263,7 @@ user_authorized:
           <b>1.</b> To turn on the VPN, just click on the switch in the lower right corner.For the first time, the phone may issue a notification about adding a new VPN connection — you must agree.
           <b>2.</b> To turn off the VPN, you need to change the switch position again.
         ios: |-
-          ⚙️ <b>Instructions for installing XTLS-Reality on iOS:</b>
+          ⚙️ <b>Instructions for installing xray on iOS:</b>
           <b>1.</b> Download and install the official Streisand app (<a href="https://apps.apple.com/ru/app/streisand/id6450534064">link in the App Store</a>).
           <b>2.</b> After launching, click on the <b>«+»</b> in the upper right corner of the application.
           <b>3.</b> Select <b>«Scan QRcode»</b> from the drop-down menu, allow access to the camera and scan the sent QR code.
@@ -273,7 +273,7 @@ user_authorized:
           For the first time, the phone may issue a notification about adding a new VPN connection — you must agree.
           <b>2.</b> To turn off the VPN, you need to change the switch position again.
         windows: |-
-          ⚙️ <b>Instructions for installing XTLS-Reality on Windows:</b>
+          ⚙️ <b>Instructions for installing xray on Windows:</b>
           <b>1.</b> Upgrade to the latest release of the nekoray app <a href="https://github.com/MatsuriDayo/nekoray/releases/tag/3.21">by the link</a>.
           <b>2.</b> Download the Windows version.
           <b>3.</b> Unzip the archive (<b>RMB archive</b> — <b>«Extract all...»</b> — <b>«Extract»</b>)
@@ -287,14 +287,14 @@ user_authorized:
           <b>1.</b> <u>Before switching on, be sure to select <b>«TUN mode»</b>. To do this, you will need to restart the program as an administrator.</u>
           <b>2.</b> You can enable and disable VPN in the program itself or in the tray.
         macos: |-
-          ⚙️ <b>Instructions for installing XTLS-Reality on macOS:</b>
+          ⚙️ <b>Instructions for installing xray on macOS:</b>
           <b>1.</b> Download and install the official FoXray app (<a href="https://apps.apple.com/ru/app/foxray/id6448898396">link in the App Store</a>).
           <b>2.</b> After launching, click on the <b>Notepad icon</b> and paste the link sent to you.
 
           🎉 <b>Instructions for use:</b>
           <b>1.</b> To enable VPN, just click on the switch to the right of the configuration name.For the first time, the device may issue a notification about adding a new VPN connection — It is necessary to agree.
           <b>2.</b> To turn off the VPN, you need to change the switch position again.
-        linux: "⚙️ <b>Instructions for installing and using XTLS-Reality on GNU/Linux:</b>\nOh, you're not little anymore, since you use Linux!\nI send you great respect and a link to the documentation: https://github.com/MatsuriDayo/nekoray/tree/3.21 "
+        linux: "⚙️ <b>Instructions for installing and using xray on GNU/Linux:</b>\nOh, you're not little anymore, since you use Linux!\nI send you great respect and a link to the documentation: https://github.com/MatsuriDayo/nekoray/tree/3.21 "
       shadowsocks-2022:
         android: |-
           <b>The Shadowsocks-2022 protocol is currently used only by the testing team.</b>
@@ -316,6 +316,25 @@ user_authorized:
           <b>The Shadowsocks-2022 protocol is currently used only by the testing team.</b>
 
           If you are reading this message without being a tester, it means that the administrator made a mistake when creating the configuration. Write to him to clarify the problem!
+    advanced_instructions:
+      wireguard:
+        android: Coming soon!
+        ios: Coming soon!
+        windows: Coming soon!
+        macos: Coming soon!
+        linux: Coming soon!
+      xray vless xtls-reality:
+        android: Coming soon!
+        ios: Coming soon!
+        windows: Coming soon!
+        macos: Coming soon!
+        linux: Coming soon!
+      shadowsocks-2022:
+        android: Coming soon!
+        ios: Coming soon!
+        windows: Coming soon!
+        macos: Coming soon!
+        linux: Coming soon!
   keyboard_buttons:
     sub_renewal: ❤️‍🔥 Renew subscription!
     sub_status: Subscription status
@@ -355,11 +374,12 @@ user_authorized:
     return_to_settings: Back
     chatgpt_off: Disable
     chatgpt_on: Enable
-    installation_instruction: Installation instructions
+    basic_installation_instruction: Basic installation instructions
+    advanced_installation_instruction: Advanced installation instructions
   telegram_file_ids:
     rules: AgACAgIAAxkBAAJUyGWoBkWcqxDLR5T7rxSAgxD9k8LJAALd1DEbxdRBSUXUhjzY2aggAQADAgADcwADNAQ
     ref_program_info: AgACAgIAAxkBAAJUv2WoBaYCCxzAlLwaiIEttY5NnqytAALa1DEbxdRBSdtn1kU78RbOAQADAgADcwADNAQ
-    instructions:
+    basic_instructions:
       wireguard:
         android:
         - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
@@ -396,11 +416,52 @@ user_authorized:
         - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
         linux:
         - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+    advanced_instructions:
+      wireguard:
+        android:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        ios:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        windows:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        macos:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        linux:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+      xray vless xtls-reality:
+        android:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        ios:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        windows:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        macos:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        linux:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+      shadowsocks-2022:
+        android:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        ios:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        windows:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        macos:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        linux:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
 admin:
   messages:
     reset_fsm_keyboard: <i>Reset the machine state and keyboard</i>
     fsm_start: <i>The machine state is activated</i>
-    admin_kb_info: "To open this menu, use /admin.\b\b Available commands:\n\n/fileid (/fid)\n/sql_user\n/sql_config\n/clients\n/configs <i>telegram_id</i> | <i>username</i>"
+    admin_kb_info: |-
+      To open this menu, use /admin. Available commands:
+      
+      /fileid (/fid)
+      /sql_user
+      /sql_config
+      /clients
+      /configs <i>telegram_id</i> | <i>username</i>
     go_send_message_menu: <i>Going to the menu for sending messages to clients</i>
     message_everyone_info: |-
       Enter the necessary information with the following message, and attach files if necessary!
@@ -581,16 +642,11 @@ other:
 
       <tg-spoiler><i>You can give me unlimited power by enabling ChatGPT mode in the settings or by entering the command /chatgpt_mode</i></tg-spoiler>
     restart: <i>Oh, oh! Rebooting</i>
-    github: |-
+    special_thanks: |-
       <b>Special thanks</b>
 
       <b>to the UX/UI designer of the project:</b>
-      🦩 to Olga @KoberO https://band.link/Dmt3l
-
-      <b>The testing team:</b>
-      🍒 Egor @Y0gu4t
-      🎀 Karina @Howtofindmee
-      🍆 Denis @seregin_denis
+      🦩 to Olga https://music.yandex.ru/artist/23761468
   keyboard_buttons:
     help: Help
     about_project: About project
