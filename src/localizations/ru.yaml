@@ -269,52 +269,53 @@ user_authorized:
           Подсказки по установки можно найти здесь: https://shrub-coriander-4a3.notion.site/Linux-Mint-Cinnamon-21-1-29cda1060f4d4ab48c483cfa70948e46?pvs=4
       xray vless xtls-reality:
         android: |-
-          ⚙️ <b>Инструкция по установке XTLS-Reality на Android:</b>
-          <b>1.</b> Скачать и установить официальное приложение v2rayNG (<a href="https://play.google.com/store/apps/details?id=com.v2ray.ang">ссылка в Play Market</a>).
-          <b>2.</b> После запуска нажать на значок <b>«+»</b> рядом с Профилем.
-          <b>3.</b> Выбрать пункт <b>«Импорт профиля из QR-кода»</b>, разрешить доступ к камере и отсканировать QR-код.
+          ⚙️ <b>Инструкция по установке xray на Android:</b>
+          <b>0.</b> Скачать и установить официальное приложение Happ — <a href="https://play.google.com/store/apps/details?id=com.happproxy">ссылка в Play Market</a>.
+          <b>1.</b> Скопировать ссылку, отправленную ботом.
+          <b>2.</b> Запустить приложение и нажать на значок <b>«+»</b> в правом верхнем углу.
+          <b>3.</b> Выбрать пункт <b>«Вставить из буфера обмена»</b>.
+          <b>4.</b> Убедиться, что отправленная ботом конфигурация добавилась и сейчас выбрана.
 
           🎉 <b>Инструкция по использованию:</b>
-          <b>1.</b> Для включения VPN достаточно нажать на переключатель в правом нижнем углу.
-          В первый раз телефон может выдать уведомление о добавлении нового VPN-соединения — необходимо согласиться.
-          <b>2.</b> Для выключения VPN нужно снова изменить положение переключателя.
+          <b>1.</b> Для включения VPN достаточно нажать на кнопку включения VPN в центре. В первый раз телефон может выдать уведомление о добавлении нового VPN-соединения — необходимо согласиться.
+          <b>2.</b> Для выключения VPN нужно снова нажать на ту же кнопку.
         ios: |-
-          ⚙️ <b>Инструкция по установке XTLS-Reality на IOS:</b>
-          <b>1.</b> Скачать и установить официальное приложение Streisand (<a href="https://apps.apple.com/ru/app/streisand/id6450534064">ссылка в App Store</a>).
-          <b>2.</b> После запуска нажать на значок <b>«+»</b> в верхнем правом углу приложения.
-          <b>3.</b> Выбрать пункт <b>«Отсканировать QRCode»</b> из выпадающего меню, разрешить доступ к камере и отсканировать отправленный QR-код.
+          ⚙️ <b>Инструкция по установке xray на Android:</b>
+          <b>0.</b> Скачать и установить официальное приложение Happ — <a href="https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973">ссылка в App Store</a>.
+          <b>1.</b> Скопировать ссылку, отправленную ботом.
+          <b>2.</b> Запустить приложение и нажать на значок <b>«+»</b> в правом верхнем углу.
+          <b>3.</b> Выбрать пункт <b>«Вставить из буфера обмена»</b>.
+          <b>4.</b> Убедиться, что отправленная ботом конфигурация добавилась и сейчас выбрана.
 
           🎉 <b>Инструкция по использованию:</b>
-          <b>1.</b> Для включения VPN достаточно нажать на переключатель сверху по центру экрана.
-          В первый раз телефон может выдать уведомление о добавлении нового VPN-соединения — необходимо согласиться.
-          <b>2.</b> Для выключения VPN нужно снова изменить положение переключателя.
+          <b>1.</b> Для включения VPN достаточно нажать на кнопку включения VPN в центре. В первый раз телефон может выдать уведомление о добавлении нового VPN-соединения — необходимо согласиться.
+          <b>2.</b> Для выключения VPN нужно снова нажать на ту же кнопку.
         windows: |-
-          ⚙️ <b>Инструкция по установке XTLS-Reality на Windows:</b>
-          <b>1.</b> Перейти на последний релиз приложения nekoray <a href="https://github.com/MatsuriDayo/nekoray/releases/tag/3.21">по ссылке</a>.
-          <b>2.</b> Скачать версию для Windows.
-          <b>3.</b> Распаковать архив (<b>ПКМ по архиву</b> — <b>«Извлечь все...»</b> — <b>«Извлечь»</b>)
-          <b>4.</b> В архиве запустить файл <b>nekoray.exe</b>.
-          <b>5.</b> При первом запуске Windows уведомит о том, что приложение выпускается неизвестным издателем. Не пугаемся, NekoBox является приложением с открытым исходным кодом. <b>Оно полностью безопасно и не несет никаких вирусов</b>.
-          <b>6.</b> Для продолжения нужно нажать <b>«Подробнее»</b> — <b>«Выполнить в любом случае»</b>.
-          <b>7.</b> Выбрать в стартовом диалоговом окне пункт <b>«sing-box»</b>.
-          <b>8.</b> Скопировать выданную вам ссылку и зажать <b>Ctrl+V</b> в приложении. Конфигурация добавиться автоматически.
+          ⚙️ <b>Инструкция по установке xray на Windows:</b>
+          <b>0.</b> Скачать и установить официальное приложение Happ — <a href="https://github.com/Happ-proxy/happ-desktop/releases/latest/download/setup-Happ.x64.exe">ссылка на загрузку официального exe-файла</a>.
+          <b>1.</b> Скопировать ссылку, отправленную ботом.
+          <b>2.</b> Запустить приложение и нажать на значок <b>«+»</b> в правом верхнем углу.
+          <b>3.</b> Выбрать пункт <b>«Вставить из буфера обмена»</b>.
+          <b>4.</b> Убедиться, что отправленная ботом конфигурация добавилась и сейчас выбрана.
 
           🎉 <b>Инструкция по использованию:</b>
-          <b>1.</b> <u>Перед включением обязательно выбрать пункт <b>«Режим TUN»</b>. Для этого потребуется перезапустить программу от имени администратора.</u>
-          <b>2.</b> Включить и выключить VPN можно в самой программе или в трее.
+          <b>1.</b> Для включения VPN достаточно нажать на кнопку включения VPN в центре.
+          <b>2.</b> Для выключения VPN нужно снова нажать на ту же кнопку.
         macos: |-
-          ⚙️ <b>Инструкция по установке XTLS-Reality на macOS:</b>
-          <b>1.</b> Скачать и установить официальное приложение FoXray (<a href="https://apps.apple.com/ru/app/foxray/id6448898396">ссылка в App Store</a>).
-          <b>2.</b> После запуска нажать на значок <b>Блокнота</b> и вставить отправленную вам ссылку.
+          ⚙️ <b>Инструкция по установке xray на Windows:</b>
+          <b>0.</b> Скачать и установить официальное приложение Happ — <a href="https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973">ссылка в App Store</a>.
+          <b>1.</b> Скопировать ссылку, отправленную ботом.
+          <b>2.</b> Запустить приложение и нажать на значок <b>«+»</b> в правом верхнем углу.
+          <b>3.</b> Выбрать пункт <b>«Вставить из буфера обмена»</b>.
+          <b>4.</b> Убедиться, что отправленная ботом конфигурация добавилась и сейчас выбрана.
 
           🎉 <b>Инструкция по использованию:</b>
-          <b>1.</b> Для включения VPN достаточно нажать на переключатель справа от названия конфигурации.
-          В первый раз устройство может выдать уведомление о добавлении нового VPN-соединения — необходимо согласиться.
-          <b>2.</b> Для выключения VPN нужно снова изменить положение переключателя.
+          <b>1.</b> Для включения VPN достаточно нажать на кнопку включения VPN в центре.
+          <b>2.</b> Для выключения VPN нужно снова нажать на ту же кнопку.
         linux: |-
-          ⚙️ <b>Инструкция по установке и использованию XTLS-Reality на GNU/Linux:</b>
+          ⚙️ <b>Инструкция по установке и использованию xray на GNU/Linux:</b>
           Ой-ой, вы уже не маленькие, раз используете Linux!
-          Отправляю вам большой респект и ссылку на документацию: https://github.com/MatsuriDayo/nekoray/tree/3.21
+          Отправляю вам большой респект и ссылку на документацию: https://github.com/hiddify/hiddify-app
       shadowsocks-2022:
         android: |-
           <b>Протокол Shadowsocks-2022 в данный момент используется только командой тестирования.</b>
@@ -393,16 +394,30 @@ user_authorized:
         - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
       xray vless xtls-reality:
         android:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        - AgACAgIAAxkBAAEDCYVp0-WPTsNqWkqWd4QGs9c1QDNEnQACGBlrG44roUrtHB29Gg0xGQEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCYdp0-W7RpGpxvL7NpRIzCCck8NhKgACGhlrG44roUp9-rGsCRj73gEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCYlp0-XMiaKdRHdkDbB-wFJhvboMggACHBlrG44roUqtsh29vbfKDwEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCYtp0-XYUWh_w469B_k9bmx_AyN6xwACHhlrG44roUownEun6FXx9wEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCY1p0-Xpe_jtRApGaeWLcT_gP_BrDAACIRlrG44roUpjcWI0mmqKEQEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCY9p0-X0GRu5zGft_52MK2ok0VBtOAACIxlrG44roUoEcYYb8HacQQEAAwIAA3MAAzsE
         ios:
-        - AgACAgIAAxkBAAJvWGXD0VibK59Bxm5_eUdmHtRbCJ3XAAJp1zEb57UhSu67X4QQY5aAAQADAgADcwADNAQ
-        - AgACAgIAAxkBAAJvWmXD0V7LP7qESkMTVyRSh5nEjfo4AAJq1zEb57UhSgLT77qi1cg_AQADAgADcwADNAQ
-        - AgACAgIAAxkBAAJvXGXD0WjYoKP6sPcNWEyabD3LObPeAAJr1zEb57UhShgOtje3O2JmAQADAgADcwADNAQ
+        - AgACAgIAAxkBAAEDCZJp0-Y4vjo2N5jKoPndYZ1blPuOAwACJBlrG44roUqTdGIxFiKORAEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCYlp0-XMiaKdRHdkDbB-wFJhvboMggACHBlrG44roUqtsh29vbfKDwEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCYtp0-XYUWh_w469B_k9bmx_AyN6xwACHhlrG44roUownEun6FXx9wEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCY1p0-Xpe_jtRApGaeWLcT_gP_BrDAACIRlrG44roUpjcWI0mmqKEQEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCY9p0-X0GRu5zGft_52MK2ok0VBtOAACIxlrG44roUoEcYYb8HacQQEAAwIAA3MAAzsE
         windows:
-        - AgACAgIAAxkBAAJVQmWoIG23wCiME_papPi_ji5-CPGMAAKV1jEb7uNASf1LfFIT-ON3AQADAgADcwADNAQ
-        - AgACAgIAAxkBAAJVRGWoIHJzBe6c6xp-InaOVX0pOqoQAAJk1TEbxdRBSc-fRhGfNPwwAQADAgADcwADNAQ
+        - AgACAgIAAxkBAAEDCZpp0-aYMCDMZK5nU5VTJnDtnotM5wACMBlrG44roUq7bcgw-Uc0nwEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCYlp0-XMiaKdRHdkDbB-wFJhvboMggACHBlrG44roUqtsh29vbfKDwEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCYtp0-XYUWh_w469B_k9bmx_AyN6xwACHhlrG44roUownEun6FXx9wEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCY1p0-Xpe_jtRApGaeWLcT_gP_BrDAACIRlrG44roUpjcWI0mmqKEQEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCY9p0-X0GRu5zGft_52MK2ok0VBtOAACIxlrG44roUoEcYYb8HacQQEAAwIAA3MAAzsE
         macos:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        - AgACAgIAAxkBAAEDCZxp0-azZ_fDJ-j8iCPplcR235hlZgACMRlrG44roUqiRT5g5qxbgAEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCYlp0-XMiaKdRHdkDbB-wFJhvboMggACHBlrG44roUqtsh29vbfKDwEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCYtp0-XYUWh_w469B_k9bmx_AyN6xwACHhlrG44roUownEun6FXx9wEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCY1p0-Xpe_jtRApGaeWLcT_gP_BrDAACIRlrG44roUpjcWI0mmqKEQEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCY9p0-X0GRu5zGft_52MK2ok0VBtOAACIxlrG44roUoEcYYb8HacQQEAAwIAA3MAAzsE
         linux:
         - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
       shadowsocks-2022:
