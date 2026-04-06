@@ -255,7 +255,7 @@ async def show_user_config_sql_cm_start(message: Message):
 async def show_user_config_sql(message: Message):
     """Send message with SQL qauery for INSERT of configuration provided by admin."""
     # parse arguments
-    if message.photo or message.document:
+    if message.document:
         arguments = message.caption.split(' ')
     else:
         arguments = message.text.split(' ')
@@ -269,13 +269,8 @@ async def show_user_config_sql(message: Message):
     elif len(arguments) == 6:
         flag_username_or_telegram_id, flag_protocol, flag_location, os, date_of_receipt_date, date_of_receipt_time = arguments
 
-        # if photo was sended
-        if message.photo:
-            file_type = 'photo'
-            link = message.photo[0].file_id
-
         # if document was sended
-        elif message.document:
+        if message.document:
             file_type = 'document'
             link = message.document.file_id
 
@@ -315,7 +310,7 @@ async def show_user_config_sql(message: Message):
         await message.answer(loc.admn.msgs['error_bad_location'])
         return
 
-    answer_text = '<code>INSERT INTO configurations(client_id, protocol_id, server_id, os, file_type, telegram_file_id, date_of_receipt) '
+    answer_text = '<code>INSERT INTO configurations(client_id, protocol_id, server_id, os, file_type, link, date_of_receipt) '
     answer_text += f"VALUES({client_id}, {protocol_id}, '{server_id}', '{os}', '{file_type}', '{link}', TIMESTAMP '{date_of_receipt_date} {date_of_receipt_time}');</code>"
     await message.answer(answer_text, parse_mode='HTML')
 
@@ -495,8 +490,8 @@ async def check_user_configs(message: Message):
     await message.answer(loc.auth.msgs['configs_info'].format(len(configurations_info)), parse_mode='HTML')
 
     # send message for every configuration
-    for file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, telegram_file_id, config_id, server_name in configurations_info:
-        await internal_functions.send_configuration(message.from_user.id, file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, telegram_file_id, config_id, server_name)
+    for file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name in configurations_info:
+        await internal_functions.send_configuration(message.from_user.id, file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name)
 
 
 @admin_mw.admin_only()
@@ -544,7 +539,7 @@ async def send_configuration(message: Message, state: FSMContext):
             file_type = 'link'
             flag_protocol, flag_location, flag_link = text.split(' ')
             await internal_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, flag_link)
-            _, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, telegram_file_id, config_id, server_name = (await postgres_dbms.get_configurations_info(client_id))[-1]
+            _, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name = (await postgres_dbms.get_configurations_info(client_id))[-1]
 
         # if message is document
         elif document := message.document:
@@ -553,34 +548,25 @@ async def send_configuration(message: Message, state: FSMContext):
             flag_protocol, flag_location = message.caption.split(' ')
             telegram_file_id = document.file_id
             await internal_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, telegram_file_id=telegram_file_id)
-            file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, telegram_file_id, config_id, server_name = (await postgres_dbms.get_configurations_info(client_id))[-1]
-
-        # if message is photo
-        elif photo := message.photo:
-            # create configuration
-            file_type = 'photo'
-            flag_protocol, flag_location = message.caption.split(' ')
-            telegram_file_id = photo[0].file_id
-            await internal_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, telegram_file_id=telegram_file_id)
-            file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, telegram_file_id, config_id, server_name = (await postgres_dbms.get_configurations_info(client_id))[-1]
+            file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name = (await postgres_dbms.get_configurations_info(client_id))[-1]
 
         # other cases
         else:
             await message.reply(loc.admn.msgs['error_bad_attachment'])
             return
-        
+
         # send message to client, admin and finish FSM for sending configurations
         await bot.send_message(telegram_id, loc.auth.msgs['config_was_received'], parse_mode='HTML')
-        await internal_functions.send_configuration(telegram_id, file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, telegram_file_id, config_id, server_name)
+        await internal_functions.send_configuration(telegram_id, file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name)
         await bot.send_message(telegram_id, loc.auth.msgs['configs_rules'], parse_mode='HTML')
         await message.reply(loc.admn.msgs['config_was_sent'].format(file_type), parse_mode='HTML')
         await state.finish()
 
     # catch create_configuration() exceptions
     except ValueError as ve:
-        await message.reply(loc.admn.msgs['error_bad_flags_number'].format(ve))
+        await message.reply(loc.admn.msgs['error_bad_flags_number'].format(ve), parse_mode='HTML')
     except Exception as e:
-        await message.reply(loc.admn.msgs['error_unrecognized'].format(e))
+        await message.reply(loc.admn.msgs['error_unrecognized'].format(e), parse_mode='HTML')
 
 
 def register_handlers_admin(dp: Dispatcher):
@@ -599,7 +585,7 @@ def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(show_user_config_sql_cm_start, Text(loc.admn.btns['sql_insert_config']))
     dp.register_message_handler(show_user_config_sql_cm_start, commands=['sql_config'])
     dp.register_message_handler(check_user_configs, commands=['configs'])
-    dp.register_message_handler(show_user_config_sql, state=admin_fsm.ConfigInfo.ready, content_types=['text', 'photo', 'document'])
+    dp.register_message_handler(show_user_config_sql, state=admin_fsm.ConfigInfo.ready, content_types=['text', 'document'])
     dp.register_message_handler(sql_query_fsm_start, Text(loc.admn.btns['sql_query']))
     dp.register_message_handler(sql_query_password_verification, state=admin_fsm.SQLQuery.password)
     dp.register_message_handler(sql_query_execution, state=admin_fsm.SQLQuery.query)
@@ -611,4 +597,4 @@ def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(get_file_id, Text(loc.admn.btns['get_file_id']), content_types=['text', 'photo', 'document'])
     dp.register_message_handler(get_file_id, commands=['fileid', 'fid'], commands_ignore_caption=False, content_types=['text', 'photo', 'document'])
     dp.register_callback_query_handler(send_configuration_fsm_start, lambda call: ':' in call.data and call.data.split(':', 1)[0].isdigit(), state='*')
-    dp.register_message_handler(send_configuration, content_types=['text', 'photo', 'document'], state=admin_fsm.SendConfig.ready)
+    dp.register_message_handler(send_configuration, content_types=['text', 'document'], state=admin_fsm.SendConfig.ready)

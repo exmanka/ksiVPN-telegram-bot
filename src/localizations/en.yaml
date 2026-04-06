@@ -431,10 +431,10 @@ admin:
 
       <b>client_id</b> - client_username | client_telegram_id
       <b>protocol</b> - protocol alias (e.g. <code>wg</code>, <code>x</code>, <code>ss</code>)
-      <b>server</b> - server alias (e.g. <code>nl1</code>, <code>lv1</code>, <code>de1</code>, <code>us1</code>)
+      <b>server</b> - server alias (e.g. <code>nl01</code>, <code>lv01</code>, <code>de01</code>)
       <b>os</b> - <code>Android</code> | <code>IOS</code> | <code>Windows</code> | <code>Linux</code>
       <b>date_of_receipt</b> - date of receipt of the configuration in the format <code>YYYY-MM-DD HH-MI</code>
-      <b>link</b> - if instead of a photo or a *.conf file, you need a link for XTLS/SS for PC
+      <b>link</b> - if instead of file you need a link like <code>vless://</code> or <code>ss://</code>
 
       <b>Do not forget to attach the file if required!</b>
     sql_insert_config_check_config_info: "By the way, you can check which configurations are available to the user in the admin menu with the command \n/configs <i>telegram_id</i> | <i>username</i>"
@@ -468,8 +468,8 @@ admin:
       Send me a message in the format (use spaces instead of line breaks):
 
       <b>protocol</b> — protocol alias (e.g. <code>wg</code>, <code>x</code>, <code>ss</code>)
-      <b>server</b> — server alias (e.g. <code>nl1</code>, <code>lv1</code>, <code>de1</code>, <code>us1</code>)
-      <b>link</b> — if instead of a photo or a *.conf file, you need a link for XTLS/SS for PC
+      <b>server</b> — server alias (e.g. <code>nl01</code>, <code>lv01</code>, <code>de01</code>)
+      <b>link</b> - if instead of file you need a link like <code>vless://</code> or <code>ss://</code>
 
       <b>Do not forget to attach the file if required!</b>
     config_was_sent: Excellent, configuration type <b>{0}</b> has been sent!

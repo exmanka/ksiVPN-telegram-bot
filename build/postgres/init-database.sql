@@ -126,11 +126,11 @@ CREATE TABLE servers (
 	api_password TEXT DEFAULT NULL
 );
 INSERT INTO servers(id, alias, name, country, city, description, bandwidth, ping, available_services)
-VALUES('ksivpn-netherlands-1p', 'nl1', '🇳🇱 Netherlands #1', 'Country of your awesome server', 'City of your awesome server', 'Here is your awesome server description.', 1000, 30, ARRAY['Instagram', 'YouTube', 'ChatGPT']);
+VALUES('ksivpn-netherlands-1p', 'nl01', '🇳🇱 Netherlands #1', 'Country of your awesome server', 'City of your awesome server', 'Here is your awesome server description.', 1000, 30, ARRAY['Instagram', 'YouTube', 'ChatGPT']);
 
 
 CREATE TYPE osEnum AS ENUM ('Android', 'IOS', 'Windows', 'macOS', 'Linux');
-CREATE TYPE fileTypeEnum AS ENUM('photo', 'document', 'link');
+CREATE TYPE fileTypeEnum AS ENUM('document', 'link');
 CREATE TABLE configurations (
 	id SERIAL PRIMARY KEY,
 	client_id INT NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
@@ -138,10 +138,10 @@ CREATE TABLE configurations (
 	server_id VARCHAR(64) NOT NULL REFERENCES servers(id) ON UPDATE CASCADE ON DELETE CASCADE,
 	os osEnum NOT NULL,
 	file_type fileTypeEnum NOT NULL,
-	telegram_file_id VARCHAR(512) UNIQUE NOT NULL,
+	link VARCHAR(512) UNIQUE NOT NULL,
 	date_of_receipt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-INSERT INTO configurations(client_id, protocol_id, server_id, os, file_type, telegram_file_id, date_of_receipt)
+INSERT INTO configurations(client_id, protocol_id, server_id, os, file_type, link, date_of_receipt)
 VALUES(1, 1, 'ksivpn-netherlands-1p', 'Android', 'link', 'vless://link_or_telegram_file_id_here', 'EPOCH');
 
 

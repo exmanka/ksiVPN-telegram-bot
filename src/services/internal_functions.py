@@ -153,13 +153,13 @@ async def send_configuration(telegram_id: int,
                              server_bandwidth: int,
                              server_ping: int,
                              available_services: list[str],
-                             configuration_telegram_file_id: str,
+                             configuration_link: str,
                              configuration_id: int,
                              server_name: str):
     """Send message with specified configuration by telegram_id.
 
     :param telegram_id:
-    :param configuration_file_type: file type ('photo', 'document' or 'link)
+    :param configuration_file_type: file type ('document' or 'link')
     :param configuration_date_of_receipt: date the configuration was created
     :param configuration_os: name of OS provided by configuration
     :param configuration_protocol_name: name of protocol provided by configuration
@@ -168,26 +168,21 @@ async def send_configuration(telegram_id: int,
     :param server_bandwidth: bandwidth of server provided by configuration
     :param server_ping: average ping of server provided by configuration
     :param available_services: list of available services on this server
-    :param configuration_telegram_file_id: telegram file id of provided configuration
+    :param configuration_link: telegram file id (for 'document') or VPN URI string (for 'link')
     :param configuration_id: configuration ID in database
     :param server_name: human-readable server name
     :raises Exception: wrong file type
     """
     answer_text = await create_configuration_description(configuration_date_of_receipt, configuration_os, configuration_protocol_name, server_country, server_city, server_bandwidth, server_ping, available_services, configuration_id, server_name)
 
-    # if config was generated as photo
-    if configuration_file_type == 'photo':
-        await bot.send_photo(telegram_id, configuration_telegram_file_id, answer_text, parse_mode='HTML',
-                             reply_markup=await user_authorized_kb.configuration_instruction_inline(configuration_protocol_name, configuration_os))
-
     # if config was generated as document
-    elif configuration_file_type == 'document':
-        await bot.send_document(telegram_id, configuration_telegram_file_id, caption=answer_text, parse_mode='HTML',
+    if configuration_file_type == 'document':
+        await bot.send_document(telegram_id, configuration_link, caption=answer_text, parse_mode='HTML',
                                 reply_markup=await user_authorized_kb.configuration_instruction_inline(configuration_protocol_name, configuration_os))
 
     # if config was generated as link
     elif configuration_file_type == 'link':
-        answer_text = f'<code>{configuration_telegram_file_id}</code>\n\n' + answer_text
+        answer_text = f'<code>{configuration_link}</code>\n\n' + answer_text
         await bot.send_message(telegram_id, answer_text, parse_mode='HTML',
                                reply_markup=await user_authorized_kb.configuration_instruction_inline(configuration_protocol_name, configuration_os))
 
@@ -366,25 +361,24 @@ async def create_configuration(client_id: int,
                                flag_location: str,
                                flag_os: str,
                                flag_link: str | None = None,
-                               telegram_file_id: int | None = None):
+                               telegram_file_id: str | None = None):
     """Create new configuration in db.
 
     :param client_id:
-    :param file_type: file type in ('link', 'document', 'photo')
+    :param file_type: file type in ('link', 'document')
     :param flag_protocol: protocol name in ('wireguar', 'w', 'wg', 'xtls-reality', 'x', 'xtls', 'reality', 'shadowsocks', 's', 'ss')
     :param flag_location: location name in ('netherlands', 'n', 'latvia', 'l', 'germany', 'g', 'usa', 'u')
     :param flag_os: os name in ('android', 'ios', 'windows', 'linux', 'macos', 'mac')
     :param flag_link: link for XTLS-Reality starting from 'vless://'
-    :param telegram_file_id:
+    :param telegram_file_id: telegram file_id for 'document' configurations
     :raises Exception: invalid telegram_file_id
     :raises Exception: invalid file_type
     """
-    link = None
     if file_type == 'link':
         protocol_id, server_id, os_enum, link = await get_configuration_sql_data(flag_protocol, flag_location, flag_os, flag_link)
         await postgres_dbms.insert_configuration(client_id, protocol_id, server_id, os_enum, file_type, link)
 
-    elif file_type == 'document' or 'photo':
+    elif file_type == 'document':
         if telegram_file_id is None:
             raise Exception(loc.internal.msgs['error_no_telegram_file_id'])
 
