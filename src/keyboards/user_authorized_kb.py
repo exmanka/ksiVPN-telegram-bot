@@ -111,5 +111,10 @@ async def settings_chatgpt(client_id: int) -> ReplyKeyboardMarkup:
 
 
 async def configuration_instruction_inline(configuration_protocol_name: str, configuration_os: str) -> InlineKeyboardMarkup:
-    """Return dynamic inline keyboard with specified protocol and configuration OS as callback_data."""
-    return InlineKeyboardMarkup().add(InlineKeyboardButton(loc.auth.btns['installation_instruction'], callback_data=configuration_protocol_name + '--' + configuration_os))
+    """Return dynamic inline keyboard with basic and advanced instruction buttons."""
+    kb = InlineKeyboardMarkup()
+    kb.add(InlineKeyboardButton(loc.auth.btns['basic_installation_instruction'],
+                                callback_data='basic--' + configuration_protocol_name + '--' + configuration_os))
+    kb.add(InlineKeyboardButton(loc.auth.btns['advanced_installation_instruction'],
+                                callback_data='advanced--' + configuration_protocol_name + '--' + configuration_os))
+    return kb

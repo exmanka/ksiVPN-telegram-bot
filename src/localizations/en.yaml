@@ -213,7 +213,7 @@ user_authorized:
       Don't forget to renew your subscription!
 
       <tg-spoiler><i>You can disable the reminder by going to «Personal Account» — «Settings» — «Notifications».</i></tg-spoiler>
-    instructions:
+    basic_instructions:
       wireguard:
         android: |-
           ⚙️ <b>Instructions for installing WireGuard on Android:</b>
@@ -316,6 +316,25 @@ user_authorized:
           <b>The Shadowsocks-2022 protocol is currently used only by the testing team.</b>
 
           If you are reading this message without being a tester, it means that the administrator made a mistake when creating the configuration. Write to him to clarify the problem!
+    advanced_instructions:
+      wireguard:
+        android: Coming soon!
+        ios: Coming soon!
+        windows: Coming soon!
+        macos: Coming soon!
+        linux: Coming soon!
+      xray vless xtls-reality:
+        android: Coming soon!
+        ios: Coming soon!
+        windows: Coming soon!
+        macos: Coming soon!
+        linux: Coming soon!
+      shadowsocks-2022:
+        android: Coming soon!
+        ios: Coming soon!
+        windows: Coming soon!
+        macos: Coming soon!
+        linux: Coming soon!
   keyboard_buttons:
     sub_renewal: ❤️‍🔥 Renew subscription!
     sub_status: Subscription status
@@ -355,11 +374,12 @@ user_authorized:
     return_to_settings: Back
     chatgpt_off: Disable
     chatgpt_on: Enable
-    installation_instruction: Installation instructions
+    basic_installation_instruction: Basic installation instructions
+    advanced_installation_instruction: Advanced installation instructions
   telegram_file_ids:
     rules: AgACAgIAAxkBAAJUyGWoBkWcqxDLR5T7rxSAgxD9k8LJAALd1DEbxdRBSUXUhjzY2aggAQADAgADcwADNAQ
     ref_program_info: AgACAgIAAxkBAAJUv2WoBaYCCxzAlLwaiIEttY5NnqytAALa1DEbxdRBSdtn1kU78RbOAQADAgADcwADNAQ
-    instructions:
+    basic_instructions:
       wireguard:
         android:
         - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
@@ -381,6 +401,40 @@ user_authorized:
         windows:
         - AgACAgIAAxkBAAJVQmWoIG23wCiME_papPi_ji5-CPGMAAKV1jEb7uNASf1LfFIT-ON3AQADAgADcwADNAQ
         - AgACAgIAAxkBAAJVRGWoIHJzBe6c6xp-InaOVX0pOqoQAAJk1TEbxdRBSc-fRhGfNPwwAQADAgADcwADNAQ
+        macos:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        linux:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+      shadowsocks-2022:
+        android:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        ios:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        windows:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        macos:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        linux:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+    advanced_instructions:
+      wireguard:
+        android:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        ios:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        windows:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        macos:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        linux:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+      xray vless xtls-reality:
+        android:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        ios:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        windows:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
         macos:
         - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
         linux:

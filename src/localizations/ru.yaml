@@ -223,7 +223,7 @@ user_authorized:
       Не забудьте продлить подписку!
 
       <tg-spoiler><i>Напоминание можно отключить, перейдя в «Личный кабинет» — «Настройки» — «Уведомления».</i></tg-spoiler>
-    instructions:
+    basic_instructions:
       wireguard:
         android: |-
           ⚙️ <b>Инструкция по установке WireGuard на Android:</b>
@@ -337,6 +337,70 @@ user_authorized:
           <b>Протокол Shadowsocks-2022 в данный момент используется только командой тестирования.</b>
 
           Если вы читаете данное сообщение, не являясь тестировщиком, значит, администратор ошибся при создании конфигурации. Напишите ему для выяснения проблемы!
+    advanced_instructions:
+      wireguard:
+        android: |-
+          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
+          
+          Ожидайте обновления!
+        ios: |-
+          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
+          
+          Ожидайте обновления!
+        windows: |-
+          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
+          
+          Ожидайте обновления!
+        macos: |-
+          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
+          
+          Ожидайте обновления!
+        linux: |-
+          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
+          
+          Ожидайте обновления!
+      xray vless xtls-reality:
+        android: |-
+          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
+          
+          Ожидайте обновления!
+        ios: |-
+          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
+          
+          Ожидайте обновления!
+        windows: |-
+          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
+          
+          Ожидайте обновления!
+        macos: |-
+          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
+          
+          Ожидайте обновления!
+        linux: |-
+          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
+          
+          Ожидайте обновления!
+      shadowsocks-2022:
+        android: |-
+          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
+          
+          Ожидайте обновления!
+        ios: |-
+          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
+          
+          Ожидайте обновления!
+        windows: |-
+          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
+          
+          Ожидайте обновления!
+        macos: |-
+          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
+          
+          Ожидайте обновления!
+        linux: |-
+          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
+          
+          Ожидайте обновления!
   keyboard_buttons:
     sub_renewal: ❤️‍🔥 Продлить подписку!
     sub_status: Статус подписки
@@ -376,11 +440,12 @@ user_authorized:
     return_to_settings: Обратно в настройки
     chatgpt_off: Выключить
     chatgpt_on: Включить
-    installation_instruction: Инструкция по установке
+    basic_installation_instruction: Базовая инструкция по установке
+    advanced_installation_instruction: Продвинутая инструкция по установке
   telegram_file_ids:
     rules: AgACAgIAAxkBAAJUyGWoBkWcqxDLR5T7rxSAgxD9k8LJAALd1DEbxdRBSUXUhjzY2aggAQADAgADcwADNAQ
     ref_program_info: AgACAgIAAxkBAAJUv2WoBaYCCxzAlLwaiIEttY5NnqytAALa1DEbxdRBSdtn1kU78RbOAQADAgADcwADNAQ
-    instructions:
+    basic_instructions:
       wireguard:
         android:
         - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
@@ -418,6 +483,40 @@ user_authorized:
         - AgACAgIAAxkBAAEDCYtp0-XYUWh_w469B_k9bmx_AyN6xwACHhlrG44roUownEun6FXx9wEAAwIAA3MAAzsE
         - AgACAgIAAxkBAAEDCY1p0-Xpe_jtRApGaeWLcT_gP_BrDAACIRlrG44roUpjcWI0mmqKEQEAAwIAA3MAAzsE
         - AgACAgIAAxkBAAEDCY9p0-X0GRu5zGft_52MK2ok0VBtOAACIxlrG44roUoEcYYb8HacQQEAAwIAA3MAAzsE
+        linux:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+      shadowsocks-2022:
+        android:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        ios:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        windows:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        macos:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        linux:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+    advanced_instructions:
+      wireguard:
+        android:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        ios:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        windows:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        macos:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        linux:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+      xray vless xtls-reality:
+        android:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        ios:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        windows:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+        macos:
+        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
         linux:
         - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
       shadowsocks-2022:
