@@ -615,6 +615,17 @@ admin:
       <b>link</b> - если вместо файла нужна ссылка вида <code>vless://</code> или <code>ss://</code>
 
       <b>Не забываем прикрепить файл, если требуется!</b>
+    send_configuration_info_legacy: |-
+      ⚠️ <b>Старый запрос</b> — ОС не определена автоматически.
+
+      Пришлите сообщение в формате (пробелы вместо переносов):
+
+      <b>protocol</b> — alias протокола (напр. <code>wg</code>, <code>x</code>)
+      <b>server</b> — alias сервера (напр. <code>nl1</code>, <code>lv1</code>)
+      <b>os</b> — платформа: <code>android</code> / <code>ios</code> / <code>windows</code> / <code>macos</code> / <code>linux</code>
+      <b>link</b> — ссылка вида <code>vless://</code> (если вместо файла)
+
+      <b>Не забываем прикрепить файл, если требуется!</b>
     config_was_sent: Отлично, конфигурация типа <b>{0}</b> отправлена!
     error_bad_flags_number: |-
       Ошибка: {0}

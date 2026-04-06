@@ -533,6 +533,17 @@ admin:
       <b>link</b> - if instead of file you need a link like <code>vless://</code> or <code>ss://</code>
 
       <b>Do not forget to attach the file if required!</b>
+    send_configuration_info_legacy: |-
+      ⚠️ <b>Legacy request</b> — OS was not determined automatically.
+
+      Send a message in the format (spaces instead of line breaks):
+
+      <b>protocol</b> — protocol alias (e.g. <code>wg</code>, <code>x</code>)
+      <b>server</b> — server alias (e.g. <code>nl1</code>, <code>lv1</code>)
+      <b>os</b> — platform: <code>android</code> / <code>ios</code> / <code>windows</code> / <code>macos</code> / <code>linux</code>
+      <b>link</b> — link like <code>vless://</code> (if instead of a file)
+
+      <b>Do not forget to attach the file if required!</b>
     config_was_sent: Excellent, configuration type <b>{0}</b> has been sent!
     error_bad_flags_number: |-
       Error: {0}
