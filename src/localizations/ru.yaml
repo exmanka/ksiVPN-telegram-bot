@@ -451,10 +451,10 @@ admin:
 
       <b>client_id</b> - client_username | client_telegram_id
       <b>protocol</b> - alias протокола (напр. <code>wg</code>, <code>x</code>, <code>ss</code>)
-      <b>server</b> - alias сервера (напр. <code>nl1</code>, <code>lv1</code>, <code>de1</code>, <code>us1</code>)
+      <b>server</b> - alias сервера (напр. <code>nl01</code>, <code>lv01</code>, <code>de01</code>)
       <b>os</b> - <code>Android</code> | <code>IOS</code> | <code>Windows</code> | <code>Linux</code>
       <b>date_of_receipt</b> - дата получения конфигурации в формате <code>YYYY-MM-DD HH-MI</code>
-      <b>link</b> - если вместо фото или файла *.conf нужна ссылка для XTLS/SS для ПК
+      <b>link</b> - если вместо файла нужна ссылка вида <code>vless://</code> или <code>ss://</code>
 
       <b>Не забываем прикрепить файл, если требуется!</b>
     sql_insert_config_check_config_info: |-
@@ -490,8 +490,8 @@ admin:
       Пришлите мне сообщение в формате (вместо переноса строк используйте пробелы):
 
       <b>protocol</b> — alias протокола (напр. <code>wg</code>, <code>x</code>, <code>ss</code>)
-      <b>server</b> — alias сервера (напр. <code>nl1</code>, <code>lv1</code>, <code>de1</code>, <code>us1</code>)
-      <b>link</b> — если вместо фото или файла *.conf нужна ссылка для XTLS/SS для ПК
+      <b>server</b> — alias сервера (напр. <code>nl01</code>, <code>lv01</code>, <code>de01</code>)
+      <b>link</b> - если вместо файла нужна ссылка вида <code>vless://</code> или <code>ss://</code>
 
       <b>Не забываем прикрепить файл, если требуется!</b>
     config_was_sent: Отлично, конфигурация типа <b>{0}</b> отправлена!

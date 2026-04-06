@@ -414,14 +414,14 @@ async def get_configurations_info(client_id: int) -> list[asyncpg.Record]:
 
     :param client_id:
     :return: list of asyncgp.Record objects having (file_type, TO_CHAR(date_of_receipt, 'FMDD TMMonth YYYY в HH24:MI'),
-    os, name, country, city, bandwidth, ping, available_services, telegram_file_id, id, server_name)
+    os, name, country, city, bandwidth, ping, available_services, link, id, server_name)
     :rtype: list[asyncpg.Record]
     """
     async with pool.acquire() as conn:
         return await conn.fetch(
             '''
             SELECT c.file_type, TO_CHAR(c.date_of_receipt, 'FMDD TMMonth YYYY в HH24:MI'), c.os,
-            cp.name, s.country, s.city, s.bandwidth, s.ping, s.available_services, c.telegram_file_id, c.id, s.name AS server_name
+            cp.name, s.country, s.city, s.bandwidth, s.ping, s.available_services, c.link, c.id, s.name AS server_name
             FROM configurations AS c
             JOIN configurations_protocols AS cp ON c.protocol_id = cp.id
             JOIN servers AS s ON c.server_id = s.id
@@ -927,16 +927,16 @@ async def insert_configuration(client_id: int,
                                server_id: str,
                                os: str,
                                file_type: str,
-                               telegram_file_id: str) -> None:
+                               link: str) -> None:
     """Add new configuration for client in DB."""
     async with pool.acquire() as conn:
         async with conn.transaction():
             await conn.execute(
                 '''
-                INSERT INTO configurations (client_id, protocol_id, server_id, os, file_type, telegram_file_id)
+                INSERT INTO configurations (client_id, protocol_id, server_id, os, file_type, link)
                 VALUES ($1, $2, $3, $4, $5, $6);
                 ''',
-                client_id, protocol_id, server_id, os, file_type, telegram_file_id)
+                client_id, protocol_id, server_id, os, file_type, link)
 
             # execute only for new clients
             await conn.execute(

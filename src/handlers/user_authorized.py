@@ -258,8 +258,8 @@ async def account_configurations_info(message: Message):
     await message.answer(loc.auth.msgs['configs_info'].format(len(configurations_info)), parse_mode='HTML')
 
     # send message for every configuration
-    for file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, telegram_file_id, config_id, server_name in configurations_info:
-        await internal_functions.send_configuration(message.from_user.id, file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, telegram_file_id, config_id, server_name)
+    for file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name in configurations_info:
+        await internal_functions.send_configuration(message.from_user.id, file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name)
 
     await message.answer(loc.auth.msgs['configs_rules'], parse_mode='HTML')
 
