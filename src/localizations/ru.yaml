@@ -233,7 +233,8 @@ user_authorized:
           <b>4.</b> Ввести название вашего VPN-туннеля! Именование можно задавать любое, но рекомендуется называть туннель страной расположения (Netherlands/Germany/Latvia/USA).
 
           🎉 <b>Инструкция по использованию:</b>
-          <b>1.</b> Для включения VPN достаточно нажать на переключатель справа от названия туннеля. В первый раз телефон может выдать уведомление о добавлении нового VPN-соединения — необходимо согласиться.
+          <b>1.</b> Для включения VPN достаточно нажать на переключатель справа от названия туннеля.
+          В первый раз телефон может выдать уведомление о добавлении нового VPN-соединения — необходимо согласиться.
           <b>2.</b> Для выключения VPN нужно снова изменить положение переключателя.
         ios: |-
           ⚙️ <b>Инструкция по установке WireGuard на IOS:</b>
@@ -243,7 +244,8 @@ user_authorized:
           <b>4.</b> Ввести название вашего VPN-туннеля! Именование можно задавать любое, но рекомендуется называть туннель страной расположения (Netherlands/Germany/Latvia/USA).
 
           🎉 <b>Инструкция по использованию:</b>
-          <b>1.</b> Для включения VPN достаточно нажать на переключатель справа от названия туннеля. В первый раз телефон может выдать уведомление о добавлении нового VPN-соединения — необходимо согласиться.
+          <b>1.</b> Для включения VPN достаточно нажать на переключатель справа от названия туннеля.
+          В первый раз телефон может выдать уведомление о добавлении нового VPN-соединения — необходимо согласиться.
           <b>2.</b> Для выключения VPN нужно снова изменить положение переключателя.
         windows: |-
           ⚙️ <b>Инструкция по установке WireGuard на Windows:</b>
@@ -277,10 +279,11 @@ user_authorized:
           <b>4.</b> Убедиться, что отправленная ботом конфигурация добавилась и сейчас выбрана.
 
           🎉 <b>Инструкция по использованию:</b>
-          <b>1.</b> Для включения VPN достаточно нажать на кнопку включения VPN в центре. В первый раз телефон может выдать уведомление о добавлении нового VPN-соединения — необходимо согласиться.
+          <b>1.</b> Для включения VPN достаточно нажать на кнопку включения VPN в центре.
+          В первый раз телефон может выдать уведомление о добавлении нового VPN-соединения — необходимо согласиться.
           <b>2.</b> Для выключения VPN нужно снова нажать на ту же кнопку.
         ios: |-
-          ⚙️ <b>Инструкция по установке xray на Android:</b>
+          ⚙️ <b>Инструкция по установке xray на iOS:</b>
           <b>0.</b> Скачать и установить официальное приложение Happ — <a href="https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973">ссылка в App Store</a>.
           <b>1.</b> Скопировать ссылку, отправленную ботом.
           <b>2.</b> Запустить приложение и нажать на значок <b>«+»</b> в правом верхнем углу.
@@ -288,7 +291,8 @@ user_authorized:
           <b>4.</b> Убедиться, что отправленная ботом конфигурация добавилась и сейчас выбрана.
 
           🎉 <b>Инструкция по использованию:</b>
-          <b>1.</b> Для включения VPN достаточно нажать на кнопку включения VPN в центре. В первый раз телефон может выдать уведомление о добавлении нового VPN-соединения — необходимо согласиться.
+          <b>1.</b> Для включения VPN достаточно нажать на кнопку включения VPN в центре.
+          В первый раз телефон может выдать уведомление о добавлении нового VPN-соединения — необходимо согласиться.
           <b>2.</b> Для выключения VPN нужно снова нажать на ту же кнопку.
         windows: |-
           ⚙️ <b>Инструкция по установке xray на Windows:</b>
@@ -302,7 +306,7 @@ user_authorized:
           <b>1.</b> Для включения VPN достаточно нажать на кнопку включения VPN в центре.
           <b>2.</b> Для выключения VPN нужно снова нажать на ту же кнопку.
         macos: |-
-          ⚙️ <b>Инструкция по установке xray на Windows:</b>
+          ⚙️ <b>Инструкция по установке xray на MacOS:</b>
           <b>0.</b> Скачать и установить официальное приложение Happ — <a href="https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973">ссылка в App Store</a>.
           <b>1.</b> Скопировать ссылку, отправленную ботом.
           <b>2.</b> Запустить приложение и нажать на значок <b>«+»</b> в правом верхнем углу.
@@ -462,27 +466,27 @@ user_authorized:
         - AgACAgIAAxkBAAEDCYVp0-WPTsNqWkqWd4QGs9c1QDNEnQACGBlrG44roUrtHB29Gg0xGQEAAwIAA3MAAzsE
         - AgACAgIAAxkBAAEDCYdp0-W7RpGpxvL7NpRIzCCck8NhKgACGhlrG44roUp9-rGsCRj73gEAAwIAA3MAAzsE
         - AgACAgIAAxkBAAEDCYlp0-XMiaKdRHdkDbB-wFJhvboMggACHBlrG44roUqtsh29vbfKDwEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCYtp0-XYUWh_w469B_k9bmx_AyN6xwACHhlrG44roUownEun6FXx9wEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCY1p0-Xpe_jtRApGaeWLcT_gP_BrDAACIRlrG44roUpjcWI0mmqKEQEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCY9p0-X0GRu5zGft_52MK2ok0VBtOAACIxlrG44roUoEcYYb8HacQQEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCe5p0_W1ekziC8bBttIX0u92u6OkpAACixlrG44roUqGbRaKhbk5sQEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCfBp0_X-G79j8wfqYsQxt1LH1o6zSAACjRlrG44roUrJvycrqZpQ5gEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCfJp0_YVAcbu7pZGg_ONz4ahbLwhnwACjxlrG44roUr4QvGWUPV_NgEAAwIAA3MAAzsE
         ios:
         - AgACAgIAAxkBAAEDCZJp0-Y4vjo2N5jKoPndYZ1blPuOAwACJBlrG44roUqTdGIxFiKORAEAAwIAA3MAAzsE
         - AgACAgIAAxkBAAEDCYlp0-XMiaKdRHdkDbB-wFJhvboMggACHBlrG44roUqtsh29vbfKDwEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCYtp0-XYUWh_w469B_k9bmx_AyN6xwACHhlrG44roUownEun6FXx9wEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCY1p0-Xpe_jtRApGaeWLcT_gP_BrDAACIRlrG44roUpjcWI0mmqKEQEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCY9p0-X0GRu5zGft_52MK2ok0VBtOAACIxlrG44roUoEcYYb8HacQQEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCe5p0_W1ekziC8bBttIX0u92u6OkpAACixlrG44roUqGbRaKhbk5sQEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCfBp0_X-G79j8wfqYsQxt1LH1o6zSAACjRlrG44roUrJvycrqZpQ5gEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCfJp0_YVAcbu7pZGg_ONz4ahbLwhnwACjxlrG44roUr4QvGWUPV_NgEAAwIAA3MAAzsE
         windows:
         - AgACAgIAAxkBAAEDCZpp0-aYMCDMZK5nU5VTJnDtnotM5wACMBlrG44roUq7bcgw-Uc0nwEAAwIAA3MAAzsE
         - AgACAgIAAxkBAAEDCYlp0-XMiaKdRHdkDbB-wFJhvboMggACHBlrG44roUqtsh29vbfKDwEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCYtp0-XYUWh_w469B_k9bmx_AyN6xwACHhlrG44roUownEun6FXx9wEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCY1p0-Xpe_jtRApGaeWLcT_gP_BrDAACIRlrG44roUpjcWI0mmqKEQEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCY9p0-X0GRu5zGft_52MK2ok0VBtOAACIxlrG44roUoEcYYb8HacQQEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCe5p0_W1ekziC8bBttIX0u92u6OkpAACixlrG44roUqGbRaKhbk5sQEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCfBp0_X-G79j8wfqYsQxt1LH1o6zSAACjRlrG44roUrJvycrqZpQ5gEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCfJp0_YVAcbu7pZGg_ONz4ahbLwhnwACjxlrG44roUr4QvGWUPV_NgEAAwIAA3MAAzsE
         macos:
         - AgACAgIAAxkBAAEDCZxp0-azZ_fDJ-j8iCPplcR235hlZgACMRlrG44roUqiRT5g5qxbgAEAAwIAA3MAAzsE
         - AgACAgIAAxkBAAEDCYlp0-XMiaKdRHdkDbB-wFJhvboMggACHBlrG44roUqtsh29vbfKDwEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCYtp0-XYUWh_w469B_k9bmx_AyN6xwACHhlrG44roUownEun6FXx9wEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCY1p0-Xpe_jtRApGaeWLcT_gP_BrDAACIRlrG44roUpjcWI0mmqKEQEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCY9p0-X0GRu5zGft_52MK2ok0VBtOAACIxlrG44roUoEcYYb8HacQQEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCe5p0_W1ekziC8bBttIX0u92u6OkpAACixlrG44roUqGbRaKhbk5sQEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCfBp0_X-G79j8wfqYsQxt1LH1o6zSAACjRlrG44roUrJvycrqZpQ5gEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDCfJp0_YVAcbu7pZGg_ONz4ahbLwhnwACjxlrG44roUr4QvGWUPV_NgEAAwIAA3MAAzsE
         linux:
         - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
       shadowsocks-2022:
