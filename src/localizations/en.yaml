@@ -465,7 +465,6 @@ admin:
 
       <b>protocol</b> — protocol alias (e.g. <code>wg</code>, <code>x</code>, <code>ss</code>)
       <b>server</b> — server alias (e.g. <code>nl1</code>, <code>lv1</code>, <code>de1</code>, <code>us1</code>)
-      <b>os</b> — <code>android</code> | <code>ios</code> | <code>windows</code> | <code>macos/mac</code> | <code>linux</code>
       <b>link</b> — if instead of a photo or a *.conf file, you need a link for XTLS/SS for PC
 
       <b>Do not forget to attach the file if required!</b>
@@ -619,7 +618,7 @@ internal_functions:
       <b>Protocol</b>: {6}
       <b>Platform</b>: {7}
 
-      <i>Created {8}, ID — {9}</i>
+      <i>Created {8}, ID {9}</i>
     config_request_new_client: |-
       👾 <b>Connection request from a new client!</b>
 

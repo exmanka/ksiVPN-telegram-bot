@@ -519,8 +519,10 @@ async def get_file_id(message: Message):
 async def send_configuration_fsm_start(call: CallbackQuery, state: FSMContext):
     """Start FSM for sending configurations for a client after pressing inline button and send instruction."""
     await admin_fsm.SendConfig.ready.set()
+    telegram_id_str, _, os_alias = call.data.partition(':')
     async with state.proxy() as data:
-        data['telegram_id'] = call.data
+        data['telegram_id'] = telegram_id_str
+        data['os_alias'] = os_alias
 
     await call.message.answer(loc.admn.msgs['fsm_start'], parse_mode='HTML')
     await call.message.answer(loc.admn.msgs['send_configuration_info'], parse_mode='HTML')
@@ -532,6 +534,7 @@ async def send_configuration(message: Message, state: FSMContext):
     """Check configuration sended by admin and send it to client."""
     async with state.proxy() as data:
         telegram_id = int(data['telegram_id'])
+        flag_os = data['os_alias']
     client_id = await postgres_dbms.get_clientID_by_telegramID(telegram_id)
 
     try:
@@ -539,7 +542,7 @@ async def send_configuration(message: Message, state: FSMContext):
         if text := message.text:
             # create configuration
             file_type = 'link'
-            flag_protocol, flag_location, flag_os, flag_link = text.split(' ')
+            flag_protocol, flag_location, flag_link = text.split(' ')
             await internal_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, flag_link)
             _, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, telegram_file_id, config_id, server_name = (await postgres_dbms.get_configurations_info(client_id))[-1]
 
@@ -547,7 +550,7 @@ async def send_configuration(message: Message, state: FSMContext):
         elif document := message.document:
             # create configuration
             file_type = 'document'
-            flag_protocol, flag_location, flag_os = message.caption.split(' ')
+            flag_protocol, flag_location = message.caption.split(' ')
             telegram_file_id = document.file_id
             await internal_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, telegram_file_id=telegram_file_id)
             file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, telegram_file_id, config_id, server_name = (await postgres_dbms.get_configurations_info(client_id))[-1]
@@ -556,7 +559,7 @@ async def send_configuration(message: Message, state: FSMContext):
         elif photo := message.photo:
             # create configuration
             file_type = 'photo'
-            flag_protocol, flag_location, flag_os = message.caption.split(' ')
+            flag_protocol, flag_location = message.caption.split(' ')
             telegram_file_id = photo[0].file_id
             await internal_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, telegram_file_id=telegram_file_id)
             file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, telegram_file_id, config_id, server_name = (await postgres_dbms.get_configurations_info(client_id))[-1]
@@ -607,5 +610,5 @@ def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(show_logs, commands=['logs'])
     dp.register_message_handler(get_file_id, Text(loc.admn.btns['get_file_id']), content_types=['text', 'photo', 'document'])
     dp.register_message_handler(get_file_id, commands=['fileid', 'fid'], commands_ignore_caption=False, content_types=['text', 'photo', 'document'])
-    dp.register_callback_query_handler(send_configuration_fsm_start, lambda call: call.data.isdigit(), state='*')
+    dp.register_callback_query_handler(send_configuration_fsm_start, lambda call: ':' in call.data and call.data.split(':', 1)[0].isdigit(), state='*')
     dp.register_message_handler(send_configuration, content_types=['text', 'photo', 'document'], state=admin_fsm.SendConfig.ready)

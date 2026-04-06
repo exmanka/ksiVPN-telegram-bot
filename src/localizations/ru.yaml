@@ -485,7 +485,6 @@ admin:
 
       <b>protocol</b> — alias протокола (напр. <code>wg</code>, <code>x</code>, <code>ss</code>)
       <b>server</b> — alias сервера (напр. <code>nl1</code>, <code>lv1</code>, <code>de1</code>, <code>us1</code>)
-      <b>os</b> — <code>android</code> | <code>ios</code> | <code>windows</code> | <code>macos/mac</code> | <code>linux</code>
       <b>link</b> — если вместо фото или файла *.conf нужна ссылка для XTLS/SS для ПК
 
       <b>Не забываем прикрепить файл, если требуется!</b>
@@ -645,7 +644,7 @@ internal_functions:
       <b>Протокол</b>: {6}
       <b>Платформа</b>: {7}
 
-      <i>Создана {8}, ID — {9}</i>
+      <i>Создана {8}, ID {9}</i>
     config_request_new_client: |-
       👾 <b>Запрос на подключение от нового пользователя!</b>
 
