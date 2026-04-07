@@ -86,7 +86,7 @@ async def notifications_send_message_everyone(message: Message, state: FSMContex
         if ignored_clients_str:
             answer_message = loc.admn.msgs['message_everyone_was_sent'] + '\n\n' + loc.admn.msgs['message_everyone_somebody_didnt_recieve']\
                 .format(ignored_clients_str=ignored_clients_str)
-            await message.answer(answer_message)
+            await internal_functions.send_long_message(message, answer_message)
         else:
             await message.answer(loc.admn.msgs['message_everyone_was_sent'] + '\n\n' + loc.admn.msgs['message_everyone_everybody_received'])
 
@@ -163,7 +163,7 @@ async def notifications_send_message_selected(message: Message, state: FSMContex
         if ignored_clients_str:
             answer_message = loc.admn.msgs['message_everyone_was_sent'] + '\n\n' + loc.admn.msgs['message_everyone_somebody_didnt_recieve']\
                 .format(ignored_clients_str=ignored_clients_str)
-            await message.answer(answer_message)
+            await internal_functions.send_long_message(message, answer_message)
         else:
             await message.answer(loc.admn.msgs['message_everyone_was_sent'] + '\n\n' + loc.admn.msgs['message_everyone_everybody_received'])
 
@@ -420,11 +420,12 @@ async def show_logs(message: Message):
     """Send message with last N rows of bot logs.
 
     Can be use both /logs and /logs <last_rows_number> ways."""
+    last_rows_number = 50
     last_rows_number_list = message.text.split(' ')[1:]
     if last_rows_number_list:
         last_rows_number = int(last_rows_number_list[0])
-    else:
-        last_rows_number = 50
+
+    await message.answer(loc.admn.msgs['show_logs_info'].format(last_rows_number))
 
     last_rows_counter = 0
     async with aiofiles.open('bot.log', mode='rb') as f:
