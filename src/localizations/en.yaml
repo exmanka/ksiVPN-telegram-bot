@@ -638,6 +638,7 @@ other:
       2. Latvia, Riga — speed up to 1 Gb/s, ping 20 ms.
       3. Germany, Nuremberg — speed up to 500 Mb/s, ping 40 ms.
       4. USA, Silicon Valley — speed up to 50 Mb/s, ping 150 ms.
+    chatgpt_error: Sorry, an error with ChatGPT mode occurred
     chatgpt_only_for_active_sub: ChatGPT mode is available only to clients with an active subscription!
     unrecognized_message: |-
       <b>Sorry, I don't understand you</b> 🤔
