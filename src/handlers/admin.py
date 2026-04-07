@@ -21,6 +21,11 @@ logger = logging.getLogger(__name__)
 router = Router(name="admin")
 
 
+@router.message(
+    F.text.in_({loc.admn.btns[key] for key in ('reset_fsm_1', 'reset_fsm_2')}),
+    StateFilter('*'),
+)
+@router.message(Command(commands=['reset']), StateFilter('*'))
 @admin_mw.admin_only()
 async def fsm_reset(message: Message, state: FSMContext):
     """Cancel admin's FSM state and return to menu keyboard regardless of machine state."""
@@ -28,18 +33,21 @@ async def fsm_reset(message: Message, state: FSMContext):
     await message.answer(loc.admn.msgs['reset_fsm_keyboard'], reply_markup=admin_kb.menu)
 
 
+@router.message(Command(commands=['admin']), StateFilter('*'))
 @admin_mw.admin_only()
 async def show_admin_keyboard(message: Message):
     """Send message with information about admin's commands and show admin keyboard."""
     await message.reply(loc.admn.msgs['admin_kb_info'], reply_markup=admin_kb.menu)
 
 
+@router.message(F.text == loc.admn.btns['send_message'])
 @admin_mw.admin_only()
 async def notifications_menu(message: Message):
     """Show keyboard for sending messages via bot."""
     await message.answer(loc.admn.msgs['go_send_message_menu'], reply_markup=admin_kb.notification)
 
 
+@router.message(F.text == loc.admn.btns['send_message_everyone'])
 @admin_mw.admin_only()
 async def notifications_send_message_everyone_fsm_start(message: Message, state: FSMContext):
     """Start FSM for sending message to every client who wrote bot at least one time."""
@@ -48,6 +56,7 @@ async def notifications_send_message_everyone_fsm_start(message: Message, state:
     await message.answer(loc.admn.msgs['message_everyone_info'])
 
 
+@router.message(StateFilter(admin_fsm.SendMessage.everyone_decision))
 @admin_mw.admin_only()
 async def notifications_send_message_everyone(message: Message, state: FSMContext):
     """Catch message, echo message and send it to every client who wrote bot at least one time, if admin wrote /perfect."""
@@ -93,6 +102,7 @@ async def notifications_send_message_everyone(message: Message, state: FSMContex
     await state.update_data(message_chat_id=message.chat.id, message_id=message.message_id)
 
 
+@router.message(F.text == loc.admn.btns['send_message_selected'])
 @admin_mw.admin_only()
 async def notifications_send_message_selected_fsm_start(message: Message, state: FSMContext):
     """Start FSM for sending message to selected clients."""
@@ -101,6 +111,7 @@ async def notifications_send_message_selected_fsm_start(message: Message, state:
     await message.answer(loc.admn.msgs['message_selected_info'])
 
 
+@router.message(StateFilter(admin_fsm.SendMessage.selected_list))
 @admin_mw.admin_only()
 async def notifications_send_message_selected_list(message: Message, state: FSMContext):
     """Parse entered by admin list of selected clients for sending them some message."""
@@ -128,6 +139,7 @@ async def notifications_send_message_selected_list(message: Message, state: FSMC
         await message.answer(loc.admn.msgs['message_selected_nobody_received'])
 
 
+@router.message(StateFilter(admin_fsm.SendMessage.selected_decision))
 @admin_mw.admin_only()
 async def notifications_send_message_selected(message: Message, state: FSMContext):
     """Catch message, echo message and send it to selected clients, if admin wrote /perfect."""
@@ -165,6 +177,8 @@ async def notifications_send_message_selected(message: Message, state: FSMContex
     await state.update_data(message_chat_id=message.chat.id, message_id=message.message_id)
 
 
+@router.message(F.text == loc.admn.btns['sql_insert_client'])
+@router.message(Command(commands=['sql_user']))
 @admin_mw.admin_only()
 async def show_user_info_sql_fsm_start(message: Message, state: FSMContext):
     """Start FSM for showing SQL query for INSERT of forward message's owner."""
@@ -173,6 +187,7 @@ async def show_user_info_sql_fsm_start(message: Message, state: FSMContext):
     await message.answer(loc.admn.msgs['sql_insert_client_info'])
 
 
+@router.message(StateFilter(admin_fsm.UserInfo.ready))
 @admin_mw.admin_only()
 async def show_user_info_sql(message: Message):
     """Send message with SQL auery for INSERT of forward message's owner."""
@@ -198,6 +213,8 @@ async def show_user_info_sql(message: Message):
                                 f"'{last_name}', '@{username}', {telegram_id}, TIMESTAMP '2023-01-01 00:00');</code>")
 
 
+@router.message(F.text == loc.admn.btns['sql_insert_config'])
+@router.message(Command(commands=['sql_config']))
 @admin_mw.admin_only()
 async def show_user_config_sql_cm_start(message: Message, state: FSMContext):
     """Start FSM for showing SQL query for INSERT of configuration provided by admin."""
@@ -207,6 +224,32 @@ async def show_user_config_sql_cm_start(message: Message, state: FSMContext):
     await message.answer(loc.admn.msgs['sql_insert_config_check_config_info'])
 
 
+@router.message(Command(commands=['configs']))
+@admin_mw.admin_only()
+async def check_user_configs(message: Message):
+    """Send messages with configurations of another client."""
+    try:
+        user_info = message.text.split(' ')[1]
+
+        if user_info[0] == '@':
+            client_id = await postgres_dbms.get_clientID_by_username(user_info)
+        else:
+            client_id = await postgres_dbms.get_clientID_by_telegramID(int(user_info))
+    except Exception as e:
+        await message.answer(loc.admn.msgs['error_unrecognized'].format(e))
+        return
+
+    configurations_info = await postgres_dbms.get_configurations_info(client_id)
+    await message.answer(loc.auth.msgs['configs_info'].format(len(configurations_info)))
+
+    for file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name in configurations_info:
+        await internal_functions.send_configuration(message.from_user.id, file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name)
+
+
+@router.message(
+    StateFilter(admin_fsm.ConfigInfo.ready),
+    F.content_type.in_({'text', 'document'}),
+)
 @admin_mw.admin_only()
 async def show_user_config_sql(message: Message):
     """Send message with SQL qauery for INSERT of configuration provided by admin."""
@@ -257,6 +300,7 @@ async def show_user_config_sql(message: Message):
     await message.answer(answer_text)
 
 
+@router.message(F.text == loc.admn.btns['sql_query'])
 @admin_mw.admin_only()
 async def sql_query_fsm_start(message: Message, state: FSMContext):
     """Start FSM for executing SQL query."""
@@ -265,6 +309,7 @@ async def sql_query_fsm_start(message: Message, state: FSMContext):
     await message.answer(loc.admn.msgs['sql_query_enter_password'], reply_markup=admin_kb.sql_query)
 
 
+@router.message(StateFilter(admin_fsm.SQLQuery.password))
 @admin_mw.admin_only()
 async def sql_query_password_verification(message: Message, state: FSMContext):
     """Verify database password entered correctly."""
@@ -288,6 +333,7 @@ async def sql_query_password_verification(message: Message, state: FSMContext):
         await message.answer(loc.admn.msgs['sql_query_wrong_password'])
 
 
+@router.message(StateFilter(admin_fsm.SQLQuery.query))
 @admin_mw.admin_only()
 async def sql_query_execution(message: Message, state: FSMContext):
     """Execute written SQL query and receive feedback."""
@@ -309,6 +355,8 @@ async def sql_query_execution(message: Message, state: FSMContext):
         await message.answer(loc.admn.msgs['sql_query_error'].format(e))
 
 
+@router.message(F.text == loc.admn.btns['clients_info'])
+@router.message(Command(commands=['clients']))
 @admin_mw.admin_only()
 async def show_clients_info(message: Message):
     """Send message with information about all clients. Add /clients [-h] flag to get human-readable message."""
@@ -357,6 +405,7 @@ async def show_clients_info(message: Message):
     await internal_functions.send_long_message(message, answer_message, wrapper=wrapper)
 
 
+@router.message(F.text == loc.admn.btns['show_earnings'])
 @admin_mw.admin_only()
 async def show_earnings(message: Message):
     """Send message with information about earned money per current month."""
@@ -364,6 +413,8 @@ async def show_earnings(message: Message):
     await message.answer(loc.admn.msgs['show_earnings'].format(float(earnings_per_current_month)))
 
 
+@router.message(F.text == loc.admn.btns['show_logs'])
+@router.message(Command(commands=['logs']))
 @admin_mw.admin_only()
 async def show_logs(message: Message):
     """Send message with last N rows of bot logs.
@@ -391,27 +442,8 @@ async def show_logs(message: Message):
     await internal_functions.send_long_message(message, html.escape(last_lines), wrapper='<pre>{text}</pre>')
 
 
-@admin_mw.admin_only()
-async def check_user_configs(message: Message):
-    """Send messages with configurations of another client."""
-    try:
-        user_info = message.text.split(' ')[1]
-
-        if user_info[0] == '@':
-            client_id = await postgres_dbms.get_clientID_by_username(user_info)
-        else:
-            client_id = await postgres_dbms.get_clientID_by_telegramID(int(user_info))
-    except Exception as e:
-        await message.answer(loc.admn.msgs['error_unrecognized'].format(e))
-        return
-
-    configurations_info = await postgres_dbms.get_configurations_info(client_id)
-    await message.answer(loc.auth.msgs['configs_info'].format(len(configurations_info)))
-
-    for file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name in configurations_info:
-        await internal_functions.send_configuration(message.from_user.id, file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name)
-
-
+@router.message(F.text == loc.admn.btns['get_file_id'])
+@router.message(Command(commands=['fileid', 'fid']))
 @admin_mw.admin_only()
 async def get_file_id(message: Message):
     """Send message with added file id."""
@@ -423,6 +455,7 @@ async def get_file_id(message: Message):
         await message.answer(loc.admn.msgs['error_no_file_for_file_id'])
 
 
+@router.callback_query(F.data.func(lambda d: d is not None and ':' in d and d.split(':', 1)[0].isdigit()))
 @admin_mw.admin_only()
 async def send_configuration_fsm_start(call: CallbackQuery, state: FSMContext):
     """Start FSM for sending configurations for a client after pressing inline button and send instruction."""
@@ -435,6 +468,10 @@ async def send_configuration_fsm_start(call: CallbackQuery, state: FSMContext):
     await call.answer()
 
 
+@router.message(
+    StateFilter(admin_fsm.SendConfig.ready),
+    F.content_type.in_({'text', 'document'}),
+)
 @admin_mw.admin_only()
 async def send_configuration(message: Message, state: FSMContext):
     """Check configuration sended by admin and send it to client."""
@@ -476,57 +513,3 @@ async def send_configuration(message: Message, state: FSMContext):
 def register_handlers_admin(dp):
     """Attach the `admin` router to the dispatcher."""
     dp.include_router(router)
-
-
-# --- handler registrations ---
-_R = router
-
-_R.message.register(
-    fsm_reset,
-    F.text.in_({loc.admn.btns[key] for key in ('reset_fsm_1', 'reset_fsm_2')}),
-    StateFilter('*'),
-)
-_R.message.register(fsm_reset, Command(commands=['reset']), StateFilter('*'))
-_R.message.register(show_admin_keyboard, Command(commands=['admin']), StateFilter('*'))
-_R.message.register(notifications_menu, F.text == loc.admn.btns['send_message'])
-_R.message.register(notifications_send_message_everyone_fsm_start, F.text == loc.admn.btns['send_message_everyone'])
-_R.message.register(notifications_send_message_everyone, StateFilter(admin_fsm.SendMessage.everyone_decision))
-_R.message.register(notifications_send_message_selected_fsm_start, F.text == loc.admn.btns['send_message_selected'])
-_R.message.register(notifications_send_message_selected_list, StateFilter(admin_fsm.SendMessage.selected_list))
-_R.message.register(notifications_send_message_selected, StateFilter(admin_fsm.SendMessage.selected_decision))
-_R.message.register(show_user_info_sql_fsm_start, F.text == loc.admn.btns['sql_insert_client'])
-_R.message.register(show_user_info_sql_fsm_start, Command(commands=['sql_user']))
-_R.message.register(show_user_info_sql, StateFilter(admin_fsm.UserInfo.ready))
-_R.message.register(show_user_config_sql_cm_start, F.text == loc.admn.btns['sql_insert_config'])
-_R.message.register(show_user_config_sql_cm_start, Command(commands=['sql_config']))
-_R.message.register(check_user_configs, Command(commands=['configs']))
-_R.message.register(
-    show_user_config_sql,
-    StateFilter(admin_fsm.ConfigInfo.ready),
-    F.content_type.in_({'text', 'document'}),
-)
-_R.message.register(sql_query_fsm_start, F.text == loc.admn.btns['sql_query'])
-_R.message.register(sql_query_password_verification, StateFilter(admin_fsm.SQLQuery.password))
-_R.message.register(sql_query_execution, StateFilter(admin_fsm.SQLQuery.query))
-_R.message.register(show_clients_info, F.text == loc.admn.btns['clients_info'])
-_R.message.register(show_clients_info, Command(commands=['clients']))
-_R.message.register(show_earnings, F.text == loc.admn.btns['show_earnings'])
-_R.message.register(show_logs, F.text == loc.admn.btns['show_logs'])
-_R.message.register(show_logs, Command(commands=['logs']))
-_R.message.register(
-    get_file_id,
-    F.text == loc.admn.btns['get_file_id'],
-)
-_R.message.register(
-    get_file_id,
-    Command(commands=['fileid', 'fid']),
-)
-_R.callback_query.register(
-    send_configuration_fsm_start,
-    F.data.func(lambda d: d is not None and ':' in d and d.split(':', 1)[0].isdigit()),
-)
-_R.message.register(
-    send_configuration,
-    StateFilter(admin_fsm.SendConfig.ready),
-    F.content_type.in_({'text', 'document'}),
-)

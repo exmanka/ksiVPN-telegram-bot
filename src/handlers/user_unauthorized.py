@@ -11,7 +11,19 @@ from src.services import internal_functions, localization as loc
 
 router = Router(name="user_unauthorized")
 
+_cancel_states = [
+    None,
+    user_unauthorized_fsm.RegistrationMenu.platform,
+    user_unauthorized_fsm.RegistrationMenu.os,
+    user_unauthorized_fsm.RegistrationMenu.chatgpt,
+    user_unauthorized_fsm.RegistrationMenu.promo,
+]
 
+
+@router.message(
+    F.text.lower() == loc.unauth.btns['cancel'].lower(),
+    StateFilter(*_cancel_states),
+)
 @user_unauthorized_mw.unauthorized_only()
 async def fsm_cancel(message: Message, state: FSMContext):
     """Cancel FSM state for registration."""
@@ -19,6 +31,7 @@ async def fsm_cancel(message: Message, state: FSMContext):
     await message.answer(loc.unauth.msgs['return_to_main_menu'], reply_markup=user_unauthorized_kb.welcome)
 
 
+@router.message(F.text.lower() == loc.unauth.btns['join'].lower())
 @user_unauthorized_mw.unauthorized_only()
 async def authorization_fsm_start(message: Message, state: FSMContext):
     """Start FSM for registration and request user's platform."""
@@ -28,6 +41,10 @@ async def authorization_fsm_start(message: Message, state: FSMContext):
     await state.set_state(user_unauthorized_fsm.RegistrationMenu.platform)
 
 
+@router.message(
+    F.text.in_({loc.unauth.btns[key] for key in ('smartphone', 'pc')}),
+    StateFilter(user_unauthorized_fsm.RegistrationMenu.platform),
+)
 @user_unauthorized_mw.unauthorized_only()
 async def authorization_take_platform(message: Message, state: FSMContext):
     """Change FSM state, save user's platform and request user's OS."""
@@ -44,6 +61,10 @@ async def authorization_take_platform(message: Message, state: FSMContext):
     await state.set_state(user_unauthorized_fsm.RegistrationMenu.os)
 
 
+@router.message(
+    F.text.in_({loc.unauth.btns[key] for key in ('android', 'ios', 'windows', 'macos', 'linux')}),
+    StateFilter(user_unauthorized_fsm.RegistrationMenu.os),
+)
 @user_unauthorized_mw.unauthorized_only()
 async def authorization_take_os(message: Message, state: FSMContext):
     """Change FSM state, save user's OS and request user's ChatGPT option."""
@@ -53,12 +74,20 @@ async def authorization_take_os(message: Message, state: FSMContext):
     await state.set_state(user_unauthorized_fsm.RegistrationMenu.chatgpt)
 
 
+@router.message(
+    F.text.lower() == loc.unauth.btns['what_is_chatgpt'].lower(),
+    StateFilter(user_unauthorized_fsm.RegistrationMenu.chatgpt),
+)
 @user_unauthorized_mw.unauthorized_only()
 async def authorization_show_info_chatgpt(message: Message):
     """Send message with information about ChatGPT."""
     await message.answer(loc.unauth.msgs['chatgpt_info'])
 
 
+@router.message(
+    F.text.in_({loc.unauth.btns[key] for key in ('use_chatgpt', 'dont_use_chatgpt')}),
+    StateFilter(user_unauthorized_fsm.RegistrationMenu.chatgpt),
+)
 @user_unauthorized_mw.unauthorized_only()
 async def authorization_take_chatgpt(message: Message, state: FSMContext):
     """Change FSM state, save user's ChatGPT option and request user's referral promo."""
@@ -68,6 +97,20 @@ async def authorization_take_chatgpt(message: Message, state: FSMContext):
     await state.set_state(user_unauthorized_fsm.RegistrationMenu.promo)
 
 
+@router.message(
+    F.text == loc.unauth.btns['no_promo'],
+    StateFilter(user_unauthorized_fsm.RegistrationMenu.promo),
+)
+@user_unauthorized_mw.unauthorized_only()
+async def authorization_promo_no(message: Message, state: FSMContext):
+    """Complete authorization without referral promocode."""
+    await state.update_data(promo=None)
+
+    await internal_functions.authorization_complete(message, state)
+    await message.answer(loc.unauth.msgs['need_renew_sub'])
+
+
+@router.message(StateFilter(user_unauthorized_fsm.RegistrationMenu.promo))
 @user_unauthorized_mw.unauthorized_only()
 async def authorization_promo_yes(message: Message, state: FSMContext):
     """Check entered referral promocode, notify old client about new client used his referral promocode, complete authorization."""
@@ -96,63 +139,6 @@ async def authorization_promo_yes(message: Message, state: FSMContext):
         await state.update_data(promo=None)
 
 
-@user_unauthorized_mw.unauthorized_only()
-async def authorization_promo_no(message: Message, state: FSMContext):
-    """Complete authorization without referral promocode."""
-    await state.update_data(promo=None)
-
-    await internal_functions.authorization_complete(message, state)
-    await message.answer(loc.unauth.msgs['need_renew_sub'])
-
-
 def register_handlers_unauthorized_client(dp):
     """Attach the `user_unauthorized` router to the dispatcher."""
     dp.include_router(router)
-
-
-_cancel_states = [
-    None,
-    user_unauthorized_fsm.RegistrationMenu.platform,
-    user_unauthorized_fsm.RegistrationMenu.os,
-    user_unauthorized_fsm.RegistrationMenu.chatgpt,
-    user_unauthorized_fsm.RegistrationMenu.promo,
-]
-
-router.message.register(
-    fsm_cancel,
-    F.text.lower() == loc.unauth.btns['cancel'].lower(),
-    StateFilter(*_cancel_states),
-)
-router.message.register(
-    authorization_fsm_start,
-    F.text.lower() == loc.unauth.btns['join'].lower(),
-)
-router.message.register(
-    authorization_take_platform,
-    F.text.in_({loc.unauth.btns[key] for key in ('smartphone', 'pc')}),
-    StateFilter(user_unauthorized_fsm.RegistrationMenu.platform),
-)
-router.message.register(
-    authorization_take_os,
-    F.text.in_({loc.unauth.btns[key] for key in ('android', 'ios', 'windows', 'macos', 'linux')}),
-    StateFilter(user_unauthorized_fsm.RegistrationMenu.os),
-)
-router.message.register(
-    authorization_show_info_chatgpt,
-    F.text.lower() == loc.unauth.btns['what_is_chatgpt'].lower(),
-    StateFilter(user_unauthorized_fsm.RegistrationMenu.chatgpt),
-)
-router.message.register(
-    authorization_take_chatgpt,
-    F.text.in_({loc.unauth.btns[key] for key in ('use_chatgpt', 'dont_use_chatgpt')}),
-    StateFilter(user_unauthorized_fsm.RegistrationMenu.chatgpt),
-)
-router.message.register(
-    authorization_promo_no,
-    F.text == loc.unauth.btns['no_promo'],
-    StateFilter(user_unauthorized_fsm.RegistrationMenu.promo),
-)
-router.message.register(
-    authorization_promo_yes,
-    StateFilter(user_unauthorized_fsm.RegistrationMenu.promo),
-)
