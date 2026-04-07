@@ -634,6 +634,10 @@ admin:
     clients_info: 🚀 Вывожу информацию обо всех клиентах!
     clients_info_sub_active: "✅  "
     clients_info_sub_inactive: "❌  "
+    show_logs_info: |-
+      Вывожу последние {0} строк лога.
+      
+      Используйте команду <code>/logs [число]</code> для показа произвольного числа последних строк лога.
     show_earnings: 💎 Так-так! Заработок за текущий месяц составляет <b>{0:g}</b>₽!
     file_id_photo: |-
       <b>file_id фото</b>:
