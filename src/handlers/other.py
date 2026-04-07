@@ -73,7 +73,8 @@ async def answer_unrecognized_messages(message: Message):
     if await postgres_dbms.is_user_registered(message.from_user.id) and await postgres_dbms.get_chatgpt_mode_status(await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)):
 
         # is client's subscription is active
-        if await postgres_dbms.is_subscription_active(message.from_user.id):
+        if await postgres_dbms.is_subscription_active(message.from_user.id) \
+                or await postgres_dbms.is_subscription_free(message.from_user.id):
 
             await bot.send_chat_action(message.from_user.id, ChatAction.TYPING)
             await message.reply(await gpt4free.chatgpt_answer(message.text))

@@ -478,7 +478,8 @@ async def account_configurations_submenu_fsm_cancel(message: Message, state: FSM
 @user_authorized_mw.nonblank_subscription_only()
 async def account_configurations_request_fsm_start(message: Message, state: FSMContext):
     """Start FSM for account configurations request menu, show account configurations request keyboard and request client's platform."""
-    if not await postgres_dbms.is_subscription_active(message.from_user.id):
+    if not await postgres_dbms.is_subscription_active(message.from_user.id) \
+            and not await postgres_dbms.is_subscription_free(message.from_user.id):
         await message.answer(loc.auth.msgs['cant_request_config'])
         return
 

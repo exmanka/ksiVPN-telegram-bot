@@ -727,7 +727,10 @@ async def get_notifications_status() -> list[asyncpg.Record]:
             JOIN settings AS s
             ON c.id = s.client_id
             JOIN clients_subscriptions AS cs
-            ON s.client_id = cs.client_id;
+            ON s.client_id = cs.client_id
+            JOIN subscriptions AS sub
+            ON cs.sub_id = sub.id
+            WHERE sub.price > 0;
             ''')
 
 
