@@ -6,11 +6,6 @@ menu = ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[
         [
-            KeyboardButton(text=loc.admn.btns['sql_insert_config']),
-            KeyboardButton(text=loc.admn.btns['sql_insert_client']),
-            KeyboardButton(text=loc.admn.btns['sql_query']),
-        ],
-        [
             KeyboardButton(text=loc.admn.btns['get_file_id']),
             KeyboardButton(text=loc.admn.btns['clients_info']),
             KeyboardButton(text=loc.admn.btns['show_earnings']),
@@ -32,11 +27,6 @@ notification = ReplyKeyboardMarkup(
         ],
         [KeyboardButton(text=loc.admn.btns['reset_fsm_2'])],
     ],
-)
-
-sql_query = ReplyKeyboardMarkup(
-    resize_keyboard=True,
-    keyboard=[[KeyboardButton(text=loc.admn.btns['reset_fsm_2'])]],
 )
 
 

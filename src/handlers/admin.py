@@ -177,53 +177,6 @@ async def notifications_send_message_selected(message: Message, state: FSMContex
     await state.update_data(message_chat_id=message.chat.id, message_id=message.message_id)
 
 
-@router.message(F.text == loc.admn.btns['sql_insert_client'])
-@router.message(Command(commands=['sql_user']))
-@admin_mw.admin_only()
-async def show_user_info_sql_fsm_start(message: Message, state: FSMContext):
-    """Start FSM for showing SQL query for INSERT of forward message's owner."""
-    await state.set_state(admin_fsm.UserInfo.ready)
-    await message.answer(loc.admn.msgs['fsm_start'])
-    await message.answer(loc.admn.msgs['sql_insert_client_info'])
-
-
-@router.message(StateFilter(admin_fsm.UserInfo.ready))
-@admin_mw.admin_only()
-async def show_user_info_sql(message: Message):
-    """Send message with SQL auery for INSERT of forward message's owner."""
-    if message.forward_from is None:
-        await message.reply(loc.admn.msgs['cant_read_user'])
-    else:
-        first_name = message.forward_from.first_name
-        last_name = message.forward_from.last_name
-        username = message.forward_from.username
-        telegram_id = message.forward_from.id
-
-        if last_name is None and username is None:
-            await message.reply(f"<code>INSERT INTO clients (name, telegram_id, register_date) VALUES('{first_name}', "
-                                f"{telegram_id}, TIMESTAMP '2023-01-01 00:00');</code>")
-        elif username is None:
-            await message.reply(f"<code>INSERT INTO clients (name, surname, telegram_id, register_date) VALUES('{first_name}', "
-                                f"'{last_name}', {telegram_id}, TIMESTAMP '2023-01-01 00:00');</code>")
-        elif last_name is None:
-            await message.reply(f"<code>INSERT INTO clients (name, username, telegram_id, register_date) VALUES('{first_name}', "
-                                f"'@{username}', {telegram_id}, TIMESTAMP '2023-01-01 00:00');</code>")
-        else:
-            await message.reply(f"<code>INSERT INTO clients (name, surname, username, telegram_id, register_date) VALUES('{first_name}', "
-                                f"'{last_name}', '@{username}', {telegram_id}, TIMESTAMP '2023-01-01 00:00');</code>")
-
-
-@router.message(F.text == loc.admn.btns['sql_insert_config'])
-@router.message(Command(commands=['sql_config']))
-@admin_mw.admin_only()
-async def show_user_config_sql_cm_start(message: Message, state: FSMContext):
-    """Start FSM for showing SQL query for INSERT of configuration provided by admin."""
-    await state.set_state(admin_fsm.ConfigInfo.ready)
-    await message.answer(loc.admn.msgs['fsm_start'])
-    await message.answer(loc.admn.msgs['sql_insert_config_info'])
-    await message.answer(loc.admn.msgs['sql_insert_config_check_config_info'])
-
-
 @router.message(Command(commands=['configs']))
 @admin_mw.admin_only()
 async def check_user_configs(message: Message):
@@ -244,115 +197,6 @@ async def check_user_configs(message: Message):
 
     for file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name in configurations_info:
         await internal_functions.send_configuration(message.from_user.id, file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name)
-
-
-@router.message(
-    StateFilter(admin_fsm.ConfigInfo.ready),
-    F.content_type.in_({'text', 'document'}),
-)
-@admin_mw.admin_only()
-async def show_user_config_sql(message: Message):
-    """Send message with SQL qauery for INSERT of configuration provided by admin."""
-    if message.document:
-        arguments = message.caption.split(' ')
-    else:
-        arguments = message.text.split(' ')
-
-    if len(arguments) < 6:
-        await message.answer(loc.admn.msgs['error_not_enough_flags'])
-        return
-
-    elif len(arguments) == 6:
-        flag_username_or_telegram_id, flag_protocol, flag_location, os, date_of_receipt_date, date_of_receipt_time = arguments
-
-        if message.document:
-            file_type = 'document'
-            link = message.document.file_id
-        else:
-            await message.answer(loc.admn.msgs['error_bad_attachment'])
-            return
-
-    elif len(arguments) == 7:
-        flag_username_or_telegram_id, flag_protocol, flag_location, os, date_of_receipt_date, date_of_receipt_time, link = arguments
-        file_type = 'link'
-
-    else:
-        await message.answer(loc.admn.msgs['error_too_many_flags'])
-        return
-
-    if flag_username_or_telegram_id[0] == '@':
-        client_id = await postgres_dbms.get_clientID_by_username(flag_username_or_telegram_id)
-    else:
-        client_id = await postgres_dbms.get_clientID_by_telegramID(int(flag_username_or_telegram_id))
-
-    protocol_id = await postgres_dbms.get_protocol_id_by_alias(flag_protocol)
-    if protocol_id is None:
-        await message.answer(loc.admn.msgs['error_bad_protocol'])
-        return
-
-    server_id = await postgres_dbms.get_server_id_by_alias(flag_location)
-    if server_id is None:
-        await message.answer(loc.admn.msgs['error_bad_location'])
-        return
-
-    answer_text = '<code>INSERT INTO configurations(client_id, protocol_id, server_id, os, file_type, link, date_of_receipt) '
-    answer_text += f"VALUES({client_id}, {protocol_id}, '{server_id}', '{os}', '{file_type}', '{link}', TIMESTAMP '{date_of_receipt_date} {date_of_receipt_time}');</code>"
-    await message.answer(answer_text)
-
-
-@router.message(F.text == loc.admn.btns['sql_query'])
-@admin_mw.admin_only()
-async def sql_query_fsm_start(message: Message, state: FSMContext):
-    """Start FSM for executing SQL query."""
-    await state.set_state(admin_fsm.SQLQuery.password)
-    await message.answer(loc.admn.msgs['fsm_start'])
-    await message.answer(loc.admn.msgs['sql_query_enter_password'], reply_markup=admin_kb.sql_query)
-
-
-@router.message(StateFilter(admin_fsm.SQLQuery.password))
-@admin_mw.admin_only()
-async def sql_query_password_verification(message: Message, state: FSMContext):
-    """Verify database password entered correctly."""
-    if message.text == POSTGRES_PASSWORD:
-        await state.set_state(admin_fsm.SQLQuery.query)
-
-        # delete message with password
-        try:
-            await bot.delete_message(message.from_user.id, message.message_id)
-        except TelegramBadRequest:
-            pass
-
-        await message.answer(loc.admn.msgs['sql_query_correct_password'])
-
-        tables_names_str = ''
-        for idx, [table_name] in enumerate(await postgres_dbms.get_tables_names()):
-            tables_names_str += loc.admn.msgs['sql_query_tables_row'].format(idx + 1, table_name)
-        await message.answer(loc.admn.msgs['sql_query_tables_list'].format(POSTGRES_DB, tables_names_str=tables_names_str))
-
-    else:
-        await message.answer(loc.admn.msgs['sql_query_wrong_password'])
-
-
-@router.message(StateFilter(admin_fsm.SQLQuery.query))
-@admin_mw.admin_only()
-async def sql_query_execution(message: Message, state: FSMContext):
-    """Execute written SQL query and receive feedback."""
-    logger.info(f'SQL query "{message.text}" was executed by admin with telegram_id {message.from_user.id}')
-    try:
-        records_list = await postgres_dbms.execute_query(message.text)
-
-        max_chunk_size = 2048
-        answer_message = ''
-        for record in records_list:
-            table_row_list_str: list[str] = [f'{column}=<code>{value}</code>' for column, value in zip(list(record.keys()), list(record.values()))]
-            answer_message += f"{', '.join(table_row_list_str)}\n"
-            if len(answer_message) >= max_chunk_size:
-                await message.answer(answer_message)
-                answer_message = ''
-        await message.answer(answer_message)
-
-    except Exception as e:
-        await message.answer(loc.admn.msgs['sql_query_error'].format(e))
 
 
 @router.message(F.text == loc.admn.btns['clients_info'])
@@ -444,7 +288,7 @@ async def show_logs(message: Message):
 
 
 @router.message(F.text == loc.admn.btns['get_file_id'])
-@router.message(Command(commands=['fileid', 'fid']))
+@router.message(Command(commands=['fileid']))
 @admin_mw.admin_only()
 async def get_file_id(message: Message):
     """Send message with added file id."""

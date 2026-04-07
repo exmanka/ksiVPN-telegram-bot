@@ -458,10 +458,8 @@ admin:
     fsm_start: <i>The machine state is activated</i>
     admin_kb_info: |-
       To open this menu, use /admin. Available commands:
-      
-      /fileid (/fid)
-      /sql_user
-      /sql_config
+
+      /fileid
       /clients
       /configs <i>telegram_id</i> | <i>username</i>
     go_send_message_menu: <i>Going to the menu for sending messages to clients</i>
@@ -487,35 +485,7 @@ admin:
       Now enter the necessary information with the following message, and also attach files if necessary!
 
       Enter /perfect to confirm the selection of the last sent message!
-    sql_insert_client_info: Forward the message to me and I will output all possible information!
-    cant_read_user: Unfortunately, I cannot read the user information 😭
-    sql_insert_config_info: |-
-      Send me a message in the format (spaces are used instead of line breaks):
-
-      <b>client_id</b> - client_username | client_telegram_id
-      <b>protocol</b> - protocol alias (e.g. <code>wg</code>, <code>x</code>, <code>ss</code>)
-      <b>server</b> - server alias (e.g. <code>nl01</code>, <code>lv01</code>, <code>de01</code>)
-      <b>os</b> - <code>Android</code> | <code>IOS</code> | <code>Windows</code> | <code>Linux</code>
-      <b>date_of_receipt</b> - date of receipt of the configuration in the format <code>YYYY-MM-DD HH-MI</code>
-      <b>link</b> - if instead of file you need a link like <code>vless://</code> or <code>ss://</code>
-
-      <b>Do not forget to attach the file if required!</b>
-    sql_insert_config_check_config_info: "By the way, you can check which configurations are available to the user in the admin menu with the command \n/configs <i>telegram_id</i> | <i>username</i>"
-    error_not_enough_flags: The flags are entered incorrectly, there are too few of them!
     error_bad_attachment: You didn't attach the file, or you added the wrong attachment type!
-    error_too_many_flags: Flags entered incorrectly, there are too many of them!
-    error_bad_protocol: Protocol entered incorrectly!
-    error_bad_location: Location entered incorrectly!
-    sql_query_enter_password: Enter the password from the database
-    sql_query_correct_password: 🔥 Great, the password is entered correctly! Now enter the SQL-query!
-    sql_query_wrong_password: The password was entered incorrectly!
-    sql_query_tables_row: |-
-      {0}. <code>{1}</code>
-    sql_query_tables_list: |-
-      List of all database tables <b>{0}</b>:
-
-      {tables_names_str}
-    sql_query_error: "Error occurred: {0}"
     clients_info: 🚀 Displaying information about all clients!
     clients_info_sub_active: "✅  "
     clients_info_sub_inactive: "❌  "
@@ -525,12 +495,14 @@ admin:
       Use <code>/logs [number]</code> for a different count.
     show_earnings: So-so! Earnings for the current month are <b>{0:g}</b>₽!
     file_id_photo: |-
-      <b>file_id photo</b>:
+      <b>file_id photo:</b>
+
       <code>{0}</code>
     file_id_document: |-
-      <b>document file_id</b>:
+      <b>document file_id:</b>
+      
       <code>{0}</code>
-    error_no_file_for_file_id: The file was not attached along with the /fileid (/fid) command call!
+    error_no_file_for_file_id: The file was not attached along with the /fileid command call!
     send_configuration_info: |-
       Send me a message in the format (use spaces instead of line breaks):
 
@@ -565,17 +537,8 @@ admin:
       <b>Client ID</b>: <code>{0}</code>
       <b>Telegram INFO</b>:{1} <code>{2}{3}</code> <code>{4}</code>
   keyboard_buttons:
-    sql_insert_config: |-
-      SQL config
-      👾
-    sql_insert_client: |-
-      SQL client
-      👾
-    sql_query: |-
-      SQL query
-      👾
     get_file_id: |-
-      File ID
+      Get file ID
       👾
     send_message: |-
       Send message
