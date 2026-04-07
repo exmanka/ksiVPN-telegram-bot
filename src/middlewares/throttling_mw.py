@@ -1,9 +1,8 @@
+import time
+from typing import Any, Awaitable, Callable, Dict
+from aiogram import BaseMiddleware
 from aiogram.types import Message
-from aiogram.dispatcher.middlewares import BaseMiddleware
-from aiogram.dispatcher.handler import CancelHandler, current_handler
-from aiogram.utils.exceptions import Throttled
 from src.services import localization as loc
-from bot_init import dp
 
 
 def antiflood(rate_limit: int):
@@ -11,25 +10,36 @@ def antiflood(rate_limit: int):
     def wrapper(func):
         setattr(func, 'antiflood', True)
         setattr(func, 'rate_limit', rate_limit)
-
         return func
     return wrapper
 
 
 class Throttling(BaseMiddleware):
-    """Custom class for aiogram middlware for antiflood."""
-    async def on_process_message(self, message: Message, _: dict):
-        """Check throttling on message process."""
-        # if current event was caught by handler
-        if handler := current_handler.get():
+    """Custom aiogram middleware for antiflood.
 
-            # if handler has attribute 'antiflood'
-            if getattr(handler, 'antiflood', False):
-                try:
-                    rate_limit = getattr(handler, 'rate_limit', 2)
-                    await dp.throttle(key='antiflood_message', rate=rate_limit)
+    Simple in-memory per-user rate limiter. State is lost on bot restart, which is
+    acceptable for antiflood semantics.
+    """
 
-                # if message is throttled
-                except Throttled as _t:
-                    await message.answer(loc.mw.msgs['antiflood'])
-                    raise CancelHandler()
+    def __init__(self) -> None:
+        self._last_call: Dict[int, float] = {}
+
+    async def __call__(
+        self,
+        handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]],
+        event: Message,
+        data: Dict[str, Any],
+    ) -> Any:
+        handler_obj = data.get("handler")
+        if handler_obj is not None:
+            callback = getattr(handler_obj, "callback", None)
+            if getattr(callback, "antiflood", False):
+                rate_limit = getattr(callback, "rate_limit", 2)
+                user_id = event.from_user.id
+                now = time.monotonic()
+                last = self._last_call.get(user_id, 0.0)
+                if now - last < rate_limit:
+                    await event.answer(loc.mw.msgs['antiflood'])
+                    return None
+                self._last_call[user_id] = now
+        return await handler(event, data)

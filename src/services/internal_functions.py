@@ -1,8 +1,9 @@
 import asyncio
 import logging
-from aiogram.types import Message, MediaGroup, ReplyKeyboardMarkup, InlineKeyboardMarkup
-from aiogram.dispatcher import FSMContext
-from aiogram.utils.exceptions import MessageToDeleteNotFound, WrongFileIdentifier, ChatNotFound
+from aiogram.types import Message, ReplyKeyboardMarkup, InlineKeyboardMarkup
+from aiogram.fsm.context import FSMContext
+from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
+from aiogram.utils.media_group import MediaGroupBuilder
 from src.keyboards import user_authorized_kb, admin_kb
 from src.states import user_authorized_fsm
 from src.database import postgres_dbms
@@ -59,40 +60,47 @@ async def send_photo_safely(telegram_user_id: int,
                             caption: str | None,
                             parse_mode: str | None = None,
                             reply_markup: ReplyKeyboardMarkup | InlineKeyboardMarkup | None = None):
-    """Send photo by specified telegram_file_id if telegram_file_id is valid and available for bot. Else send template image by URL."""
-    try:
-        await bot.send_photo(telegram_user_id, telegram_file_id, caption, parse_mode, reply_markup=reply_markup)
+    """Send photo by specified telegram_file_id if telegram_file_id is valid and available for bot. Else send template image by URL.
 
-    except WrongFileIdentifier as wrong_file_id:
+    If parse_mode is None (default), bot-level default (HTML) is used via DefaultBotProperties.
+    Pass an explicit string to override (e.g. 'Markdown'), or pass '' to disable parsing entirely.
+    """
+    # Only pass parse_mode explicitly when the caller overrides it; otherwise let DefaultBotProperties apply.
+    pm_kwargs: dict = {'parse_mode': parse_mode} if parse_mode is not None else {}
+    try:
+        await bot.send_photo(telegram_user_id, telegram_file_id, caption=caption, reply_markup=reply_markup, **pm_kwargs)
+
+    except TelegramBadRequest as wrong_file_id:
         logger.warning(f"Can't send photo by specified telegram_file_id: {wrong_file_id}. Perhaps you try to send image by file_id from ksiVPN bot. File_id is unique for each individual bot!")
-        await bot.send_photo(telegram_user_id, loc.internal.tfids['template_image_url'], caption, parse_mode, reply_markup=reply_markup)
+        await bot.send_photo(telegram_user_id, loc.internal.tfids['template_image_url'], caption=caption, reply_markup=reply_markup, **pm_kwargs)
 
 
 async def reply_media_group_safely(message: Message,
                                    telegram_files_ids_list: list[str],
                                    caption: str | None,
                                    parse_mode: str | None = None):
-    """Reply message with media group with specified telegram_files_ids if they are valid and available for bot. Else send template media group with image by URL."""
-    # use media group builder in aiogram 3.x.x
+    """Reply message with media group with specified telegram_files_ids if they are valid and available for bot. Else send template media group with image by URL.
+
+    If parse_mode is None (default), bot-level default (HTML) is used via DefaultBotProperties.
+    """
+    # parse_mode on the first photo item (which carries the caption); None → omit → bot default applies.
+    pm_kwargs: dict = {'parse_mode': parse_mode} if parse_mode is not None else {}
+
+    def _build(files: list[str]) -> list:
+        builder = MediaGroupBuilder()
+        for i, tfid in enumerate(files):
+            if i == 0:
+                builder.add_photo(media=tfid, caption=caption, **pm_kwargs)
+            else:
+                builder.add_photo(media=tfid)
+        return builder.build()
+
     try:
-        # create media group
-        media_group = MediaGroup()
+        await message.reply_media_group(_build(telegram_files_ids_list))
 
-        # add first image to media group with caption and parse_mode to display caption in instruction
-        media_group.attach_photo(telegram_files_ids_list[0], caption, parse_mode)
-
-        # add all other photos to media group
-        if len(telegram_files_ids_list) > 1:
-            for telegram_file_id in telegram_files_ids_list[1:]:
-                media_group.attach_photo(telegram_file_id)
-
-        await message.reply_media_group(media_group)
-        
-    except WrongFileIdentifier as wrong_file_id:
+    except TelegramBadRequest as wrong_file_id:
         logger.warning(f"Can't send media group by specified telegram_files_ids: {wrong_file_id}. Perhaps you try to send image by file_id from ksiVPN bot. File_id is unique for each individual bot!")
-        media_group = MediaGroup()
-        media_group.attach_photo(loc.internal.tfids['template_image_url'], caption, parse_mode)
-        await message.reply_media_group(media_group)
+        await message.reply_media_group(_build([loc.internal.tfids['template_image_url']]))
 
 
 async def send_message_by_telegram_id(telegram_id: int, message: Message):
@@ -104,23 +112,29 @@ async def send_message_by_telegram_id(telegram_id: int, message: Message):
     """
     # if message is text
     if text := message.text:
-        await bot.send_message(telegram_id, text, parse_mode='HTML')
+        # preserve original formatting via entities; bot default parse_mode is NOT applied
+        # when entities are present (they take precedence)
+        await bot.send_message(telegram_id, text, entities=message.entities)
 
     # if message is animation (GIF or H.264/MPEG-4 AVC video without sound)
     elif animation := message.animation:
-        await bot.send_animation(telegram_id, animation.file_id)
+        await bot.send_animation(telegram_id, animation.file_id,
+                                 caption=message.caption, caption_entities=message.caption_entities)
 
     # if message is audio (audio file to be treated as music)
     elif audio := message.audio:
-        await bot.send_audio(telegram_id, audio.file_id, caption=message.caption, parse_mode='HTML')
+        await bot.send_audio(telegram_id, audio.file_id,
+                             caption=message.caption, caption_entities=message.caption_entities)
 
     # if message is document
     elif document := message.document:
-        await bot.send_document(telegram_id, document.file_id, caption=message.caption, parse_mode='HTML')
+        await bot.send_document(telegram_id, document.file_id,
+                                caption=message.caption, caption_entities=message.caption_entities)
 
     # if message is photo
     elif photo := message.photo:
-        await bot.send_photo(telegram_id, photo[0].file_id, caption=message.caption, parse_mode='HTML')
+        await bot.send_photo(telegram_id, photo[0].file_id,
+                             caption=message.caption, caption_entities=message.caption_entities)
 
     # if message is sticker
     elif sticker := message.sticker:
@@ -128,7 +142,8 @@ async def send_message_by_telegram_id(telegram_id: int, message: Message):
 
     # if message is video
     elif video := message.video:
-        await bot.send_video(telegram_id, video.file_id, caption=message.caption, parse_mode='HTML')
+        await bot.send_video(telegram_id, video.file_id,
+                             caption=message.caption, caption_entities=message.caption_entities)
 
     # if message is video note
     elif video_note := message.video_note:
@@ -136,7 +151,8 @@ async def send_message_by_telegram_id(telegram_id: int, message: Message):
 
     # if message is voice
     elif voice := message.voice:
-        await bot.send_voice(telegram_id, voice.file_id, caption=message.caption, parse_mode='HTML')
+        await bot.send_voice(telegram_id, voice.file_id,
+                             caption=message.caption, caption_entities=message.caption_entities)
 
     # other cases
     else:
@@ -177,13 +193,13 @@ async def send_configuration(telegram_id: int,
 
     # if config was generated as document
     if configuration_file_type == 'document':
-        await bot.send_document(telegram_id, configuration_link, caption=answer_text, parse_mode='HTML',
+        await bot.send_document(telegram_id, configuration_link, caption=answer_text,
                                 reply_markup=await user_authorized_kb.configuration_instruction_inline(configuration_protocol_name, configuration_os))
 
     # if config was generated as link
     elif configuration_file_type == 'link':
         answer_text = f'<code>{configuration_link}</code>\n\n' + answer_text
-        await bot.send_message(telegram_id, answer_text, parse_mode='HTML',
+        await bot.send_message(telegram_id, answer_text,
                                reply_markup=await user_authorized_kb.configuration_instruction_inline(configuration_protocol_name, configuration_os))
 
     else:
@@ -231,16 +247,14 @@ async def send_configuration_request_to_admin(client: dict, choice: dict, is_new
         await bot.send_message(ADMIN_ID,
                                loc.internal.msgs['config_request_new_client'].\
                                 format(client['fullname'], username_str, client['id'], choice['platform'][2:], choice['os_name'], choice['chatgpt'], client_id, ref_promo_str=ref_promo_str),
-                               reply_markup=await admin_kb.configuration_inline(client['id'], os_alias),
-                               parse_mode='HTML')
+                               reply_markup=await admin_kb.configuration_inline(client['id'], os_alias))
 
     # if request was sended by old client with at least one configuration
     else:
         await bot.send_message(ADMIN_ID,
                                loc.internal.msgs['config_request_old_client'].\
                                 format(client['fullname'], username_str, client['id'], choice['platform'][2:], choice['os_name'], choice['chatgpt'], client_id),
-                               reply_markup=await admin_kb.configuration_inline(client['id'], os_alias),
-                               parse_mode='HTML')
+                               reply_markup=await admin_kb.configuration_inline(client['id'], os_alias))
 
 
 async def notify_admin_promo_entered(client_id: int, promo_phrase: str, promo_type: str):
@@ -274,8 +288,7 @@ async def notify_admin_promo_entered(client_id: int, promo_phrase: str, promo_ty
 
     await bot.send_message(ADMIN_ID,
                            loc.internal.msgs['admin_promo_was_entered'].\
-                            format(client_id, username_str, name, surname_str, telegram_id, promo_type, id, bonus_time_parsed, expiration_date_parsed, new_sub_str=new_sub_str),
-                           parse_mode='HTML')
+                            format(client_id, username_str, name, surname_str, telegram_id, promo_type, id, bonus_time_parsed, expiration_date_parsed, new_sub_str=new_sub_str))
 
 
 async def notify_admin_payment_success(client_id: int, months_number: int):
@@ -289,8 +302,7 @@ async def notify_admin_payment_success(client_id: int, months_number: int):
     # convert surname and username for beautiful formatting
     surname_str = await format_none_string(surname)
     username_str = await format_none_string(username)
-    await bot.send_message(ADMIN_ID, loc.internal.msgs['admin_successful_payment'].format(months_number, client_id, username_str, name, surname_str, telegram_id),
-                           parse_mode='HTML')
+    await bot.send_message(ADMIN_ID, loc.internal.msgs['admin_successful_payment'].format(months_number, client_id, username_str, name, surname_str, telegram_id))
 
 
 async def notify_client_new_referal(client_creator_id: int, referral_client_name: str, referral_client_username: str | None = None):
@@ -309,15 +321,14 @@ async def notify_client_new_referal(client_creator_id: int, referral_client_name
 
     client_creator_telegram_id = await postgres_dbms.get_telegramID_by_clientID(client_creator_id)
     await bot.send_message(client_creator_telegram_id,
-                           loc.internal.msgs['ref_promo_was_entered'].format(referral_client_name, referral_client_username_str, bonus_time_parsed),
-                           parse_mode='HTML')
+                           loc.internal.msgs['ref_promo_was_entered'].format(referral_client_name, referral_client_username_str, bonus_time_parsed))
     
 
 async def notify_client_if_subscription_must_be_renewed_to_receive_configuration(telegram_id: int):
     """Send message by specified telegram_id IF client needs to renew subscription for receiving his first configuration."""
 
     if await postgres_dbms.is_subscription_blank(telegram_id):
-        await bot.send_message(telegram_id, loc.unauth.msgs['need_renew_sub'], parse_mode='HTML')
+        await bot.send_message(telegram_id, loc.unauth.msgs['need_renew_sub'])
 
 
 async def create_configuration_description(configuration_date_of_receipt: str,
@@ -459,10 +470,9 @@ async def check_referral_reward(ref_client_id: int):
         client_creator_telegram_id = await postgres_dbms.get_telegramID_by_clientID(client_creator_id)
         try:
             await bot.send_message(client_creator_telegram_id,
-                                   loc.internal.msgs['ref_client_paid_for_sub'].format(ref_client_name, ref_client_username_str),
-                                   parse_mode='HTML')
+                                   loc.internal.msgs['ref_client_paid_for_sub'].format(ref_client_name, ref_client_username_str))
         # if old client has never written to bot
-        except ChatNotFound as cnf:
+        except (TelegramBadRequest, TelegramForbiddenError) as cnf:
             logger.info(f"Can't notify client about new bonus by refferal program: {cnf}. Perhaps client has never written to bot.")
 
 
@@ -507,18 +517,18 @@ async def authorization_complete(message: Message, state: FSMContext):
     provided_sub_id = None
     bonus_time = None
     client = message.from_user
-    async with state.proxy() as data:
+    data = await state.get_data()
 
-        # if new client entered referral promocode during registration
-        if phrase := data['promo']:
-            used_ref_promo_id, _, provided_sub_id, bonus_time, _ = await postgres_dbms.get_refferal_promo_info_by_phrase(phrase)
+    # if new client entered referral promocode during registration
+    if phrase := data['promo']:
+        used_ref_promo_id, _, provided_sub_id, bonus_time, _ = await postgres_dbms.get_refferal_promo_info_by_phrase(phrase)
 
-        await postgres_dbms.insert_client(client.first_name, client.id, client.last_name, client.username, used_ref_promo_id, provided_sub_id, bonus_time)
-        await send_configuration_request_to_admin({'fullname': client.full_name, 'username': client.username, 'id': client.id}, data._data, is_new_client=True)
+    await postgres_dbms.insert_client(client.first_name, client.id, client.last_name, client.username, used_ref_promo_id, provided_sub_id, bonus_time)
+    await send_configuration_request_to_admin({'fullname': client.full_name, 'username': client.username, 'id': client.id}, data, is_new_client=True)
 
-    await message.answer(loc.internal.msgs['wait_for_admin_answer'], parse_mode='HTML', reply_markup=user_authorized_kb.menu)
+    await message.answer(loc.internal.msgs['wait_for_admin_answer'], reply_markup=user_authorized_kb.menu)
     await message.answer(loc.auth.msgs['i_wanna_sleep'])
-    await state.finish()
+    await state.clear()
 
 
 async def sub_renewal(message: Message, state: FSMContext, months_number: int, discount: float):
@@ -550,7 +560,7 @@ async def sub_renewal(message: Message, state: FSMContext, months_number: int, d
     )
 
     # answer with ReplyKeyboardMarkup
-    await message.answer(loc.internal.msgs['wait_payment'], parse_mode='HTML', reply_markup=user_authorized_kb.sub_renewal_verification)
+    await message.answer(loc.internal.msgs['wait_payment'], reply_markup=user_authorized_kb.sub_renewal_verification)
     await state.set_state(user_authorized_fsm.PaymentMenu.verification)
 
     # answer with InlineKeyboardMarkup with link to payment
@@ -559,10 +569,10 @@ async def sub_renewal(message: Message, state: FSMContext, months_number: int, d
         discount_str = loc.internal.msgs['discount_str'].format(sub_price * months_number * discount)
 
     message_info = await message.answer(loc.internal.msgs['payment_form'].format(sub_title, months_number, payment_price, payment_id, discount_str=discount_str),
-                                        parse_mode='HTML', reply_markup=await user_authorized_kb.sub_renewal_link_inline(payment_form.link_for_customer))
+                                        reply_markup=await user_authorized_kb.sub_renewal_link_inline(payment_form.link_for_customer))
 
     # add telegram_id for created payment
-    await postgres_dbms.update_payment_telegram_message_id(payment_id, message_info['message_id'])
+    await postgres_dbms.update_payment_telegram_message_id(payment_id, message_info.message_id)
 
     # run payment autochecker for 310 seconds
     client_last_payment_status = await autocheck_payment_status(payment_id)
@@ -576,10 +586,10 @@ async def sub_renewal(message: Message, state: FSMContext, months_number: int, d
 
         # try to delete payment message
         try:
-            await bot.delete_message(message.chat.id, message_info['message_id'])
+            await bot.delete_message(message.chat.id, message_info.message_id)
 
         # if already deleted
-        except MessageToDeleteNotFound as _t:
+        except TelegramBadRequest:
             pass
 
         finally:

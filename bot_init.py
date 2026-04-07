@@ -1,8 +1,11 @@
 import os
 import logging
-from aiogram import Bot
-from aiogram.dispatcher import Dispatcher
-from aiogram.contrib.fsm_storage.redis import RedisStorage2
+from aiogram import Bot, Dispatcher
+from aiogram.client.default import DefaultBotProperties
+from aiogram.client.session.aiohttp import AiohttpSession
+from aiogram.enums import ParseMode
+from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder
+from redis.asyncio import Redis
 
 
 logger = logging.getLogger(__name__)
@@ -26,18 +29,20 @@ LOCALIZATION_LANGUAGE = os.getenv('LOCALIZATION_LANGUAGE')
 TIMEZONE = os.getenv('TZ')
 
 
-if PROXY_URL:
-    bot = Bot(token=BOT_TOKEN, proxy=PROXY_URL)
-    logger.info(f"Bot starts using SOCKS5 proxy")
-else:
-    bot = Bot(BOT_TOKEN)
-    logger.debug(f"Bot starts in normal mode without SOCKS5 proxy")
+_default_props = DefaultBotProperties(parse_mode=ParseMode.HTML)
 
-storage = RedisStorage2(
+if PROXY_URL:
+    bot = Bot(token=BOT_TOKEN, default=_default_props, session=AiohttpSession(proxy=PROXY_URL))
+    logger.info("Bot starts using SOCKS5 proxy")
+else:
+    bot = Bot(token=BOT_TOKEN, default=_default_props)
+    logger.debug("Bot starts in normal mode without SOCKS5 proxy")
+
+_redis = Redis(
     host=REDIS_HOST,
     port=REDIS_PORT,
     db=REDIS_DB,
     password=REDIS_PASSWORD,
-    prefix=FSM_PREFIX,
 )
-dp = Dispatcher(bot, storage=storage)
+storage = RedisStorage(redis=_redis, key_builder=DefaultKeyBuilder(prefix=FSM_PREFIX))
+dp = Dispatcher(storage=storage)
