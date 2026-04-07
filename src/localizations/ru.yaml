@@ -571,10 +571,8 @@ admin:
     fsm_start: <i>Активировано машинное состояние</i>
     admin_kb_info: |-
       Для вызова данного меню используйте /admin. Доступные команды:
-      
-      /fileid (/fid)
-      /sql_user
-      /sql_config
+
+      /fileid
       /clients
       /configs <i>telegram_id</i> | <i>username</i>"
     go_send_message_menu: <i>Перехожу в меню отправки сообщений пользователям</i>
@@ -600,37 +598,7 @@ admin:
       Теперь введите необходимую информацию следующим сообщением, а также приложите файлы при необходимости!
 
       Введите /perfect, чтобы подтвердить выбор последнего отправленного сообщения!
-    sql_insert_client_info: Перешлите мне сообщение, и я выведу всю возможную информацию!
-    cant_read_user: К сожалению, не могу прочитать информацию о пользователе 😭
-    sql_insert_config_info: |-
-      Пришлите мне сообщение в формате (вместо переноса строк используются пробелы):
-
-      <b>client_id</b> - client_username | client_telegram_id
-      <b>protocol</b> - alias протокола (напр. <code>wg</code>, <code>x</code>, <code>ss</code>)
-      <b>server</b> - alias сервера (напр. <code>nl01</code>, <code>lv01</code>, <code>de01</code>)
-      <b>os</b> - <code>Android</code> | <code>IOS</code> | <code>Windows</code> | <code>Linux</code>
-      <b>date_of_receipt</b> - дата получения конфигурации в формате <code>YYYY-MM-DD HH-MI</code>
-      <b>link</b> - если вместо файла нужна ссылка вида <code>vless://</code> или <code>ss://</code>
-
-      <b>Не забываем прикрепить файл, если требуется!</b>
-    sql_insert_config_check_config_info: |-
-      Кстати, проверить, какие конфигурации доступны пользователю можно в админском меню командой
-      /configs <i>telegram_id</i> | <i>username</i>
-    error_not_enough_flags: Флаги введены неверно, их слишком мало!
     error_bad_attachment: Вы не приложили файл, либо добавили неверный тип вложения!
-    error_too_many_flags: Флаги введены неверно, их слишком много!
-    error_bad_protocol: Протокол введен неверно!
-    error_bad_location: Локация введена неверно!
-    sql_query_enter_password: Введите пароль от базы данных
-    sql_query_correct_password: 🔥 Отлично, пароль введен верно! Теперь введите SQL-запрос!
-    sql_query_wrong_password: Пароль введен неверно!
-    sql_query_tables_row: |-
-      {0}. <code>{1}</code>
-    sql_query_tables_list: |-
-      Список всех таблиц базы данных <b>{0}</b>:
-
-      {tables_names_str}
-    sql_query_error: "Произошла ошибка: {0}"
     clients_info: 🚀 Вывожу информацию обо всех клиентах!
     clients_info_sub_active: "✅  "
     clients_info_sub_inactive: "❌  "
@@ -640,12 +608,14 @@ admin:
       Используйте команду <code>/logs [число]</code> для показа произвольного числа последних строк лога.
     show_earnings: 💎 Так-так! Заработок за текущий месяц составляет <b>{0:g}</b>₽!
     file_id_photo: |-
-      <b>file_id фото</b>:
+      <b>file_id фото:</b>
+
       <code>{0}</code>
     file_id_document: |-
-      <b>file_id документа</b>:
+      <b>file_id документа:</b>
+      
       <code>{0}</code>
-    error_no_file_for_file_id: Файл не был прикреплен вместе с вызовом команды /fileid (/fid)!
+    error_no_file_for_file_id: Файл не был прикреплен вместе с вызовом команды /fileid!
     send_configuration_info: |-
       Пришлите мне сообщение в формате (вместо переноса строк используйте пробелы):
 
@@ -680,17 +650,8 @@ admin:
       <b>Client ID</b>: <code>{0}</code>
       <b>Telegram INFO</b>:{1} <code>{2}{3}</code> <code>{4}</code>
   keyboard_buttons:
-    sql_insert_config: |-
-      SQL конфиг
-      👾
-    sql_insert_client: |-
-      SQL клиент
-      👾
-    sql_query: |-
-      SQL запрос
-      👾
     get_file_id: |-
-      ID файла
+      Получить ID файла
       👾
     send_message: |-
       Отправить сообщение
