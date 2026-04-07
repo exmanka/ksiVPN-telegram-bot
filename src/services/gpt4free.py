@@ -1,5 +1,11 @@
-from g4f import ChatCompletion, models
-from g4f.Provider import GeekGpt
+import logging
+
+from g4f.client import AsyncClient
+from g4f.Provider import PollinationsAI
+
+from src.services import localization as loc
+
+logger = logging.getLogger(__name__)
 
 
 async def chatgpt_answer(prompt: str) -> str:
@@ -9,13 +15,17 @@ async def chatgpt_answer(prompt: str) -> str:
     :return: ChatGPT answer
     """
     try:
-        response = await ChatCompletion.create_async(
-            model=models.default,  # 'gpt-3.5-turbo',#
-            messages=[{'role': 'user', 'content': prompt}],
-            # provider=GeekGpt,
+        client = AsyncClient()
+        response = await client.chat.completions.create(
+            model="openai",
+            provider=PollinationsAI,
+            messages=[{"role": "user", "content": prompt}],
         )
+        return response.choices[0].message.content
     except Exception as e:
-        print(f"{GeekGpt.__name__}:", e)
-        response = "Извините, произошла ошибка."
-
-    return response
+        logger.warning(
+            "Error with g4f has occurred while answering for prompt: %s",
+            prompt,
+            exc_info=e
+        )
+        return loc.other.msgs['chatgpt_error']
