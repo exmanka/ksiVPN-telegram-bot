@@ -930,6 +930,7 @@ description = "Low-level, pure Python DBus protocol wrapper."
 optional = false
 python-versions = ">=3.7"
 groups = ["main"]
+markers = "\"bsd\" in sys_platform or sys_platform == \"linux\""
 files = [
     {file = "jeepney-0.8.0-py3-none-any.whl", hash = "sha256:c0a454ad016ca575060802ee4d590dd912e35c122fa04e70306de3d076cce755"},
     {file = "jeepney-0.8.0.tar.gz", hash = "sha256:5efe48d255973902f6badc3ce55e2aa6c5c3b3bc642059ef3a91247bcfcc5806"},
@@ -2494,4 +2495,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.1"
 python-versions = "~=3.10.0"
-content-hash = "968461ce9b72a3a4f3b87b8a48434985ff87d1323e25fffbc3387006c1706108"
+content-hash = "e2c861918f580e2a8a87fa8eda1bc1abfac96738ec10eaa7f8fe2a12f0a743e1"
