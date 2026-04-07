@@ -10,15 +10,14 @@ readme = "README.md"
 requires-python = "~=3.10.0"
 dependencies = [
     "aiofiles (==23.2.1)",
-    "aiogram (==2.25.1)",
-    "aiohttp (==3.8.6)",
+    "aiogram (==3.27.0)",
     "apscheduler (==3.10.4)",
     "asyncpg (==0.29.0)",
     "g4f (==0.1.9.3)",
     "pydantic (==2.5.2)",
     "pyyaml (>=6.0,<7.0)",
     "redis (>=7.4.0,<8.0.0)",
-    "aiohttp-socks (==0.8.4)",
+    "aiohttp-socks (>=0.10.1,<0.11)",
 ]
 
 [tool.poetry]

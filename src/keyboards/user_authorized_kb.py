@@ -1,120 +1,199 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from src.database import postgres_dbms
 from src.services import localization as loc
 
 
-menu = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton(loc.auth.btns['sub_renewal'])).\
-    add(KeyboardButton(loc.auth.btns['sub_status'])).insert(KeyboardButton(loc.auth.btns['personal_account'])).\
-    add(KeyboardButton(loc.auth.btns['rules'])).insert(KeyboardButton(loc.other.btns['help'])).insert(KeyboardButton(loc.other.btns['about_service']))
+menu = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    keyboard=[
+        [KeyboardButton(text=loc.auth.btns['sub_renewal'])],
+        [
+            KeyboardButton(text=loc.auth.btns['sub_status']),
+            KeyboardButton(text=loc.auth.btns['personal_account']),
+        ],
+        [
+            KeyboardButton(text=loc.auth.btns['rules']),
+            KeyboardButton(text=loc.other.btns['help']),
+            KeyboardButton(text=loc.other.btns['about_service']),
+        ],
+    ],
+)
 
-sub_renewal = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton(loc.auth.btns['payment_1mnth'])).insert(KeyboardButton(loc.auth.btns['payment_3mnth'])).insert(KeyboardButton(loc.auth.btns['payment_12mnth'])).\
-    add(KeyboardButton(loc.auth.btns['payment_history'])).\
-    add(KeyboardButton(loc.auth.btns['return_main_menu']))
+sub_renewal = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    keyboard=[
+        [
+            KeyboardButton(text=loc.auth.btns['payment_1mnth']),
+            KeyboardButton(text=loc.auth.btns['payment_3mnth']),
+            KeyboardButton(text=loc.auth.btns['payment_12mnth']),
+        ],
+        [KeyboardButton(text=loc.auth.btns['payment_history'])],
+        [KeyboardButton(text=loc.auth.btns['return_main_menu'])],
+    ],
+)
 
-sub_renewal_verification = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton(loc.auth.btns['payment_check'])).\
-    add(KeyboardButton(loc.auth.btns['payment_cancel']))
+sub_renewal_verification = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    keyboard=[
+        [KeyboardButton(text=loc.auth.btns['payment_check'])],
+        [KeyboardButton(text=loc.auth.btns['payment_cancel'])],
+    ],
+)
 
 
 async def sub_renewal_link_inline(link_for_customer: str) -> InlineKeyboardMarkup:
     """Return dynamic inline keyboard with specified payment link as URL for inline button."""
-    return InlineKeyboardMarkup().add(InlineKeyboardButton(loc.auth.btns['pay'], url=link_for_customer))
+    return InlineKeyboardMarkup(
+        inline_keyboard=[[InlineKeyboardButton(text=loc.auth.btns['pay'], url=link_for_customer)]]
+    )
 
-account = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton(loc.auth.btns['ref_program'])).\
-    add(KeyboardButton(loc.auth.btns['configs'])).insert(KeyboardButton(loc.auth.btns['promo'])).\
-    add(KeyboardButton(loc.auth.btns['about_client'])).insert(KeyboardButton(loc.auth.btns['about_sub'])).insert(KeyboardButton(loc.auth.btns['settings'])).\
-    add(KeyboardButton(loc.auth.btns['return_main_menu']))
+account = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    keyboard=[
+        [KeyboardButton(text=loc.auth.btns['ref_program'])],
+        [
+            KeyboardButton(text=loc.auth.btns['configs']),
+            KeyboardButton(text=loc.auth.btns['promo']),
+        ],
+        [
+            KeyboardButton(text=loc.auth.btns['about_client']),
+            KeyboardButton(text=loc.auth.btns['about_sub']),
+            KeyboardButton(text=loc.auth.btns['settings']),
+        ],
+        [KeyboardButton(text=loc.auth.btns['return_main_menu'])],
+    ],
+)
 
-config = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton(loc.auth.btns['current_configs'])).insert(KeyboardButton(loc.auth.btns['request_config'])).\
-    add(KeyboardButton(loc.auth.btns['return_to_account_menu_1']))
+config = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    keyboard=[
+        [
+            KeyboardButton(text=loc.auth.btns['current_configs']),
+            KeyboardButton(text=loc.auth.btns['request_config']),
+        ],
+        [KeyboardButton(text=loc.auth.btns['return_to_account_menu_1'])],
+    ],
+)
 
-config_platform = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton(loc.unauth.btns['smartphone'])).insert(KeyboardButton(loc.unauth.btns['pc'])).\
-    add(KeyboardButton(loc.auth.btns['return_to_configs_menu']))
+config_platform = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    keyboard=[
+        [
+            KeyboardButton(text=loc.unauth.btns['smartphone']),
+            KeyboardButton(text=loc.unauth.btns['pc']),
+        ],
+        [KeyboardButton(text=loc.auth.btns['return_to_configs_menu'])],
+    ],
+)
 
-config_mobile_os = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton(loc.unauth.btns['android'])).insert(KeyboardButton(loc.unauth.btns['ios'])).\
-    add(KeyboardButton(loc.auth.btns['return_to_configs_menu']))
+config_mobile_os = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    keyboard=[
+        [
+            KeyboardButton(text=loc.unauth.btns['android']),
+            KeyboardButton(text=loc.unauth.btns['ios']),
+        ],
+        [KeyboardButton(text=loc.auth.btns['return_to_configs_menu'])],
+    ],
+)
 
-config_desktop_os = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton(loc.unauth.btns['windows'])).insert(KeyboardButton(loc.unauth.btns['macos'])).insert(KeyboardButton(loc.unauth.btns['linux'])).\
-    add(KeyboardButton(loc.auth.btns['return_to_configs_menu']))
+config_desktop_os = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    keyboard=[
+        [
+            KeyboardButton(text=loc.unauth.btns['windows']),
+            KeyboardButton(text=loc.unauth.btns['macos']),
+            KeyboardButton(text=loc.unauth.btns['linux']),
+        ],
+        [KeyboardButton(text=loc.auth.btns['return_to_configs_menu'])],
+    ],
+)
 
-config_chatgpt = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton(loc.unauth.btns['use_chatgpt'])).insert(KeyboardButton(loc.unauth.btns['dont_use_chatgpt'])).insert(KeyboardButton(loc.unauth.btns['what_is_chatgpt'])).\
-    add(KeyboardButton(loc.auth.btns['return_to_configs_menu']))
+config_chatgpt = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    keyboard=[
+        [
+            KeyboardButton(text=loc.unauth.btns['use_chatgpt']),
+            KeyboardButton(text=loc.unauth.btns['dont_use_chatgpt']),
+            KeyboardButton(text=loc.unauth.btns['what_is_chatgpt']),
+        ],
+        [KeyboardButton(text=loc.auth.btns['return_to_configs_menu'])],
+    ],
+)
 
-promo = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton(loc.auth.btns['used_promos'])).add(
-        KeyboardButton(loc.auth.btns['return_to_account_menu_2']))
+promo = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    keyboard=[
+        [KeyboardButton(text=loc.auth.btns['used_promos'])],
+        [KeyboardButton(text=loc.auth.btns['return_to_account_menu_2'])],
+    ],
+)
 
-ref_program = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton(loc.auth.btns['ref_program_participation'])).\
-    add(KeyboardButton(loc.auth.btns['generate_invite'])).insert(KeyboardButton(loc.auth.btns['show_ref_code'])).\
-    add(KeyboardButton(loc.auth.btns['return_to_account_menu_1']))
+ref_program = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    keyboard=[
+        [KeyboardButton(text=loc.auth.btns['ref_program_participation'])],
+        [
+            KeyboardButton(text=loc.auth.btns['generate_invite']),
+            KeyboardButton(text=loc.auth.btns['show_ref_code']),
+        ],
+        [KeyboardButton(text=loc.auth.btns['return_to_account_menu_1'])],
+    ],
+)
 
-settings = ReplyKeyboardMarkup(resize_keyboard=True).\
-    add(KeyboardButton(loc.auth.btns['settings_chatgpt_mode'])).insert(KeyboardButton(loc.auth.btns['settings_notifications'])).\
-    add(KeyboardButton(loc.auth.btns['return_to_account_menu_1']))
+settings = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    keyboard=[
+        [
+            KeyboardButton(text=loc.auth.btns['settings_chatgpt_mode']),
+            KeyboardButton(text=loc.auth.btns['settings_notifications']),
+        ],
+        [KeyboardButton(text=loc.auth.btns['return_to_account_menu_1'])],
+    ],
+)
 
 
 async def settings_notifications(client_id: int) -> ReplyKeyboardMarkup:
     """Return dynamic reply keyboard with current notifications settings for client with specified client_id."""
     sub_expires_in_1_day, sub_expires_in_3_days, sub_expires_in_7_days, _ = await postgres_dbms.get_settings_info(client_id)
-    settings_notifications_kb = ReplyKeyboardMarkup(resize_keyboard=True)
+    builder = ReplyKeyboardBuilder()
 
-    # if client turned on notifications one day before subscription expires
-    if sub_expires_in_1_day:
-        settings_notifications_kb.add(KeyboardButton(loc.auth.btns['1d_off']))
-    # if client turned off notifications one day before subscription expires
-    else:
-        settings_notifications_kb.add(KeyboardButton(loc.auth.btns['1d_on']))
+    builder.button(text=loc.auth.btns['1d_off'] if sub_expires_in_1_day else loc.auth.btns['1d_on'])
+    builder.button(text=loc.auth.btns['3d_off'] if sub_expires_in_3_days else loc.auth.btns['3d_on'])
+    builder.button(text=loc.auth.btns['7d_off'] if sub_expires_in_7_days else loc.auth.btns['7d_on'])
+    builder.button(text=loc.auth.btns['return_to_settings'])
+    builder.adjust(3, 1)
 
-    # if client turned on notifications 3 days before subscription expires
-    if sub_expires_in_3_days:
-        settings_notifications_kb.insert(KeyboardButton(loc.auth.btns['3d_off']))
-    # if client turned off notifications 3 days before subscription expires
-    else:
-        settings_notifications_kb.insert(KeyboardButton(loc.auth.btns['3d_on']))
-
-    # if client turned on notifications 7 days before subscription expires
-    if sub_expires_in_7_days:
-        settings_notifications_kb.insert(KeyboardButton(loc.auth.btns['7d_off']))
-    # if client turned off notifications 7 days before subscription expires
-    else:
-        settings_notifications_kb.insert(KeyboardButton(loc.auth.btns['7d_on']))
-
-    settings_notifications_kb.add(KeyboardButton(loc.auth.btns['return_to_settings']))
-
-    return settings_notifications_kb
+    return builder.as_markup(resize_keyboard=True)
 
 
 async def settings_chatgpt(client_id: int) -> ReplyKeyboardMarkup:
     """Return dynamic reply keyboard with current bot's ChatGPT settings for client with specified client_id."""
-    settings_chatgpt_kb = ReplyKeyboardMarkup(resize_keyboard=True)
+    builder = ReplyKeyboardBuilder()
 
-    # if client turned on ChatGPT mode for bot
     if await postgres_dbms.get_chatgpt_mode_status(client_id):
-        settings_chatgpt_kb.add(KeyboardButton(loc.auth.btns['chatgpt_off']))
-
-    # if client turned off ChatGPT mode for bot
+        builder.button(text=loc.auth.btns['chatgpt_off'])
     else:
-        settings_chatgpt_kb.add(KeyboardButton(loc.auth.btns['chatgpt_on']))
+        builder.button(text=loc.auth.btns['chatgpt_on'])
 
-    settings_chatgpt_kb.add(KeyboardButton(loc.auth.btns['return_to_settings']))
+    builder.button(text=loc.auth.btns['return_to_settings'])
+    builder.adjust(1)
 
-    return settings_chatgpt_kb
+    return builder.as_markup(resize_keyboard=True)
 
 
 async def configuration_instruction_inline(configuration_protocol_name: str, configuration_os: str) -> InlineKeyboardMarkup:
     """Return dynamic inline keyboard with basic and advanced instruction buttons."""
-    kb = InlineKeyboardMarkup()
-    kb.add(InlineKeyboardButton(loc.auth.btns['basic_installation_instruction'],
-                                callback_data='basic--' + configuration_protocol_name + '--' + configuration_os))
-    kb.add(InlineKeyboardButton(loc.auth.btns['advanced_installation_instruction'],
-                                callback_data='advanced--' + configuration_protocol_name + '--' + configuration_os))
-    return kb
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(
+                text=loc.auth.btns['basic_installation_instruction'],
+                callback_data='basic--' + configuration_protocol_name + '--' + configuration_os,
+            )],
+            [InlineKeyboardButton(
+                text=loc.auth.btns['advanced_installation_instruction'],
+                callback_data='advanced--' + configuration_protocol_name + '--' + configuration_os,
+            )],
+        ]
+    )

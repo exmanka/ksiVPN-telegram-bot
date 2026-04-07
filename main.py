@@ -1,7 +1,6 @@
 import logging
 import asyncio
 import signal
-from aiogram.utils import executor
 from src.middlewares import user_authorized_mw, user_unauthorized_mw, admin_mw, throttling_mw
 from src.handlers import user_authorized, user_unauthorized, admin, other
 from src.database import postgres_dbms
@@ -9,50 +8,54 @@ from src.services import scheduler
 from bot_init import dp, bot
 
 
-async def on_startup(_):
+logger = logging.getLogger(__name__)
+
+
+async def on_startup() -> None:
     """Connect to database and run scheduler during bot launch."""
     await postgres_dbms.asyncpg_run()
     await scheduler.apscheduler_start()
     logger.info('Bot has been successfully launched!')
 
 
-async def on_shutdown(_):
+async def on_shutdown() -> None:
     """Disconnect from database and finish scheduler during bot shutdown."""
     await postgres_dbms.asyncpg_close()
     await scheduler.apscheduler_finish()
     await dp.storage.close()
-    await dp.storage.wait_closed()
-    session = await bot.get_session()
-    await session.close()
+    await bot.session.close()
     logger.info('Bot has been successfully shut down!')
 
 
-def main() -> None:
-    # register middlwares
-    dp.middleware.setup(admin_mw.CheckAdmin())
-    dp.middleware.setup(user_authorized_mw.CheckAuthorized())
-    dp.middleware.setup(user_unauthorized_mw.CheckUnauthorized())
-    dp.middleware.setup(throttling_mw.Throttling())
+async def main() -> None:
+    # register middlewares (order matters: admin/auth first, then throttling)
+    dp.message.middleware(admin_mw.CheckAdmin())
+    dp.message.middleware(user_authorized_mw.CheckAuthorized())
+    dp.message.middleware(user_unauthorized_mw.CheckUnauthorized())
+    dp.message.middleware(throttling_mw.Throttling())
 
-    # register handlers
+    # register handlers (routers)
     user_authorized.register_handlers_authorized_client(dp)
     user_unauthorized.register_handlers_unauthorized_client(dp)
     admin.register_handlers_admin(dp)
     other.register_handlers_other(dp)
 
-    # launch bot
-    loop = asyncio.get_event_loop()
+    dp.startup.register(on_startup)
+    dp.shutdown.register(on_shutdown)
+
+    loop = asyncio.get_running_loop()
     loop.add_signal_handler(signal.SIGTERM, lambda: signal.raise_signal(signal.SIGINT))
-    executor.start_polling(dp, skip_updates=True, on_startup=on_startup, on_shutdown=on_shutdown,
-                           allowed_updates=['message', 'edited_message', 'callback_query', 'my_chat_member'])
+
+    await bot.delete_webhook(drop_pending_updates=True)
+    await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
 
 
 if __name__ == '__main__':
-    # add logging
     logging.basicConfig(handlers=[logging.FileHandler('bot.log'), logging.StreamHandler()],
                         level=logging.INFO,
                         format='[%(asctime)s: %(levelname)s: %(name)s] %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S',
                         encoding='utf-8')
-    logger = logging.getLogger(__name__)
-    main()
+    # Suppress per-update INFO lines from aiogram.event ("Update id=… is handled. Duration …")
+    logging.getLogger('aiogram.event').setLevel(logging.WARNING)
+    asyncio.run(main())

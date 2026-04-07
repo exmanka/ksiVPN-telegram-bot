@@ -1,7 +1,7 @@
-from aiogram import Dispatcher
+from aiogram import F, Router
+from aiogram.filters import StateFilter
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
-from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import Text
 from src.middlewares import user_unauthorized_mw
 from src.keyboards import user_unauthorized_kb
 from src.states import user_unauthorized_fsm
@@ -9,73 +9,114 @@ from src.database import postgres_dbms
 from src.services import internal_functions, localization as loc
 
 
+router = Router(name="user_unauthorized")
+
+_cancel_states = [
+    None,
+    user_unauthorized_fsm.RegistrationMenu.platform,
+    user_unauthorized_fsm.RegistrationMenu.os,
+    user_unauthorized_fsm.RegistrationMenu.chatgpt,
+    user_unauthorized_fsm.RegistrationMenu.promo,
+]
+
+
+@router.message(
+    F.text.lower() == loc.unauth.btns['cancel'].lower(),
+    StateFilter(*_cancel_states),
+)
 @user_unauthorized_mw.unauthorized_only()
 async def fsm_cancel(message: Message, state: FSMContext):
     """Cancel FSM state for registration."""
-    await state.finish()
-    await message.answer(loc.unauth.msgs['return_to_main_menu'], parse_mode='HTML', reply_markup=user_unauthorized_kb.welcome)
+    await state.clear()
+    await message.answer(loc.unauth.msgs['return_to_main_menu'], reply_markup=user_unauthorized_kb.welcome)
 
 
+@router.message(F.text.lower() == loc.unauth.btns['join'].lower())
 @user_unauthorized_mw.unauthorized_only()
-async def authorization_fsm_start(message: Message):
+async def authorization_fsm_start(message: Message, state: FSMContext):
     """Start FSM for registration and request user's platform."""
-    await message.answer(loc.unauth.msgs['need_define_config'], parse_mode='HTML')
-    await message.answer(loc.unauth.msgs['ask_four_questions'], parse_mode='HTML')
-    await message.answer(loc.unauth.msgs['choose_your_platform'], parse_mode='HTML', reply_markup=user_unauthorized_kb.reg_platform)
-    await user_unauthorized_fsm.RegistrationMenu.platform.set()
+    await message.answer(loc.unauth.msgs['need_define_config'])
+    await message.answer(loc.unauth.msgs['ask_four_questions'])
+    await message.answer(loc.unauth.msgs['choose_your_platform'], reply_markup=user_unauthorized_kb.reg_platform)
+    await state.set_state(user_unauthorized_fsm.RegistrationMenu.platform)
 
 
+@router.message(
+    F.text.in_({loc.unauth.btns[key] for key in ('smartphone', 'pc')}),
+    StateFilter(user_unauthorized_fsm.RegistrationMenu.platform),
+)
 @user_unauthorized_mw.unauthorized_only()
 async def authorization_take_platform(message: Message, state: FSMContext):
     """Change FSM state, save user's platform and request user's OS."""
-    async with state.proxy() as data:
-        data['platform'] = message.text
+    await state.update_data(platform=message.text)
 
     # if user chooses smartphone option
     if message.text == loc.unauth.btns['smartphone']:
-
-        await message.answer(loc.unauth.msgs['choose_your_os'], parse_mode='HTML', reply_markup=user_unauthorized_kb.reg_mobile_os)
+        await message.answer(loc.unauth.msgs['choose_your_os'], reply_markup=user_unauthorized_kb.reg_mobile_os)
 
     # if user chooses pc option
     else:
-        await message.answer(loc.unauth.msgs['choose_your_os'], parse_mode='HTML', reply_markup=user_unauthorized_kb.reg_desktop_os)
+        await message.answer(loc.unauth.msgs['choose_your_os'], reply_markup=user_unauthorized_kb.reg_desktop_os)
 
     await state.set_state(user_unauthorized_fsm.RegistrationMenu.os)
 
 
+@router.message(
+    F.text.in_({loc.unauth.btns[key] for key in ('android', 'ios', 'windows', 'macos', 'linux')}),
+    StateFilter(user_unauthorized_fsm.RegistrationMenu.os),
+)
 @user_unauthorized_mw.unauthorized_only()
 async def authorization_take_os(message: Message, state: FSMContext):
     """Change FSM state, save user's OS and request user's ChatGPT option."""
-    async with state.proxy() as data:
-        data['os_name'] = message.text
+    await state.update_data(os_name=message.text)
 
-    await message.answer(loc.unauth.msgs['choose_chatgpt_option'], parse_mode='HTML', reply_markup=user_unauthorized_kb.reg_chatgpt)
+    await message.answer(loc.unauth.msgs['choose_chatgpt_option'], reply_markup=user_unauthorized_kb.reg_chatgpt)
     await state.set_state(user_unauthorized_fsm.RegistrationMenu.chatgpt)
 
 
+@router.message(
+    F.text.lower() == loc.unauth.btns['what_is_chatgpt'].lower(),
+    StateFilter(user_unauthorized_fsm.RegistrationMenu.chatgpt),
+)
 @user_unauthorized_mw.unauthorized_only()
 async def authorization_show_info_chatgpt(message: Message):
     """Send message with information about ChatGPT."""
-    await message.answer(loc.unauth.msgs['chatgpt_info'], parse_mode='HTML')
+    await message.answer(loc.unauth.msgs['chatgpt_info'])
 
 
+@router.message(
+    F.text.in_({loc.unauth.btns[key] for key in ('use_chatgpt', 'dont_use_chatgpt')}),
+    StateFilter(user_unauthorized_fsm.RegistrationMenu.chatgpt),
+)
 @user_unauthorized_mw.unauthorized_only()
 async def authorization_take_chatgpt(message: Message, state: FSMContext):
     """Change FSM state, save user's ChatGPT option and request user's referral promo."""
-    async with state.proxy() as data:
-        data['chatgpt'] = message.text
+    await state.update_data(chatgpt=message.text)
 
-    await message.answer(loc.unauth.msgs['enter_ref_promo'], parse_mode='HTML', reply_markup=user_unauthorized_kb.reg_ref_promo)
+    await message.answer(loc.unauth.msgs['enter_ref_promo'], reply_markup=user_unauthorized_kb.reg_ref_promo)
     await state.set_state(user_unauthorized_fsm.RegistrationMenu.promo)
 
 
+@router.message(
+    F.text == loc.unauth.btns['no_promo'],
+    StateFilter(user_unauthorized_fsm.RegistrationMenu.promo),
+)
+@user_unauthorized_mw.unauthorized_only()
+async def authorization_promo_no(message: Message, state: FSMContext):
+    """Complete authorization without referral promocode."""
+    await state.update_data(promo=None)
+
+    await internal_functions.authorization_complete(message, state)
+    await message.answer(loc.unauth.msgs['need_renew_sub'])
+
+
+@router.message(StateFilter(user_unauthorized_fsm.RegistrationMenu.promo))
 @user_unauthorized_mw.unauthorized_only()
 async def authorization_promo_yes(message: Message, state: FSMContext):
     """Check entered referral promocode, notify old client about new client used his referral promocode, complete authorization."""
     # if referral promocode exists in system
     if await postgres_dbms.is_referral_promo(message.text):
-        async with state.proxy() as data:
-            data['promo'] = message.text
+        await state.update_data(promo=message.text)
 
         # send information to old client that new client joined project by his referral promocode
         _, client_creator_id, provided_sub_id, _, bonus_time_parsed = await postgres_dbms.get_refferal_promo_info_by_phrase(message.text)
@@ -83,11 +124,11 @@ async def authorization_promo_yes(message: Message, state: FSMContext):
 
         # send information about promocode bonus time to new client
         client_creator_name, *_ = await postgres_dbms.get_client_info_by_clientID(client_creator_id)
-        await message.answer(loc.unauth.msgs['ref_promo_accepted'].format(client_creator_name, bonus_time_parsed), parse_mode='HTML')
+        await message.answer(loc.unauth.msgs['ref_promo_accepted'].format(client_creator_name, bonus_time_parsed))
 
         # send information about subscription available by referral promocode
         _, title, _, price = await postgres_dbms.get_subscription_info_by_subID(provided_sub_id)
-        await message.answer(loc.unauth.msgs['sub_info'].format(title, price), parse_mode='HTML')
+        await message.answer(loc.unauth.msgs['sub_info'].format(title, price))
 
         # complete authorization
         await internal_functions.authorization_complete(message, state)
@@ -95,34 +136,9 @@ async def authorization_promo_yes(message: Message, state: FSMContext):
     # if referral promocode wasn't recognized
     else:
         await message.answer(loc.unauth.msgs['invalid_promo'])
-        async with state.proxy() as data:
-            data['promo'] = None
+        await state.update_data(promo=None)
 
 
-@user_unauthorized_mw.unauthorized_only()
-async def authorization_promo_no(message: Message, state: FSMContext):
-    """Complete authorization without referral promocode."""
-    async with state.proxy() as data:
-        data['promo'] = None
-
-    await internal_functions.authorization_complete(message, state)
-    await message.answer(loc.unauth.msgs['need_renew_sub'], parse_mode='HTML')
-
-
-def register_handlers_unauthorized_client(dp: Dispatcher):
-    dp.register_message_handler(fsm_cancel, Text(loc.unauth.btns['cancel'], ignore_case=True), state=[None,
-                                                                                                      user_unauthorized_fsm.RegistrationMenu.platform,
-                                                                                                      user_unauthorized_fsm.RegistrationMenu.os,
-                                                                                                      user_unauthorized_fsm.RegistrationMenu.chatgpt,
-                                                                                                      user_unauthorized_fsm.RegistrationMenu.promo])
-    dp.register_message_handler(authorization_fsm_start, Text(loc.unauth.btns['join'], ignore_case=True))
-    dp.register_message_handler(authorization_take_platform, Text([loc.unauth.btns[key] for key in ('smartphone', 'pc')]),
-                                state=user_unauthorized_fsm.RegistrationMenu.platform)
-    dp.register_message_handler(authorization_take_os, Text([loc.unauth.btns[key] for key in ('android', 'ios', 'windows', 'macos', 'linux')]),
-                                state=user_unauthorized_fsm.RegistrationMenu.os)
-    dp.register_message_handler(authorization_show_info_chatgpt, Text(loc.unauth.btns['what_is_chatgpt'], ignore_case=True),
-                                state=user_unauthorized_fsm.RegistrationMenu.chatgpt)
-    dp.register_message_handler(authorization_take_chatgpt, Text([loc.unauth.btns[key] for key in ('use_chatgpt', 'dont_use_chatgpt')]),
-                                state=user_unauthorized_fsm.RegistrationMenu.chatgpt)
-    dp.register_message_handler(authorization_promo_no, Text(loc.unauth.btns['no_promo']), state=user_unauthorized_fsm.RegistrationMenu.promo)
-    dp.register_message_handler(authorization_promo_yes, state=user_unauthorized_fsm.RegistrationMenu.promo)
+def register_handlers_unauthorized_client(dp):
+    """Attach the `user_unauthorized` router to the dispatcher."""
+    dp.include_router(router)

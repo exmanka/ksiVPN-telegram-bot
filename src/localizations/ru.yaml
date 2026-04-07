@@ -79,8 +79,10 @@ user_authorized:
     client_info: |-
       👾 Вот что мне известно:
 
-      {username_str}<b>Имя</b>: {0}
-      {surname_str}<b>Телеграм ID</b>: {1}
+      {username_str}
+      <b>Имя</b>: {0}
+      {surname_str}
+      <b>Телеграм ID</b>: {1}
       <b>Дата регистрации</b>: {2}
     subscription_info: |-
       🌟 Информация о подписке:

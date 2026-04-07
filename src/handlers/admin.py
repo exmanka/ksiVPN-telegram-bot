@@ -2,11 +2,11 @@ import logging
 import aiofiles
 import html
 from decimal import Decimal
-from aiogram import Dispatcher
+from aiogram import F, Router
+from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
+from aiogram.filters import Command, StateFilter
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
-from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import Text
-from aiogram.utils.exceptions import ChatNotFound, BotBlocked, UserDeactivated
 from src.middlewares import admin_mw
 from src.keyboards import admin_kb
 from src.states import admin_fsm
@@ -18,81 +18,77 @@ from bot_init import bot, POSTGRES_DB, POSTGRES_PASSWORD
 logger = logging.getLogger(__name__)
 
 
+router = Router(name="admin")
+
+
+@router.message(
+    F.text.in_({loc.admn.btns[key] for key in ('reset_fsm_1', 'reset_fsm_2')}),
+    StateFilter('*'),
+)
+@router.message(Command(commands=['reset']), StateFilter('*'))
 @admin_mw.admin_only()
 async def fsm_reset(message: Message, state: FSMContext):
     """Cancel admin's FSM state and return to menu keyboard regardless of machine state."""
-    await state.finish()
-    await message.answer(loc.admn.msgs['reset_fsm_keyboard'], parse_mode='HTML', reply_markup=admin_kb.menu)
+    await state.clear()
+    await message.answer(loc.admn.msgs['reset_fsm_keyboard'], reply_markup=admin_kb.menu)
 
 
+@router.message(Command(commands=['admin']), StateFilter('*'))
 @admin_mw.admin_only()
 async def show_admin_keyboard(message: Message):
     """Send message with information about admin's commands and show admin keyboard."""
-    await message.reply(loc.admn.msgs['admin_kb_info'], parse_mode='HTML', reply_markup=admin_kb.menu)
+    await message.reply(loc.admn.msgs['admin_kb_info'], reply_markup=admin_kb.menu)
 
 
+@router.message(F.text == loc.admn.btns['send_message'])
 @admin_mw.admin_only()
 async def notifications_menu(message: Message):
     """Show keyboard for sending messages via bot."""
-    await message.answer(loc.admn.msgs['go_send_message_menu'], parse_mode='HTML', reply_markup=admin_kb.notification)
+    await message.answer(loc.admn.msgs['go_send_message_menu'], reply_markup=admin_kb.notification)
 
 
+@router.message(F.text == loc.admn.btns['send_message_everyone'])
 @admin_mw.admin_only()
 async def notifications_send_message_everyone_fsm_start(message: Message, state: FSMContext):
     """Start FSM for sending message to every client who wrote bot at least one time."""
     await state.set_state(admin_fsm.SendMessage.everyone_decision)
-    await message.answer(loc.admn.msgs['fsm_start'], parse_mode='HTML')
+    await message.answer(loc.admn.msgs['fsm_start'])
     await message.answer(loc.admn.msgs['message_everyone_info'])
 
 
+@router.message(StateFilter(admin_fsm.SendMessage.everyone_decision))
 @admin_mw.admin_only()
 async def notifications_send_message_everyone(message: Message, state: FSMContext):
     """Catch message, echo message and send it to every client who wrote bot at least one time, if admin wrote /perfect."""
-    # if message looks good for admin
     if message.text and message.text == '/perfect':
         ignored_clients_str = ''
-        async with state.proxy() as data:
+        data = await state.get_data()
 
-            # TODO: перенести обработки ошибок в internal_functions.send_message_by_telegram_id
-            # TODO: перенести обработки ошибок в internal_functions.send_message_by_telegram_id
-            # TODO: перенести обработки ошибок в internal_functions.send_message_by_telegram_id
-            
-            # for every client
-            for idx, [telegram_id] in enumerate(await postgres_dbms.get_clients_telegram_ids()):
-                try:
-                    await bot.copy_message(telegram_id, data['message_chat_id'], data['message_id'])
+        # TODO: перенести обработки ошибок в internal_functions.send_message_by_telegram_id
+        for idx, [telegram_id] in enumerate(await postgres_dbms.get_clients_telegram_ids()):
+            try:
+                await bot.copy_message(telegram_id, data['message_chat_id'], data['message_id'])
 
-                # add him to message list of clients who didn't receive message
-                except ChatNotFound as _t:
-                    # add him to message list of clients who didn't receive message
-                    _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
-                    ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, html.escape(name), html.escape(str(surname)), html.escape(str(username)), telegram_id)
+            except TelegramForbiddenError as bb:
+                # client blocked the bot or deactivated their account
+                _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
+                logger.info(f"Can't send message to client {name} {telegram_id}: {bb}")
+                ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, html.escape(name), html.escape(str(surname)), html.escape(str(username)), telegram_id) + '(has blocked bot)\n'
 
-                # if client blocked bot
-                except BotBlocked as bb:
-                    # add him to message list of clients who didn't receive message and add info to log
-                    _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
-                    logger.info(f"Can't send message to client {name} {telegram_id}: {bb}")
-                    ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, html.escape(name), html.escape(str(surname)), html.escape(str(username)), telegram_id) + '(has blocked bot)\n'
+            except TelegramBadRequest:
+                # chat not found / user gone
+                _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
+                ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, html.escape(name), html.escape(str(surname)), html.escape(str(username)), telegram_id)
 
-                except UserDeactivated as ud:
-                    # add him to message list of clients who didn't receive message
-                    _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
-                    ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, html.escape(name), html.escape(str(surname)), html.escape(str(username)), telegram_id)
+            except Exception as e:
+                logger.warning(f"Can't send message to client telegram_id={telegram_id} due to unexpected error: {e}")
 
-                except Exception as e:
-                    logger.warning(f"Can't send message to client [{name} {telegram_id}] due to unexpected error: {e}")
-
-
-        # if some clients didn't receive message because they didn't write to bot at all
         if ignored_clients_str:
             answer_message = loc.admn.msgs['message_everyone_was_sent'] + '\n\n' + loc.admn.msgs['message_everyone_somebody_didnt_recieve']\
                 .format(ignored_clients_str=ignored_clients_str)
-            await message.answer(answer_message, parse_mode='HTML')
-
-        # if all clients receive message
+            await message.answer(answer_message)
         else:
-            await message.answer(loc.admn.msgs['message_everyone_was_sent'] + '\n\n' + loc.admn.msgs['message_everyone_everybody_received'], parse_mode='HTML')
+            await message.answer(loc.admn.msgs['message_everyone_was_sent'] + '\n\n' + loc.admn.msgs['message_everyone_everybody_received'])
 
         await fsm_reset(message, state)
         return
@@ -103,121 +99,98 @@ async def notifications_send_message_everyone(message: Message, state: FSMContex
     await bot.copy_message(message.from_user.id, message.chat.id, message.message_id)
 
     # save last message to send it if admin write /perfect
-    async with state.proxy() as data:
-        data['message_chat_id'] = message.chat.id
-        data['message_id'] = message.message_id
+    await state.update_data(message_chat_id=message.chat.id, message_id=message.message_id)
 
 
+@router.message(F.text == loc.admn.btns['send_message_selected'])
 @admin_mw.admin_only()
 async def notifications_send_message_selected_fsm_start(message: Message, state: FSMContext):
     """Start FSM for sending message to selected clients."""
     await state.set_state(admin_fsm.SendMessage.selected_list)
-    await message.answer(loc.admn.msgs['fsm_start'], parse_mode='HTML')
-    await message.answer(loc.admn.msgs['message_selected_info'], parse_mode='HTML')
+    await message.answer(loc.admn.msgs['fsm_start'])
+    await message.answer(loc.admn.msgs['message_selected_info'])
 
 
+@router.message(StateFilter(admin_fsm.SendMessage.selected_list))
 @admin_mw.admin_only()
 async def notifications_send_message_selected_list(message: Message, state: FSMContext):
     """Parse entered by admin list of selected clients for sending them some message."""
-    # parse clients mentioned in message
     selected_clients = message.text.split(' ')
     selected_clients_telegram_ids = []
     for client in selected_clients:
-
-        # if client mentioned by username
         if client[0] == '@':
-
-            # if client exists in db
             if telegram_id := await postgres_dbms.get_telegramID_by_username(client):
                 selected_clients_telegram_ids.append(telegram_id)
-
-        # if client mentioned by telegram_id and exists in db
         elif await postgres_dbms.get_clientID_by_telegramID(int(client)):
             selected_clients_telegram_ids.append(int(client))
 
-    # save selected clients ids
-    async with state.proxy() as data:
-        data['selected_telegram_ids'] = selected_clients_telegram_ids
+    await state.update_data(selected_telegram_ids=selected_clients_telegram_ids)
     await state.set_state(admin_fsm.SendMessage.selected_decision)
 
-    # show selected clients info
     selected_clients_str = ''
     for idx, telegram_id in enumerate(selected_clients_telegram_ids):
         _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
         selected_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, html.escape(name), html.escape(str(surname)), html.escape(str(username)), telegram_id)
 
-    # if at least 1 selected client exists in db
     if selected_clients_str:
-        await message.answer(loc.admn.msgs['message_selected_somebody_received'].format(selected_clients_str=selected_clients_str), parse_mode='HTML')
+        await message.answer(loc.admn.msgs['message_selected_somebody_received'].format(selected_clients_str=selected_clients_str))
         await message.answer(loc.admn.msgs['message_selected_enter_message_info'])
-
-    # if mentioned clients don't exist in db
     else:
-        await message.answer(loc.admn.msgs['message_selected_nobody_received'], parse_mode='HTML')
+        await message.answer(loc.admn.msgs['message_selected_nobody_received'])
 
 
+@router.message(StateFilter(admin_fsm.SendMessage.selected_decision))
 @admin_mw.admin_only()
 async def notifications_send_message_selected(message: Message, state: FSMContext):
     """Catch message, echo message and send it to selected clients, if admin wrote /perfect."""
-    # if message looks good for admin
     if message.text and message.text == '/perfect':
         ignored_clients_str = ''
-        async with state.proxy() as data:
+        data = await state.get_data()
 
-            # for every existing in db selected client
-            for idx, telegram_id in enumerate(data['selected_telegram_ids']):
-                try:
-                    await bot.copy_message(telegram_id, data['message_chat_id'], data['message_id'])
+        for idx, telegram_id in enumerate(data['selected_telegram_ids']):
+            try:
+                await bot.copy_message(telegram_id, data['message_chat_id'], data['message_id'])
 
-                # add him to message list of clients who didn't receive message
-                except ChatNotFound as _t:
-                    # add him to message list of clients who didn't receive message
-                    _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
-                    ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, html.escape(name), html.escape(str(surname)), html.escape(str(username)), telegram_id)
+            except TelegramForbiddenError as bb:
+                _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
+                logger.info(f"Can't send message to client {name} {telegram_id}: {bb}")
+                ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, html.escape(name), html.escape(str(surname)), html.escape(str(username)), telegram_id) + '(has blocked bot)\n'
 
-                # if client blocked bot
-                except BotBlocked as bb:
-                    # add him to message list of clients who didn't receive message and add info to log
-                    _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
-                    logger.info(f"Can't send message to client {name} {telegram_id}: {bb}")
-                    ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, html.escape(name), html.escape(str(surname)), html.escape(str(username)), telegram_id) + '(has blocked bot)\n'
+            except TelegramBadRequest:
+                _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
+                ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, html.escape(name), html.escape(str(surname)), html.escape(str(username)), telegram_id)
 
-        # if some clients didn't receive message because they didn't write to bot at all
         if ignored_clients_str:
             answer_message = loc.admn.msgs['message_everyone_was_sent'] + '\n\n' + loc.admn.msgs['message_everyone_somebody_didnt_recieve']\
                 .format(ignored_clients_str=ignored_clients_str)
-            await message.answer(answer_message, parse_mode='HTML')
-
-        # if all clients receive message
+            await message.answer(answer_message)
         else:
-            await message.answer(loc.admn.msgs['message_everyone_was_sent'] + '\n\n' + loc.admn.msgs['message_everyone_everybody_received'], parse_mode='HTML')
-    
+            await message.answer(loc.admn.msgs['message_everyone_was_sent'] + '\n\n' + loc.admn.msgs['message_everyone_everybody_received'])
+
         await fsm_reset(message, state)
         return
 
     await message.answer('Вот так будет выглядеть Ваше сообщение:')
 
-    # echo message showing how will be displayed admin's message for clients
     await bot.copy_message(message.from_user.id, message.chat.id, message.message_id)
 
-    # save last message to send it if admin write /perfect
-    async with state.proxy() as data:
-        data['message_chat_id'] = message.chat.id
-        data['message_id'] = message.message_id
+    await state.update_data(message_chat_id=message.chat.id, message_id=message.message_id)
 
 
+@router.message(F.text == loc.admn.btns['sql_insert_client'])
+@router.message(Command(commands=['sql_user']))
 @admin_mw.admin_only()
-async def show_user_info_sql_fsm_start(message: Message):
+async def show_user_info_sql_fsm_start(message: Message, state: FSMContext):
     """Start FSM for showing SQL query for INSERT of forward message's owner."""
-    await admin_fsm.UserInfo.ready.set()
-    await message.answer(loc.admn.msgs['fsm_start'], parse_mode='HTML')
+    await state.set_state(admin_fsm.UserInfo.ready)
+    await message.answer(loc.admn.msgs['fsm_start'])
     await message.answer(loc.admn.msgs['sql_insert_client_info'])
 
 
+@router.message(StateFilter(admin_fsm.UserInfo.ready))
 @admin_mw.admin_only()
 async def show_user_info_sql(message: Message):
     """Send message with SQL auery for INSERT of forward message's owner."""
-    # if user blocked ability to get information about his profile
     if message.forward_from is None:
         await message.reply(loc.admn.msgs['cant_read_user'])
     else:
@@ -226,85 +199,97 @@ async def show_user_info_sql(message: Message):
         username = message.forward_from.username
         telegram_id = message.forward_from.id
 
-        # create beautiful answer
         if last_name is None and username is None:
             await message.reply(f"<code>INSERT INTO clients (name, telegram_id, register_date) VALUES('{first_name}', "
-                                f"{telegram_id}, TIMESTAMP '2023-01-01 00:00');</code>", parse_mode='HTML')
+                                f"{telegram_id}, TIMESTAMP '2023-01-01 00:00');</code>")
         elif username is None:
             await message.reply(f"<code>INSERT INTO clients (name, surname, telegram_id, register_date) VALUES('{first_name}', "
-                                f"'{last_name}', {telegram_id}, TIMESTAMP '2023-01-01 00:00');</code>", parse_mode='HTML')
+                                f"'{last_name}', {telegram_id}, TIMESTAMP '2023-01-01 00:00');</code>")
         elif last_name is None:
             await message.reply(f"<code>INSERT INTO clients (name, username, telegram_id, register_date) VALUES('{first_name}', "
-                                f"'@{username}', {telegram_id}, TIMESTAMP '2023-01-01 00:00');</code>", parse_mode='HTML')
+                                f"'@{username}', {telegram_id}, TIMESTAMP '2023-01-01 00:00');</code>")
         else:
             await message.reply(f"<code>INSERT INTO clients (name, surname, username, telegram_id, register_date) VALUES('{first_name}', "
-                                f"'{last_name}', '@{username}', {telegram_id}, TIMESTAMP '2023-01-01 00:00');</code>",
-                                parse_mode='HTML')
+                                f"'{last_name}', '@{username}', {telegram_id}, TIMESTAMP '2023-01-01 00:00');</code>")
 
 
+@router.message(F.text == loc.admn.btns['sql_insert_config'])
+@router.message(Command(commands=['sql_config']))
 @admin_mw.admin_only()
-async def show_user_config_sql_cm_start(message: Message):
+async def show_user_config_sql_cm_start(message: Message, state: FSMContext):
     """Start FSM for showing SQL query for INSERT of configuration provided by admin."""
-    await admin_fsm.ConfigInfo.ready.set()
-    await message.answer(loc.admn.msgs['fsm_start'], parse_mode='HTML')
-    await message.answer(loc.admn.msgs['sql_insert_config_info'], parse_mode='HTML')
-    await message.answer(loc.admn.msgs['sql_insert_config_check_config_info'], parse_mode='HTML')
+    await state.set_state(admin_fsm.ConfigInfo.ready)
+    await message.answer(loc.admn.msgs['fsm_start'])
+    await message.answer(loc.admn.msgs['sql_insert_config_info'])
+    await message.answer(loc.admn.msgs['sql_insert_config_check_config_info'])
 
 
+@router.message(Command(commands=['configs']))
+@admin_mw.admin_only()
+async def check_user_configs(message: Message):
+    """Send messages with configurations of another client."""
+    try:
+        user_info = message.text.split(' ')[1]
+
+        if user_info[0] == '@':
+            client_id = await postgres_dbms.get_clientID_by_username(user_info)
+        else:
+            client_id = await postgres_dbms.get_clientID_by_telegramID(int(user_info))
+    except Exception as e:
+        await message.answer(loc.admn.msgs['error_unrecognized'].format(e))
+        return
+
+    configurations_info = await postgres_dbms.get_configurations_info(client_id)
+    await message.answer(loc.auth.msgs['configs_info'].format(len(configurations_info)))
+
+    for file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name in configurations_info:
+        await internal_functions.send_configuration(message.from_user.id, file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name)
+
+
+@router.message(
+    StateFilter(admin_fsm.ConfigInfo.ready),
+    F.content_type.in_({'text', 'document'}),
+)
 @admin_mw.admin_only()
 async def show_user_config_sql(message: Message):
     """Send message with SQL qauery for INSERT of configuration provided by admin."""
-    # parse arguments
     if message.document:
         arguments = message.caption.split(' ')
     else:
         arguments = message.text.split(' ')
 
-    # if number of arguments are less then expected
     if len(arguments) < 6:
         await message.answer(loc.admn.msgs['error_not_enough_flags'])
         return
 
-    # if admin didn't add link as 7th argument (link)
     elif len(arguments) == 6:
         flag_username_or_telegram_id, flag_protocol, flag_location, os, date_of_receipt_date, date_of_receipt_time = arguments
 
-        # if document was sended
         if message.document:
             file_type = 'document'
             link = message.document.file_id
-
-        # any other case
         else:
             await message.answer(loc.admn.msgs['error_bad_attachment'])
+            return
 
-    # if admin added link as 7th argument (link)
     elif len(arguments) == 7:
         flag_username_or_telegram_id, flag_protocol, flag_location, os, date_of_receipt_date, date_of_receipt_time, link = arguments
-
-        # creating link for XTLS-Reality
         file_type = 'link'
 
-    # if number of arguments are more then expected
     else:
         await message.answer(loc.admn.msgs['error_too_many_flags'])
         return
 
-    # if 1st argument is username
     if flag_username_or_telegram_id[0] == '@':
         client_id = await postgres_dbms.get_clientID_by_username(flag_username_or_telegram_id)
-
-    # if 1st argument is telegram_id
     else:
         client_id = await postgres_dbms.get_clientID_by_telegramID(int(flag_username_or_telegram_id))
 
-    # check 2nd argument as protocol alias
     protocol_id = await postgres_dbms.get_protocol_id_by_alias(flag_protocol)
     if protocol_id is None:
         await message.answer(loc.admn.msgs['error_bad_protocol'])
         return
 
-    # check 3rd argument as server alias
     server_id = await postgres_dbms.get_server_id_by_alias(flag_location)
     if server_id is None:
         await message.answer(loc.admn.msgs['error_bad_location'])
@@ -312,17 +297,19 @@ async def show_user_config_sql(message: Message):
 
     answer_text = '<code>INSERT INTO configurations(client_id, protocol_id, server_id, os, file_type, link, date_of_receipt) '
     answer_text += f"VALUES({client_id}, {protocol_id}, '{server_id}', '{os}', '{file_type}', '{link}', TIMESTAMP '{date_of_receipt_date} {date_of_receipt_time}');</code>"
-    await message.answer(answer_text, parse_mode='HTML')
+    await message.answer(answer_text)
 
 
+@router.message(F.text == loc.admn.btns['sql_query'])
 @admin_mw.admin_only()
-async def sql_query_fsm_start(message: Message):
+async def sql_query_fsm_start(message: Message, state: FSMContext):
     """Start FSM for executing SQL query."""
-    await admin_fsm.SQLQuery.password.set()
-    await message.answer(loc.admn.msgs['fsm_start'], parse_mode='HTML')
-    await message.answer(loc.admn.msgs['sql_query_enter_password'], parse_mode='HTML', reply_markup=admin_kb.sql_query)
+    await state.set_state(admin_fsm.SQLQuery.password)
+    await message.answer(loc.admn.msgs['fsm_start'])
+    await message.answer(loc.admn.msgs['sql_query_enter_password'], reply_markup=admin_kb.sql_query)
 
 
+@router.message(StateFilter(admin_fsm.SQLQuery.password))
 @admin_mw.admin_only()
 async def sql_query_password_verification(message: Message, state: FSMContext):
     """Verify database password entered correctly."""
@@ -330,54 +317,49 @@ async def sql_query_password_verification(message: Message, state: FSMContext):
         await state.set_state(admin_fsm.SQLQuery.query)
 
         # delete message with password
-        await bot.delete_message(message.from_user.id, message.message_id)
-        
-        await message.answer(loc.admn.msgs['sql_query_correct_password'], 'HTML')
+        try:
+            await bot.delete_message(message.from_user.id, message.message_id)
+        except TelegramBadRequest:
+            pass
 
-        # send message with all database tables names to admin
+        await message.answer(loc.admn.msgs['sql_query_correct_password'])
+
         tables_names_str = ''
         for idx, [table_name] in enumerate(await postgres_dbms.get_tables_names()):
             tables_names_str += loc.admn.msgs['sql_query_tables_row'].format(idx + 1, table_name)
-        await message.answer(loc.admn.msgs['sql_query_tables_list'].format(POSTGRES_DB, tables_names_str=tables_names_str), parse_mode='HTML')
+        await message.answer(loc.admn.msgs['sql_query_tables_list'].format(POSTGRES_DB, tables_names_str=tables_names_str))
 
     else:
-        await message.answer(loc.admn.msgs['sql_query_wrong_password'], 'HTML')
+        await message.answer(loc.admn.msgs['sql_query_wrong_password'])
 
 
+@router.message(StateFilter(admin_fsm.SQLQuery.query))
 @admin_mw.admin_only()
 async def sql_query_execution(message: Message, state: FSMContext):
     """Execute written SQL query and receive feedback."""
     logger.info(f'SQL query "{message.text}" was executed by admin with telegram_id {message.from_user.id}')
     try:
-        # get data from DBMS
         records_list = await postgres_dbms.execute_query(message.text)
 
-        # send data by chunks in case data size is too long for one telegram message
         max_chunk_size = 2048
         answer_message = ''
         for record in records_list:
             table_row_list_str: list[str] = [f'{column}=<code>{value}</code>' for column, value in zip(list(record.keys()), list(record.values()))]
             answer_message += f"{', '.join(table_row_list_str)}\n"
             if len(answer_message) >= max_chunk_size:
-                await message.answer(answer_message, parse_mode='HTML')
+                await message.answer(answer_message)
                 answer_message = ''
-        await message.answer(answer_message, parse_mode='HTML')
-            
-        # left_border = 0
-        # chunk_size = 4000
-        # while (len(data) - left_border) // chunk_size != 0:
-        #     await message.answer(data[left_border:left_border + chunk_size])
-        #     left_border += chunk_size
-        # await message.answer(data[left_border:])
-    
+        await message.answer(answer_message)
+
     except Exception as e:
         await message.answer(loc.admn.msgs['sql_query_error'].format(e))
 
 
+@router.message(F.text == loc.admn.btns['clients_info'])
+@router.message(Command(commands=['clients']))
 @admin_mw.admin_only()
 async def show_clients_info(message: Message):
     """Send message with information about all clients. Add /clients [-h] flag to get human-readable message."""
-    # check command /clients is called with -h flag
     is_human_readable = False
     command_flags: list = message.text.split(' ')
     if len(command_flags) > 1 and command_flags[1] == '-h':
@@ -401,7 +383,6 @@ async def show_clients_info(message: Message):
         else:
             answer_message_row += loc.admn.msgs['clients_info_sub_inactive']
 
-        # hope that telegram add ability to send markdown's spreadsheets in message to api, but for now
         answer_message_row +=\
             f"| <b>{client_id}</b> "\
             f"|{await internal_functions.format_none_string(html.escape(str(username)) if username else None)} <code>{html.escape(str(name))}{await internal_functions.format_none_string(html.escape(str(surname)) if surname else None)}</code> <code>{telegram_id}</code>, {register_date_parsed[:-8]} "\
@@ -410,7 +391,6 @@ async def show_clients_info(message: Message):
             f"| paid: {float(paid_sum):g}₽ "\
             f"| <code>{html.escape(str(ref_promo_phrase))}</code> "
 
-        # if client was invited by another client
         who_invited_str = ''
         if used_ref_promo_id is not None:
             _, who_invited_client_id, *_ = await postgres_dbms.get_refferal_promo_info_by_promoID(used_ref_promo_id)
@@ -421,180 +401,115 @@ async def show_clients_info(message: Message):
         answer_message_row += who_invited_str
         answer_message += answer_message_row + '\n' + '\n' * int(is_human_readable)
 
-    # send collected info with automatic pagination
     wrapper = None if is_human_readable else '<pre>{text}</pre>'
     await internal_functions.send_long_message(message, answer_message, wrapper=wrapper)
 
 
+@router.message(F.text == loc.admn.btns['show_earnings'])
 @admin_mw.admin_only()
 async def show_earnings(message: Message):
     """Send message with information about earned money per current month."""
     earnings_per_current_month: Decimal = await postgres_dbms.get_earnings_per_month()
-    await message.answer(loc.admn.msgs['show_earnings'].format(float(earnings_per_current_month)), parse_mode='HTML')
+    await message.answer(loc.admn.msgs['show_earnings'].format(float(earnings_per_current_month)))
 
 
+@router.message(F.text == loc.admn.btns['show_logs'])
+@router.message(Command(commands=['logs']))
 @admin_mw.admin_only()
 async def show_logs(message: Message):
     """Send message with last N rows of bot logs.
-    
+
     Can be use both /logs and /logs <last_rows_number> ways."""
-    # get last rows number by argument or set default if argument is not specified
     last_rows_number_list = message.text.split(' ')[1:]
     if last_rows_number_list:
         last_rows_number = int(last_rows_number_list[0])
     else:
         last_rows_number = 50
 
-    # read only last rows of file
     last_rows_counter = 0
     async with aiofiles.open('bot.log', mode='rb') as f:
-
-        # move pointer to the end of byte-encoded file and iterate up
         try:
             await f.seek(-2, 2)
             while last_rows_counter < last_rows_number:
                 await f.seek(-2, 1)
                 if await f.read(1) == b'\n':
                     last_rows_counter += 1
-
-        # if file contains less then last_rows_number rows
         except OSError:
             await f.seek(0)
-        
+
         last_lines = (await f.read()).decode()
 
-    # set markdown YAML code block language because it has acceptable log file syntax highlighting
     await internal_functions.send_long_message(message, html.escape(last_lines), wrapper='<pre>{text}</pre>')
 
 
-@admin_mw.admin_only()
-async def check_user_configs(message: Message):
-    """Send messages with configurations of another client."""
-    try:
-        # taking user info (telegramID or username) from text after command
-        user_info = message.text.split(' ')[1]
-
-        # if user_info is username
-        if user_info[0] == '@':
-            client_id = await postgres_dbms.get_clientID_by_username(user_info)
-
-        # if user_info is user telegramID
-        else:
-            client_id = await postgres_dbms.get_clientID_by_telegramID(int(user_info))
-    except Exception as e:
-        await message.answer(loc.admn.msgs['error_unrecognized'].format(e))
-        return
-
-    # get information about specified client's configurations
-    configurations_info = await postgres_dbms.get_configurations_info(client_id)
-    await message.answer(loc.auth.msgs['configs_info'].format(len(configurations_info)), parse_mode='HTML')
-
-    # send message for every configuration
-    for file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name in configurations_info:
-        await internal_functions.send_configuration(message.from_user.id, file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name)
-
-
+@router.message(F.text == loc.admn.btns['get_file_id'])
+@router.message(Command(commands=['fileid', 'fid']))
 @admin_mw.admin_only()
 async def get_file_id(message: Message):
     """Send message with added file id."""
-    # if message contains photo
     if message.photo:
-        await message.answer(loc.admn.msgs['file_id_photo'].format(message.photo[0].file_id), parse_mode='HTML')
-
-    # if message contains document
+        await message.answer(loc.admn.msgs['file_id_photo'].format(message.photo[0].file_id))
     elif message.document:
-        await message.answer(loc.admn.msgs['file_id_document'].format(message.document.file_id), parse_mode='HTML')
-
-    # any other case
+        await message.answer(loc.admn.msgs['file_id_document'].format(message.document.file_id))
     else:
         await message.answer(loc.admn.msgs['error_no_file_for_file_id'])
 
 
+@router.callback_query(F.data.func(lambda d: d is not None and ':' in d and d.split(':', 1)[0].isdigit()))
 @admin_mw.admin_only()
 async def send_configuration_fsm_start(call: CallbackQuery, state: FSMContext):
     """Start FSM for sending configurations for a client after pressing inline button and send instruction."""
-    await admin_fsm.SendConfig.ready.set()
+    await state.set_state(admin_fsm.SendConfig.ready)
     telegram_id_str, _, os_alias = call.data.partition(':')
-    async with state.proxy() as data:
-        data['telegram_id'] = telegram_id_str
-        data['os_alias'] = os_alias
+    await state.update_data(telegram_id=telegram_id_str, os_alias=os_alias)
 
-    await call.message.answer(loc.admn.msgs['fsm_start'], parse_mode='HTML')
-    await call.message.answer(loc.admn.msgs['send_configuration_info'], parse_mode='HTML')
+    await call.message.answer(loc.admn.msgs['fsm_start'])
+    await call.message.answer(loc.admn.msgs['send_configuration_info'])
     await call.answer()
 
 
+@router.message(
+    StateFilter(admin_fsm.SendConfig.ready),
+    F.content_type.in_({'text', 'document'}),
+)
 @admin_mw.admin_only()
 async def send_configuration(message: Message, state: FSMContext):
     """Check configuration sended by admin and send it to client."""
-    async with state.proxy() as data:
-        telegram_id = int(data['telegram_id'])
-        flag_os = data['os_alias']
+    data = await state.get_data()
+    telegram_id = int(data['telegram_id'])
+    flag_os = data['os_alias']
     client_id = await postgres_dbms.get_clientID_by_telegramID(telegram_id)
 
     try:
-        # if message is text
         if text := message.text:
-            # create configuration
             file_type = 'link'
             flag_protocol, flag_location, flag_link = text.split(' ')
             await internal_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, flag_link)
             _, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name = (await postgres_dbms.get_configurations_info(client_id))[-1]
 
-        # if message is document
         elif document := message.document:
-            # create configuration
             file_type = 'document'
             flag_protocol, flag_location = message.caption.split(' ')
             telegram_file_id = document.file_id
             await internal_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, telegram_file_id=telegram_file_id)
             file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name = (await postgres_dbms.get_configurations_info(client_id))[-1]
 
-        # other cases
         else:
             await message.reply(loc.admn.msgs['error_bad_attachment'])
             return
 
-        # send message to client, admin and finish FSM for sending configurations
-        await bot.send_message(telegram_id, loc.auth.msgs['config_was_received'], parse_mode='HTML')
+        await bot.send_message(telegram_id, loc.auth.msgs['config_was_received'])
         await internal_functions.send_configuration(telegram_id, file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name)
-        await bot.send_message(telegram_id, loc.auth.msgs['configs_rules'], parse_mode='HTML')
-        await message.reply(loc.admn.msgs['config_was_sent'].format(file_type), parse_mode='HTML')
-        await state.finish()
+        await bot.send_message(telegram_id, loc.auth.msgs['configs_rules'])
+        await message.reply(loc.admn.msgs['config_was_sent'].format(file_type))
+        await state.clear()
 
-    # catch create_configuration() exceptions
     except ValueError as ve:
-        await message.reply(loc.admn.msgs['error_bad_flags_number'].format(ve), parse_mode='HTML')
+        await message.reply(loc.admn.msgs['error_bad_flags_number'].format(ve))
     except Exception as e:
-        await message.reply(loc.admn.msgs['error_unrecognized'].format(e), parse_mode='HTML')
+        await message.reply(loc.admn.msgs['error_unrecognized'].format(e))
 
 
-def register_handlers_admin(dp: Dispatcher):
-    dp.register_message_handler(fsm_reset, Text([loc.admn.btns[key] for key in ('reset_fsm_1', 'reset_fsm_2')]), state='*')
-    dp.register_message_handler(fsm_reset, commands=['reset'], state='*')
-    dp.register_message_handler(show_admin_keyboard, commands=['admin'], state='*')
-    dp.register_message_handler(notifications_menu, Text(loc.admn.btns['send_message']))
-    dp.register_message_handler(notifications_send_message_everyone_fsm_start, Text(loc.admn.btns['send_message_everyone']))
-    dp.register_message_handler(notifications_send_message_everyone, state=admin_fsm.SendMessage.everyone_decision, content_types='any')
-    dp.register_message_handler(notifications_send_message_selected_fsm_start, Text(loc.admn.btns['send_message_selected']))
-    dp.register_message_handler(notifications_send_message_selected_list, state=admin_fsm.SendMessage.selected_list)
-    dp.register_message_handler(notifications_send_message_selected, state=admin_fsm.SendMessage.selected_decision, content_types='any')
-    dp.register_message_handler(show_user_info_sql_fsm_start, Text(loc.admn.btns['sql_insert_client']))
-    dp.register_message_handler(show_user_info_sql_fsm_start, commands=['sql_user'])
-    dp.register_message_handler(show_user_info_sql, state=admin_fsm.UserInfo.ready)
-    dp.register_message_handler(show_user_config_sql_cm_start, Text(loc.admn.btns['sql_insert_config']))
-    dp.register_message_handler(show_user_config_sql_cm_start, commands=['sql_config'])
-    dp.register_message_handler(check_user_configs, commands=['configs'])
-    dp.register_message_handler(show_user_config_sql, state=admin_fsm.ConfigInfo.ready, content_types=['text', 'document'])
-    dp.register_message_handler(sql_query_fsm_start, Text(loc.admn.btns['sql_query']))
-    dp.register_message_handler(sql_query_password_verification, state=admin_fsm.SQLQuery.password)
-    dp.register_message_handler(sql_query_execution, state=admin_fsm.SQLQuery.query)
-    dp.register_message_handler(show_clients_info, Text(loc.admn.btns['clients_info']))
-    dp.register_message_handler(show_clients_info, commands=['clients'])
-    dp.register_message_handler(show_earnings, Text(loc.admn.btns['show_earnings']))
-    dp.register_message_handler(show_logs, Text(loc.admn.btns['show_logs']))
-    dp.register_message_handler(show_logs, commands=['logs'])
-    dp.register_message_handler(get_file_id, Text(loc.admn.btns['get_file_id']), content_types=['text', 'photo', 'document'])
-    dp.register_message_handler(get_file_id, commands=['fileid', 'fid'], commands_ignore_caption=False, content_types=['text', 'photo', 'document'])
-    dp.register_callback_query_handler(send_configuration_fsm_start, lambda call: ':' in call.data and call.data.split(':', 1)[0].isdigit(), state='*')
-    dp.register_message_handler(send_configuration, content_types=['text', 'document'], state=admin_fsm.SendConfig.ready)
+def register_handlers_admin(dp):
+    """Attach the `admin` router to the dispatcher."""
+    dp.include_router(router)

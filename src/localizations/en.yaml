@@ -75,8 +75,10 @@ user_authorized:
     client_info: |-
       👾 That's what I know:
 
-      {username_str}<b>Name</b>: {0}
-      {surname_str}<b>Telegram ID</b>: {1}
+      {username_str}
+      <b>Name</b>: {0}
+      {surname_str}
+      <b>Telegram ID</b>: {1}
       <b>Registration date</b>: {2}
     subscription_info: |-
       🌟 Subscription information:

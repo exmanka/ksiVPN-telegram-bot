@@ -3,7 +3,7 @@ import apscheduler
 import logging
 from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from aiogram.types.input_file import InputFile
+from aiogram.types import FSInputFile
 from src.database import postgres_dbms
 from src.services import internal_functions, localization as loc
 from bot_init import bot, ADMIN_ID, TIMEZONE, BACKUP_PATH
@@ -44,7 +44,7 @@ async def send_subscription_expiration_notifications():
 
             # send message to client
             try:
-                await bot.send_message(telegram_id, loc.auth.msgs['sub_expired'], 'HTML')
+                await bot.send_message(telegram_id, loc.auth.msgs['sub_expired'])
 
             except Exception as e:
                 logger.warning(f"Can't send message to client [{name} {telegram_id}] due to unexpected error: {e}")
@@ -55,8 +55,7 @@ async def send_subscription_expiration_notifications():
             username_str = await internal_functions.format_none_string(username)
             configurations_info = await postgres_dbms.get_configurations_info(await postgres_dbms.get_clientID_by_telegramID(telegram_id))
             await bot.send_message(ADMIN_ID,
-                                   loc.admn.msgs['sub_expired'].format(len(configurations_info), client_id, username_str, name, surname_str, telegram_id),
-                                   parse_mode='HTML')
+                                   loc.admn.msgs['sub_expired'].format(len(configurations_info), client_id, username_str, name, surname_str, telegram_id))
 
             # send client's configurations to admin
             for file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name in configurations_info:
@@ -69,7 +68,7 @@ async def send_subscription_expiration_notifications():
 
             # send message to client
             try:
-                await bot.send_message(telegram_id, loc.auth.msgs['sub_expires_1d'], 'HTML')
+                await bot.send_message(telegram_id, loc.auth.msgs['sub_expires_1d'])
 
             except Exception as e:
                 logger.warning(f"Can't send message to client [{name} {telegram_id}] due to unexpected error: {e}")
@@ -79,8 +78,7 @@ async def send_subscription_expiration_notifications():
             surname_str = await internal_functions.format_none_string(surname)
             username_str = await internal_functions.format_none_string(username)
             await bot.send_message(ADMIN_ID,
-                                   loc.admn.msgs['sub_expires_1d'].format(client_id, username_str, name, surname_str, telegram_id),
-                                   parse_mode='HTML')
+                                   loc.admn.msgs['sub_expires_1d'].format(client_id, username_str, name, surname_str, telegram_id))
 
         # if client's subscription expires between [CURRENT_TIMESTAMP + INTERVAL '3 days', CURRENT_TIMESTAMP + INTERVAL '3 days 30 minutes')
         if is_sub_expiration_in_3d:
@@ -89,7 +87,7 @@ async def send_subscription_expiration_notifications():
 
             # send message to client
             try:
-                await bot.send_message(telegram_id, loc.auth.msgs['sub_expires_3d'], 'HTML')
+                await bot.send_message(telegram_id, loc.auth.msgs['sub_expires_3d'])
 
             except Exception as e:
                 logger.warning(f"Can't send message to client [{name} {telegram_id}] due to unexpected error: {e}")
@@ -99,8 +97,7 @@ async def send_subscription_expiration_notifications():
             surname_str = await internal_functions.format_none_string(surname)
             username_str = await internal_functions.format_none_string(username)
             await bot.send_message(ADMIN_ID,
-                                   loc.admn.msgs['sub_expires_3d'].format(client_id, username_str, name, surname_str, telegram_id),
-                                   parse_mode='HTML')
+                                   loc.admn.msgs['sub_expires_3d'].format(client_id, username_str, name, surname_str, telegram_id))
 
         # if client's subscription expires between [CURRENT_TIMESTAMP + INTERVAL '7 days', CURRENT_TIMESTAMP + INTERVAL '7 days 30 minutes')
         if is_sub_expiration_in_7d:
@@ -109,7 +106,7 @@ async def send_subscription_expiration_notifications():
 
             # send message to client
             try:
-                await bot.send_message(telegram_id, loc.auth.msgs['sub_expires_7d'], 'HTML')
+                await bot.send_message(telegram_id, loc.auth.msgs['sub_expires_7d'])
 
             except Exception as e:
                 logger.warning(f"Can't send message to client [{name} {telegram_id}] due to unexpected error: {e}")
@@ -119,12 +116,11 @@ async def send_subscription_expiration_notifications():
             surname_str = await internal_functions.format_none_string(surname)
             username_str = await internal_functions.format_none_string(username)
             await bot.send_message(ADMIN_ID,
-                                   loc.admn.msgs['sub_expires_7d'].format(client_id, username_str, name, surname_str, telegram_id),
-                                   parse_mode='HTML')
+                                   loc.admn.msgs['sub_expires_7d'].format(client_id, username_str, name, surname_str, telegram_id))
 
 
 async def send_database_backup():
     """Send document to admin with database backup."""
     logger.info('Sending database backup to admin via telegram')
     backup_path_name: str = os.path.join(BACKUP_PATH, 'db-backup.gz')
-    await bot.send_document(ADMIN_ID, InputFile(backup_path_name), caption=f'Backup for {datetime.now().strftime("%d.%m.%y %H:%M")}')
+    await bot.send_document(ADMIN_ID, FSInputFile(backup_path_name), caption=f'Backup for {datetime.now().strftime("%d.%m.%y %H:%M")}')
