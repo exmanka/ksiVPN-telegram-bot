@@ -1,5 +1,7 @@
 import asyncio
 import logging
+from enum import Enum
+from typing import Awaitable, Callable
 from aiogram.types import Message, ReplyKeyboardMarkup, InlineKeyboardMarkup
 from aiogram.fsm.context import FSMContext
 from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
@@ -12,6 +14,46 @@ from bot_init import bot, ADMIN_ID, YOOMONEY_TOKEN
 
 
 logger = logging.getLogger(__name__)
+
+
+class DeliveryStatus(Enum):
+    """Outcome of a Telegram message delivery attempt via :func:`safe_deliver`."""
+    OK = 'ok'
+    BLOCKED = 'blocked'          # TelegramForbiddenError — user blocked bot or deactivated account
+    CHAT_NOT_FOUND = 'gone'      # TelegramBadRequest — chat not found / user gone
+    ERROR = 'error'              # any other unexpected error
+
+
+async def safe_deliver(coro_factory: Callable[[], Awaitable], *, telegram_id: int) -> tuple[DeliveryStatus, str | None]:
+    """Execute a Telegram send/copy coroutine, swallowing expected delivery failures.
+
+    Use for any ``bot.send_*`` / ``bot.copy_*`` call where the ``telegram_id`` comes from
+    the database and the recipient may have blocked the bot or deleted their account.
+    Expected failures (``TelegramForbiddenError``, ``TelegramBadRequest``) are logged at
+    INFO, anything else at WARNING. The caller gets a :class:`DeliveryStatus` back and
+    decides whether to record the failure, retry, etc.
+
+    :param coro_factory: zero-arg callable returning the coroutine to await,
+                         e.g. ``lambda: bot.send_message(tid, text)``
+    :param telegram_id: recipient id, used for logging only
+    :return: ``(status, error_str)`` — ``error_str`` is ``None`` on success,
+             otherwise a human-readable description of the exception.
+    """
+    try:
+        await coro_factory()
+        return DeliveryStatus.OK, None
+    except TelegramForbiddenError as e:
+        err = str(e)
+        logger.info(f"Can't deliver to {telegram_id}: bot blocked or account deactivated ({err})")
+        return DeliveryStatus.BLOCKED, err
+    except TelegramBadRequest as e:
+        err = str(e)
+        logger.info(f"Can't deliver to {telegram_id}: chat not found ({err})")
+        return DeliveryStatus.CHAT_NOT_FOUND, err
+    except Exception as e:
+        err = str(e)
+        logger.warning(f"Can't deliver to {telegram_id} due to unexpected error: {err}")
+        return DeliveryStatus.ERROR, err
 
 
 async def format_none_string(string: str | None, prefix: str = ' ', postfix: str = '') -> str:
@@ -320,15 +362,23 @@ async def notify_client_new_referal(client_creator_id: int, referral_client_name
     *_, bonus_time_parsed = await postgres_dbms.get_refferal_promo_info_by_clientCreatorID(client_creator_id)
 
     client_creator_telegram_id = await postgres_dbms.get_telegramID_by_clientID(client_creator_id)
-    await bot.send_message(client_creator_telegram_id,
-                           loc.internal.msgs['ref_promo_was_entered'].format(referral_client_name, referral_client_username_str, bonus_time_parsed))
-    
+    await safe_deliver(
+        lambda: bot.send_message(
+            client_creator_telegram_id,
+            loc.internal.msgs['ref_promo_was_entered'].format(referral_client_name, referral_client_username_str, bonus_time_parsed),
+        ),
+        telegram_id=client_creator_telegram_id,
+    )
+
 
 async def notify_client_if_subscription_must_be_renewed_to_receive_configuration(telegram_id: int):
     """Send message by specified telegram_id IF client needs to renew subscription for receiving his first configuration."""
 
     if await postgres_dbms.is_subscription_blank(telegram_id):
-        await bot.send_message(telegram_id, loc.unauth.msgs['need_renew_sub'])
+        await safe_deliver(
+            lambda: bot.send_message(telegram_id, loc.unauth.msgs['need_renew_sub']),
+            telegram_id=telegram_id,
+        )
 
 
 async def create_configuration_description(configuration_date_of_receipt: str,
@@ -468,12 +518,13 @@ async def check_referral_reward(ref_client_id: int):
         # if client's username exists (add whitespace for good string formatting)
         ref_client_username_str = await format_none_string(ref_client_username)
         client_creator_telegram_id = await postgres_dbms.get_telegramID_by_clientID(client_creator_id)
-        try:
-            await bot.send_message(client_creator_telegram_id,
-                                   loc.internal.msgs['ref_client_paid_for_sub'].format(ref_client_name, ref_client_username_str))
-        # if old client has never written to bot
-        except (TelegramBadRequest, TelegramForbiddenError) as cnf:
-            logger.info(f"Can't notify client about new bonus by refferal program: {cnf}. Perhaps client has never written to bot.")
+        await safe_deliver(
+            lambda: bot.send_message(
+                client_creator_telegram_id,
+                loc.internal.msgs['ref_client_paid_for_sub'].format(ref_client_name, ref_client_username_str),
+            ),
+            telegram_id=client_creator_telegram_id,
+        )
 
 
 async def autocheck_payment_status(payment_id: int) -> str:
