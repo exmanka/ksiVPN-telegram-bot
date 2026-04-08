@@ -3,7 +3,6 @@ import aiofiles
 import html
 from decimal import Decimal
 from aiogram import F, Router
-from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
@@ -19,6 +18,33 @@ logger = logging.getLogger(__name__)
 
 
 router = Router(name="admin")
+
+
+async def _format_failed_delivery_row(
+    idx: int,
+    telegram_id: int,
+    status: internal_functions.DeliveryStatus,
+    err: str | None,
+) -> str:
+    """Build one report line for a broadcast recipient who couldn't receive the message.
+
+    Fetches client info from DB and appends a human-readable status label.
+    Used in both broadcast handlers to keep their loop bodies identical.
+    """
+    _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
+    row = loc.admn.msgs['clients_row_str'].format(
+        idx + 1,
+        html.escape(name),
+        html.escape(str(surname)),
+        html.escape(str(username)),
+        telegram_id,
+    )
+    labels = {
+        internal_functions.DeliveryStatus.BLOCKED: '(has blocked bot)',
+        internal_functions.DeliveryStatus.CHAT_NOT_FOUND: '(chat not found)',
+        internal_functions.DeliveryStatus.ERROR: f'(unexpected error: {html.escape(str(err))})',
+    }
+    return row + ' ' + labels[status] + '\n'
 
 
 @router.message(
@@ -64,24 +90,14 @@ async def notifications_send_message_everyone(message: Message, state: FSMContex
         ignored_clients_str = ''
         data = await state.get_data()
 
-        # TODO: перенести обработки ошибок в internal_functions.send_message_by_telegram_id
         for idx, [telegram_id] in enumerate(await postgres_dbms.get_clients_telegram_ids()):
-            try:
-                await bot.copy_message(telegram_id, data['message_chat_id'], data['message_id'])
-
-            except TelegramForbiddenError as bb:
-                # client blocked the bot or deactivated their account
-                _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
-                logger.info(f"Can't send message to client {name} {telegram_id}: {bb}")
-                ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, html.escape(name), html.escape(str(surname)), html.escape(str(username)), telegram_id) + '(has blocked bot)\n'
-
-            except TelegramBadRequest:
-                # chat not found / user gone
-                _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
-                ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, html.escape(name), html.escape(str(surname)), html.escape(str(username)), telegram_id)
-
-            except Exception as e:
-                logger.warning(f"Can't send message to client telegram_id={telegram_id} due to unexpected error: {e}")
+            status, err = await internal_functions.safe_deliver(
+                lambda tid=telegram_id: bot.copy_message(tid, data['message_chat_id'], data['message_id']),
+                telegram_id=telegram_id,
+            )
+            if status is internal_functions.DeliveryStatus.OK:
+                continue
+            ignored_clients_str += await _format_failed_delivery_row(idx, telegram_id, status, err)
 
         if ignored_clients_str:
             answer_message = loc.admn.msgs['message_everyone_was_sent'] + '\n\n' + loc.admn.msgs['message_everyone_somebody_didnt_recieve']\
@@ -148,17 +164,13 @@ async def notifications_send_message_selected(message: Message, state: FSMContex
         data = await state.get_data()
 
         for idx, telegram_id in enumerate(data['selected_telegram_ids']):
-            try:
-                await bot.copy_message(telegram_id, data['message_chat_id'], data['message_id'])
-
-            except TelegramForbiddenError as bb:
-                _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
-                logger.info(f"Can't send message to client {name} {telegram_id}: {bb}")
-                ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, html.escape(name), html.escape(str(surname)), html.escape(str(username)), telegram_id) + '(has blocked bot)\n'
-
-            except TelegramBadRequest:
-                _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
-                ignored_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, html.escape(name), html.escape(str(surname)), html.escape(str(username)), telegram_id)
+            status, err = await internal_functions.safe_deliver(
+                lambda tid=telegram_id: bot.copy_message(tid, data['message_chat_id'], data['message_id']),
+                telegram_id=telegram_id,
+            )
+            if status is internal_functions.DeliveryStatus.OK:
+                continue
+            ignored_clients_str += await _format_failed_delivery_row(idx, telegram_id, status, err)
 
         if ignored_clients_str:
             answer_message = loc.admn.msgs['message_everyone_was_sent'] + '\n\n' + loc.admn.msgs['message_everyone_somebody_didnt_recieve']\
@@ -343,10 +355,24 @@ async def send_configuration(message: Message, state: FSMContext):
             await message.reply(loc.admn.msgs['error_bad_attachment'])
             return
 
-        await bot.send_message(telegram_id, loc.auth.msgs['config_was_received'])
-        await internal_functions.send_configuration(telegram_id, file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name)
-        await bot.send_message(telegram_id, loc.auth.msgs['configs_rules'])
-        await message.reply(loc.admn.msgs['config_was_sent'].format(file_type))
+        # Client may have blocked the bot between requesting the config and admin issuing it;
+        # wrap each delivery so the admin handler doesn't crash on that path.
+        await internal_functions.safe_deliver(
+            lambda: bot.send_message(telegram_id, loc.auth.msgs['config_was_received']),
+            telegram_id=telegram_id,
+        )
+        config_status, config_err = await internal_functions.safe_deliver(
+            lambda: internal_functions.send_configuration(telegram_id, file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name),
+            telegram_id=telegram_id,
+        )
+        await internal_functions.safe_deliver(
+            lambda: bot.send_message(telegram_id, loc.auth.msgs['configs_rules']),
+            telegram_id=telegram_id,
+        )
+        if config_status is internal_functions.DeliveryStatus.OK:
+            await message.reply(loc.admn.msgs['config_was_sent'].format(file_type))
+        else:
+            await message.reply(loc.admn.msgs['config_was_sent'].format(file_type) + f'\n\n⚠️ client delivery status: {config_status.value}: {config_err}')
         await state.clear()
 
     except ValueError as ve:

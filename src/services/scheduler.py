@@ -43,11 +43,10 @@ async def send_subscription_expiration_notifications():
             logger.info(f'Send message to client: {telegram_id} {name}. Subscription has expired.')
 
             # send message to client
-            try:
-                await bot.send_message(telegram_id, loc.auth.msgs['sub_expired'])
-
-            except Exception as e:
-                logger.warning(f"Can't send message to client [{name} {telegram_id}] due to unexpected error: {e}")
+            await internal_functions.safe_deliver(
+                lambda: bot.send_message(telegram_id, loc.auth.msgs['sub_expired']),
+                telegram_id=telegram_id,
+            )
 
             # send message to admin
             # convert surname and username for beautiful formatting
@@ -67,11 +66,10 @@ async def send_subscription_expiration_notifications():
             logger.info(f'Send message to client: {telegram_id} {name}. Subscription expires in 1 day.')
 
             # send message to client
-            try:
-                await bot.send_message(telegram_id, loc.auth.msgs['sub_expires_1d'])
-
-            except Exception as e:
-                logger.warning(f"Can't send message to client [{name} {telegram_id}] due to unexpected error: {e}")
+            await internal_functions.safe_deliver(
+                lambda: bot.send_message(telegram_id, loc.auth.msgs['sub_expires_1d']),
+                telegram_id=telegram_id,
+            )
 
             # send message to admin
             # convert surname and username for beautiful formatting
@@ -86,11 +84,10 @@ async def send_subscription_expiration_notifications():
             logger.info(f'Send message to client: {telegram_id} {name}. Subscription expires in 3 days.')
 
             # send message to client
-            try:
-                await bot.send_message(telegram_id, loc.auth.msgs['sub_expires_3d'])
-
-            except Exception as e:
-                logger.warning(f"Can't send message to client [{name} {telegram_id}] due to unexpected error: {e}")
+            await internal_functions.safe_deliver(
+                lambda: bot.send_message(telegram_id, loc.auth.msgs['sub_expires_3d']),
+                telegram_id=telegram_id,
+            )
 
             # send message to admin
             # convert surname and username for beautiful formatting
@@ -105,11 +102,10 @@ async def send_subscription_expiration_notifications():
             logger.info(f'Send message to client: {telegram_id} {name}. Subscription expires in 7 days.')
 
             # send message to client
-            try:
-                await bot.send_message(telegram_id, loc.auth.msgs['sub_expires_7d'])
-
-            except Exception as e:
-                logger.warning(f"Can't send message to client [{name} {telegram_id}] due to unexpected error: {e}")
+            await internal_functions.safe_deliver(
+                lambda: bot.send_message(telegram_id, loc.auth.msgs['sub_expires_7d']),
+                telegram_id=telegram_id,
+            )
 
             # send message to admin
             # convert surname and username for beautiful formatting
