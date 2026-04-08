@@ -2,7 +2,7 @@ from typing import Any, Awaitable, Callable, Dict
 from aiogram import BaseMiddleware
 from aiogram.types import Message
 from src.services import localization as loc
-from bot_init import ADMIN_ID
+from src.config import settings
 
 
 def admin_only():
@@ -25,7 +25,7 @@ class CheckAdmin(BaseMiddleware):
         handler_obj = data.get("handler")
         if handler_obj is not None:
             callback = getattr(handler_obj, "callback", None)
-            if getattr(callback, "admin_only", False) and event.from_user.id != ADMIN_ID:
+            if getattr(callback, "admin_only", False) and event.from_user.id != settings.bot.admin_id:
                 await event.answer(loc.mw.msgs['admin_only'])
                 return None
         return await handler(event, data)

@@ -11,7 +11,8 @@ from src.keyboards import user_authorized_kb
 from src.states import user_authorized_fsm
 from src.database import postgres_dbms
 from src.services import internal_functions, aiomoney, localization as loc
-from bot_init import bot, YOOMONEY_TOKEN
+from src.config import settings
+from src.runtime import bot
 
 
 router = Router(name="user_authorized")
@@ -148,7 +149,7 @@ async def sub_renewal_submenu_fsm_cancel(message: Message, state: FSMContext):
 @throttling_mw.antiflood(rate_limit=4)
 async def sub_renewal_verification(message: Message, state: FSMContext):
     """Verify client's payments (per last hour) are successful according to YooMoney information."""
-    wallet = aiomoney.YooMoneyWallet(YOOMONEY_TOKEN)
+    wallet = aiomoney.YooMoneyWallet(settings.payments.yoomoney.token.get_secret_value())
 
     client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
     client_payments_ids = await postgres_dbms.get_paymentIDs_last(client_id, minutes=60)
@@ -714,7 +715,7 @@ async def show_project_rules(message: Message):
 @throttling_mw.antiflood(rate_limit=4)
 async def restore_payments(message: Message):
     """Try to verify client's payments (per whole time) are successful according to YooMoney information."""
-    wallet = aiomoney.YooMoneyWallet(YOOMONEY_TOKEN)
+    wallet = aiomoney.YooMoneyWallet(settings.payments.yoomoney.token.get_secret_value())
     client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
     client_payments_ids = await postgres_dbms.get_paymentIDs(client_id)
 

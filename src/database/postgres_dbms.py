@@ -2,7 +2,7 @@ import asyncpg
 import datetime
 import logging
 from decimal import Decimal
-from bot_init import POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
+from src.config import settings
 
 
 logger = logging.getLogger(__name__)
@@ -13,10 +13,10 @@ async def asyncpg_run() -> None:
     """Initialize asyncpg connection."""
     global pool
     pool = await asyncpg.create_pool(
-        host='ksivpn-tgbot-postgres',
-        database=POSTGRES_DB,
-        user=POSTGRES_USER,
-        password=POSTGRES_PASSWORD,
+        host=settings.connections.postgres.host,
+        database=settings.connections.postgres.db,
+        user=settings.connections.postgres.user,
+        password=settings.connections.postgres.password.get_secret_value(),
         min_size=1,
         max_size=10,
     )

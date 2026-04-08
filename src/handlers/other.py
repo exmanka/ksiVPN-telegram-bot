@@ -6,7 +6,7 @@ from aiogram.types import Message, CallbackQuery
 from src.keyboards import user_authorized_kb, user_unauthorized_kb, other_kb
 from src.database import postgres_dbms
 from src.services import gpt4free, internal_functions, localization as loc
-from bot_init import bot
+from src.runtime import bot
 
 
 router = Router(name="other")

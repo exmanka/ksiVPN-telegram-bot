@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Literal, Optional
 from pydantic import BaseModel, Field
 from dataclasses import dataclass
-from bot_init import YOOMONEY_ACCOUNT_NUMBER
+from src.config import settings
 
 
 class UnresolvedRequestMethod(Exception):
@@ -180,7 +180,7 @@ class YooMoneyWallet:
         unique_label = str(unique_label)
         quickpay_url = "https://yoomoney.ru/quickpay/confirm.xml?"
         params = {
-            "receiver": YOOMONEY_ACCOUNT_NUMBER,
+            "receiver": settings.payments.yoomoney.account,
             "quickpay-form": "button",
             "paymentType": payment_source,
             "sum": amount_rub,

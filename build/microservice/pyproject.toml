@@ -13,6 +13,7 @@ dependencies = [
     "aiogram (==3.27.0)",
     "apscheduler (==3.11.2)",
     "asyncpg (==0.31.0)",
+    "dynaconf (>=3.2.6,<4.0)",
     "g4f (>=0.3.0)",
     "pydantic (==2.12.5)",
     "pyyaml (>=6.0,<7.0)",

@@ -10,7 +10,8 @@ from src.keyboards import user_authorized_kb, admin_kb
 from src.states import user_authorized_fsm
 from src.database import postgres_dbms
 from src.services import aiomoney, localization as loc
-from bot_init import bot, ADMIN_ID, YOOMONEY_TOKEN
+from src.config import settings
+from src.runtime import bot
 
 
 logger = logging.getLogger(__name__)
@@ -286,14 +287,14 @@ async def send_configuration_request_to_admin(client: dict, choice: dict, is_new
             ref_promo_str = loc.internal.msgs['config_request_new_client_ref_promo_str'].\
                 format(choice['promo'], client_creator_name, client_creator_surname_str, client_creator_username_str, client_creator_telegram_id, bonus_time_parsed, price)
 
-        await bot.send_message(ADMIN_ID,
+        await bot.send_message(settings.bot.admin_id,
                                loc.internal.msgs['config_request_new_client'].\
                                 format(client['fullname'], username_str, client['id'], choice['platform'][2:], choice['os_name'], choice['chatgpt'], client_id, ref_promo_str=ref_promo_str),
                                reply_markup=await admin_kb.configuration_inline(client['id'], os_alias))
 
     # if request was sended by old client with at least one configuration
     else:
-        await bot.send_message(ADMIN_ID,
+        await bot.send_message(settings.bot.admin_id,
                                loc.internal.msgs['config_request_old_client'].\
                                 format(client['fullname'], username_str, client['id'], choice['platform'][2:], choice['os_name'], choice['chatgpt'], client_id),
                                reply_markup=await admin_kb.configuration_inline(client['id'], os_alias))
@@ -328,7 +329,7 @@ async def notify_admin_promo_entered(client_id: int, promo_phrase: str, promo_ty
     else:
         raise Exception('wrong promo type was entered')
 
-    await bot.send_message(ADMIN_ID,
+    await bot.send_message(settings.bot.admin_id,
                            loc.internal.msgs['admin_promo_was_entered'].\
                             format(client_id, username_str, name, surname_str, telegram_id, promo_type, id, bonus_time_parsed, expiration_date_parsed, new_sub_str=new_sub_str))
 
@@ -344,7 +345,7 @@ async def notify_admin_payment_success(client_id: int, months_number: int):
     # convert surname and username for beautiful formatting
     surname_str = await format_none_string(surname)
     username_str = await format_none_string(username)
-    await bot.send_message(ADMIN_ID, loc.internal.msgs['admin_successful_payment'].format(months_number, client_id, username_str, name, surname_str, telegram_id))
+    await bot.send_message(settings.bot.admin_id, loc.internal.msgs['admin_successful_payment'].format(months_number, client_id, username_str, name, surname_str, telegram_id))
 
 
 async def notify_client_new_referal(client_creator_id: int, referral_client_name: str, referral_client_username: str | None = None):
@@ -534,7 +535,7 @@ async def autocheck_payment_status(payment_id: int) -> str:
     :return: autochecker status, 'success' - payment was successfully finished, 'failure' - payment wasn't successfully finished in 300 seconds,
     'already_checked' - payment was already checked and added to db as successful by other functions
     """
-    wallet = aiomoney.YooMoneyWallet(YOOMONEY_TOKEN)
+    wallet = aiomoney.YooMoneyWallet(settings.payments.yoomoney.token.get_secret_value())
 
     # wait for user to redirect to Yoomoney site first 5 seconds
     await asyncio.sleep(5)
@@ -602,7 +603,7 @@ async def sub_renewal(message: Message, state: FSMContext, months_number: int, d
     payment_id = await postgres_dbms.insert_payment(client_id, sub_id, payment_price, months_number)
 
     # use aiomoney for payment link creation
-    wallet = aiomoney.YooMoneyWallet(YOOMONEY_TOKEN)
+    wallet = aiomoney.YooMoneyWallet(settings.payments.yoomoney.token.get_secret_value())
     payment_form = await wallet.create_payment_form(
         amount_rub=payment_price,
         unique_label=payment_id,
