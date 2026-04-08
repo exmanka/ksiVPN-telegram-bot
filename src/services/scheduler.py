@@ -1,3 +1,4 @@
+import asyncio
 import os
 import apscheduler
 import logging
@@ -36,7 +37,7 @@ async def send_subscription_expiration_notifications():
     clients_notifications_status = await postgres_dbms.get_notifications_status()
 
     # for every client in db
-    for telegram_id, _, is_sub_expiration_now, is_sub_expiration_in_1d, is_sub_expiration_in_3d, is_sub_expiration_in_7d in clients_notifications_status:
+    for telegram_id, is_sub_expiration_now, is_sub_expiration_in_1d, is_sub_expiration_in_3d, is_sub_expiration_in_7d in clients_notifications_status:
 
         # if client's subscription expires between [CURRENT_TIMESTAMP, CURRENT_TIMESTAMP + INTERVAL '30 minutes')
         if is_sub_expiration_now:
@@ -117,7 +118,34 @@ async def send_subscription_expiration_notifications():
 
 
 async def send_database_backup():
-    """Send document to admin with database backup."""
-    logger.info('Sending database backup to admin via telegram')
+    """Dump the database via ``pg_dump`` and deliver the gzipped archive to the admin."""
+    logger.info('Running pg_dump and sending database backup to admin via telegram')
+
+    os.makedirs(settings.backup.path, exist_ok=True)
     backup_path_name: str = os.path.join(settings.backup.path, 'db-backup.gz')
+
+    env = os.environ.copy()
+    env['PGPASSWORD'] = settings.connections.postgres.password.get_secret_value()
+
+    # pg_dump stdout → gzip stdin → backup_path_name. Run as a shell pipeline via
+    # /bin/sh so we don't have to stitch two asyncio subprocesses together manually.
+    cmd = (
+        'pg_dump '
+        f'-h {settings.connections.postgres.host} '
+        f'-U {settings.connections.postgres.user} '
+        '--no-password --clean --if-exists --format=plain '
+        f'{settings.connections.postgres.db} '
+        f'| gzip > {backup_path_name}'
+    )
+    proc = await asyncio.create_subprocess_shell(
+        cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+        env=env,
+    )
+    _, stderr = await proc.communicate()
+    if proc.returncode != 0:
+        logger.error('pg_dump failed (code=%s): %s', proc.returncode, stderr.decode(errors='replace'))
+        return
+
     await bot.send_document(settings.bot.admin_id, FSInputFile(backup_path_name), caption=f'Backup for {datetime.now().strftime("%d.%m.%y %H:%M")}')

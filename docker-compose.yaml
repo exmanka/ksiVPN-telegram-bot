@@ -31,7 +31,7 @@ services:
       TGBOT_PAYMENTS__YOOMONEY__ACCOUNT: ${DOTENV_TGBOT_YOOMONEY_ACCOUNT}
       TGBOT_BACKUP__PATH: ${DOTENV_TGBOT_BACKUP_PATH}
       TGBOT_LOCALIZATION__LANGUAGE: ${DOTENV_TGBOT_LOCALIZATION_LANGUAGE}
-    volumes: [ "ksivpn-tgbot-postgres-backups:${DOTENV_TGBOT_BACKUP_PATH}" ]
+    volumes: [ "ksivpn-tgbot-backups:${DOTENV_TGBOT_BACKUP_PATH}" ]
     depends_on:
       ksivpn-tgbot-postgres:
         condition: service_healthy
@@ -41,17 +41,12 @@ services:
   ksivpn-tgbot-postgres:
     <<: *service-defaults
     container_name: ksivpn-tgbot-postgres
-    build:
-      context: ./build/postgres
-      args:
-        ADDITIONAL_LANGUAGE: ${DOTENV_POSTGRES_ADDITIONAL_LANGUAGE}
     image: ${DOTENV_POSTGRES_IMAGE}:${DOTENV_POSTGRES_TAG}
     environment:
       TZ: ${DOTENV_TZ}
       POSTGRES_USER: ${DOTENV_POSTGRES_USER}
       POSTGRES_PASSWORD: ${DOTENV_POSTGRES_PASSWORD}
       POSTGRES_DB: ${DOTENV_POSTGRES_DB}
-      POSTGRES_INITDB_ARGS: ${DOTENV_POSTGRES_INITDB_ARGS}
     ports: [ "${DOTENV_POSTGRES_PORT}:5432" ]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DOTENV_POSTGRES_USER} -d ${DOTENV_POSTGRES_DB}"]
@@ -62,7 +57,7 @@ services:
       start_interval: 1s
     volumes:
       - ksivpn-tgbot-postgres-data:/var/lib/postgresql/data
-      - ksivpn-tgbot-postgres-backups:/var/lib/postgresql/backups
+      - ./build/postgres/init-database.sql:/docker-entrypoint-initdb.d/init-database.sql:ro
 
   ksivpn-tgbot-redis:
     <<: *service-defaults
@@ -85,8 +80,7 @@ services:
       timeout: 3s
       retries: 10
       start_period: 5s
-    volumes:
-      - ksivpn-tgbot-redis-data:/data
+    volumes: [ ksivpn-tgbot-redis-data:/data ]
 
 networks:
   ksivpn:
@@ -95,7 +89,7 @@ networks:
 volumes:
   ksivpn-tgbot-postgres-data:
     name: ksivpn-tgbot-postgres-data
-  ksivpn-tgbot-postgres-backups:
-    name: ksivpn-tgbot-postgres-backups
+  ksivpn-tgbot-backups:
+    name: ksivpn-tgbot-backups
   ksivpn-tgbot-redis-data:
     name: ksivpn-tgbot-redis-data

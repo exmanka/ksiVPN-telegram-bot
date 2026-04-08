@@ -261,13 +261,13 @@ async def get_client_info_by_telegramID(telegram_id: int) -> asyncpg.Record | No
     """Return information about client by specified telegram_id.
 
     :param telegram_id:
-    :return: asyncgp.Record object having (id, name, surname, username, register_date, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI'), used_ref_promo_id)
+    :return: asyncgp.Record object having (id, name, surname, username, register_date, used_ref_promo_id)
     :rtype: asyncpg.Record | None
     """
     async with pool.acquire() as conn:
         return await conn.fetchrow(
             '''
-            SELECT id, name, surname, username, register_date, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI'), used_ref_promo_id
+            SELECT id, name, surname, username, register_date, used_ref_promo_id
             FROM clients
             WHERE telegram_id = $1;
             ''',
@@ -278,13 +278,13 @@ async def get_client_info_by_clientID(client_id: int) -> asyncpg.Record | None:
     """Return information about client by specified client_id.
 
     :param client_id:
-    :return: asyncgp.Record object having (name, surname, username, telegram_id, register_date, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI'), used_ref_promo_id)
+    :return: asyncgp.Record object having (name, surname, username, telegram_id, register_date, used_ref_promo_id)
     :rtype: asyncpg.Record | None
     """
     async with pool.acquire() as conn:
         return await conn.fetchrow(
             '''
-            SELECT name, surname, username, telegram_id, register_date, TO_CHAR(register_date, 'FMDD TMMonth YYYY в HH24:MI'), used_ref_promo_id
+            SELECT name, surname, username, telegram_id, register_date, used_ref_promo_id
             FROM clients
             WHERE id = $1;
             ''',
@@ -346,14 +346,13 @@ async def get_clients_subscriptions_info_by_clientID(client_id: int) -> asyncpg.
     """Return information about subscription's expiration date of client specified by client_id.
 
     :param client_id:
-    :return: asyncgp.Record object having (sub_id, paid_months_counter, expiration_date, TO_CHAR(expiration_date,
-    'FMDD TMMonth YYYY в HH24:MI'))
+    :return: asyncgp.Record object having (sub_id, paid_months_counter, expiration_date)
     :rtype: asyncpg.Record | None
     """
     async with pool.acquire() as conn:
         return await conn.fetchrow(
             '''
-            SELECT sub_id, paid_months_counter, expiration_date, TO_CHAR(expiration_date, 'FMDD TMMonth YYYY в HH24:MI')
+            SELECT sub_id, paid_months_counter, expiration_date
             FROM clients_subscriptions
             WHERE client_id = $1;
             ''',
@@ -377,12 +376,16 @@ async def get_subscription_info_by_subID(subscription_id: int) -> asyncpg.Record
             subscription_id)
 
 
-async def get_subscription_expiration_date(telegram_id: int) -> str | None:
-    """Return subsctiption's expiration date in string format."""
+async def get_subscription_expiration_date(telegram_id: int) -> datetime.datetime | None:
+    """Return subscription's expiration date as a raw timestamp.
+
+    Use :func:`src.services.date_formatting.format_localized_datetime` at the
+    call site to render it in the bot's configured language.
+    """
     async with pool.acquire() as conn:
         return await conn.fetchval(
             '''
-            SELECT TO_CHAR(cs.expiration_date, 'FMDD TMMonth YYYY в HH24:MI')
+            SELECT cs.expiration_date
             FROM clients_subscriptions AS cs
             JOIN clients AS c
             ON cs.client_id = c.id
@@ -395,14 +398,14 @@ async def get_configurations_info(client_id: int) -> list[asyncpg.Record]:
     """Return information about all client's configurations.
 
     :param client_id:
-    :return: list of asyncgp.Record objects having (file_type, TO_CHAR(date_of_receipt, 'FMDD TMMonth YYYY в HH24:MI'),
+    :return: list of asyncgp.Record objects having (file_type, date_of_receipt,
     os, name, country, city, bandwidth, ping, available_services, link, id, server_name)
     :rtype: list[asyncpg.Record]
     """
     async with pool.acquire() as conn:
         return await conn.fetch(
             '''
-            SELECT c.file_type, TO_CHAR(c.date_of_receipt, 'FMDD TMMonth YYYY в HH24:MI'), c.os,
+            SELECT c.file_type, c.date_of_receipt, c.os,
             cp.name, s.country, s.city, s.bandwidth, s.ping, s.available_services, c.link, c.id, s.name AS server_name
             FROM configurations AS c
             JOIN configurations_protocols AS cp ON c.protocol_id = cp.id
@@ -495,13 +498,13 @@ async def get_payments_successful_info(client_id: int) -> list[asyncpg.Record]:
     """Return information about successful payments by client.
 
     :param client_id:
-    :return: list of asyncgp.Record objects having (p.id, s.title, p.price, p.months_number, TO_CHAR(p.date_of_initiation, 'FMDD TMMonth YYYY в HH24:MI'))
+    :return: list of asyncgp.Record objects having (p.id, s.title, p.price, p.months_number, p.date_of_initiation)
     :rtype: list[asyncpg.Record]
     """
     async with pool.acquire() as conn:
         return await conn.fetch(
             '''
-            SELECT p.id, s.title, p.price, p.months_number, TO_CHAR(p.date_of_initiation, 'FMDD TMMonth YYYY в HH24:MI')
+            SELECT p.id, s.title, p.price, p.months_number, p.date_of_initiation
             FROM payments AS p
             JOIN subscriptions AS s
             ON p.sub_id = s.id
@@ -609,14 +612,13 @@ async def get_local_promo_info(phrase: str) -> asyncpg.Record | None:
     """Return information about local promocode.
 
     :param phrase:
-    :return: asyncgp.Record object having (id, expiration_date, TO_CHAR(expiration_date, 'FMDD TMMonth YYYY в HH24:MI')),
-    bonus_time, TO_CHAR(bonus_time, 'FMDDD'), provided_sub_id)
+    :return: asyncgp.Record object having (id, expiration_date, bonus_time, provided_sub_id)
     :rtype: asyncpg.Record | None
     """
     async with pool.acquire() as conn:
         return await conn.fetchrow(
             '''
-            SELECT id, expiration_date, TO_CHAR(expiration_date, 'FMDD TMMonth YYYY в HH24:MI'), bonus_time, TO_CHAR(bonus_time, 'FMDDD'), provided_sub_id
+            SELECT id, expiration_date, bonus_time, provided_sub_id
             FROM promocodes_local
             WHERE phrase = $1;
             ''',
@@ -627,14 +629,13 @@ async def get_global_promo_info(phrase: str) -> asyncpg.Record | None:
     """Return information about global promocode.
 
     :param phrase:
-    :return: asyncgp.Record object having (id, expiration_date, TO_CHAR(expiration_date, 'FMDD TMMonth YYYY в HH24:MI'), remaining_activations,
-    bonus_time, TO_CHAR(bonus_time, 'FMDDD'))
+    :return: asyncgp.Record object having (id, expiration_date, remaining_activations, bonus_time)
     :rtype: asyncpg.Record | None
     """
     async with pool.acquire() as conn:
         return await conn.fetchrow(
             '''
-            SELECT id, expiration_date, TO_CHAR(expiration_date, 'FMDD TMMonth YYYY в HH24:MI'), remaining_activations, bonus_time, TO_CHAR(bonus_time, 'FMDDD')
+            SELECT id, expiration_date, remaining_activations, bonus_time
             FROM promocodes_global
             WHERE phrase = $1;
             ''',
@@ -667,7 +668,7 @@ async def get_client_entered_promos(client_id: int) -> tuple[asyncpg.Record | No
             # global promocodes
             promos_global = await conn.fetch(
                 '''
-                SELECT pg.phrase, TO_CHAR(pg.bonus_time, 'FMDDD'), TO_CHAR(cpg.date_of_entry, 'FMDD TMMonth YYYY в HH24:MI')
+                SELECT pg.phrase, pg.bonus_time, cpg.date_of_entry
                 FROM clients_promo_global AS cpg
                 JOIN promocodes_global AS pg
                 ON cpg.promocode_id = pg.id
@@ -678,7 +679,7 @@ async def get_client_entered_promos(client_id: int) -> tuple[asyncpg.Record | No
             # local promocodes
             promos_local = await conn.fetch(
                 '''
-                SELECT pl.phrase, TO_CHAR(pl.bonus_time, 'FMDDD'), TO_CHAR(cpl.date_of_entry, 'FMDD TMMonth YYYY в HH24:MI')
+                SELECT pl.phrase, pl.bonus_time, cpl.date_of_entry
                 FROM clients_promo_local AS cpl
                 JOIN promocodes_local AS pl
                 ON cpl.promocode_id = pl.id
@@ -710,7 +711,7 @@ async def get_settings_info(client_id: int) -> asyncpg.Record | None:
 async def get_notifications_status() -> list[asyncpg.Record]:
     """Return information about subscription expiration for current 30 minutes.
 
-    :return: list of asyncgp.Record objects having (telegram_id, subscription_expiration_date: str, is_subscription_expiration_now: bool, is_subscription_expiration_in_1d: bool,
+    :return: list of asyncgp.Record objects having (telegram_id, is_subscription_expiration_now: bool, is_subscription_expiration_in_1d: bool,
     is_subscription_expiration_in_3d: bool, is_subscription_expiration_in_7d: bool)
     :rtype: list[asyncpg.Record]
     """
@@ -718,7 +719,6 @@ async def get_notifications_status() -> list[asyncpg.Record]:
         return await conn.fetch(
             '''
             SELECT c.telegram_id,
-            TO_CHAR(cs.expiration_date, 'FMDD TMMonth в HH24:MI') AS subscription_expiration_date,
             CURRENT_TIMESTAMP <= cs.expiration_date AND cs.expiration_date < CURRENT_TIMESTAMP + INTERVAL '30 minutes' AS is_subscription_expiration_now,
             s.sub_expiration_in_1d AND CURRENT_TIMESTAMP + INTERVAL '1 days' <= cs.expiration_date AND cs.expiration_date < CURRENT_TIMESTAMP + INTERVAL '1 days 30 minutes' AS is_subscription_expiration_in_1d,
             s.sub_expiration_in_3d AND CURRENT_TIMESTAMP + INTERVAL '3 days' <= cs.expiration_date AND cs.expiration_date < CURRENT_TIMESTAMP + INTERVAL '3 days 30 minutes' AS is_subscription_expiration_in_3d,
@@ -738,13 +738,13 @@ async def get_refferal_promo_info_by_phrase(phrase: str) -> asyncpg.Record | Non
     """Return information about referral promocode by specified promocode phrase.
 
     :param phrase:
-    :return: asyncgp.Record object having (id, client_creator_id, provided_sub_id, bonus_time, TO_CHAR(bonus_time, 'FMDDD'))
+    :return: asyncgp.Record object having (id, client_creator_id, provided_sub_id, bonus_time)
     :rtype: asyncpg.Record | None
     """
     async with pool.acquire() as conn:
         return await conn.fetchrow(
             '''
-            SELECT id, client_creator_id, provided_sub_id, bonus_time, TO_CHAR(bonus_time, 'FMDDD')
+            SELECT id, client_creator_id, provided_sub_id, bonus_time
             FROM promocodes_ref
             WHERE phrase = $1;
             ''',
@@ -755,13 +755,13 @@ async def get_refferal_promo_info_by_promoID(ref_promo_id: int) -> asyncpg.Recor
     """Return information about referral promocode by specified referral promocode id.
 
     :param phrase:
-    :return: asyncgp.Record object having (phrase, client_creator_id, provided_sub_id, bonus_time, TO_CHAR(bonus_time, 'FMDDD'))
+    :return: asyncgp.Record object having (phrase, client_creator_id, provided_sub_id, bonus_time)
     :rtype: asyncpg.Record | None
     """
     async with pool.acquire() as conn:
         return await conn.fetchrow(
             '''
-            SELECT phrase, client_creator_id, provided_sub_id, bonus_time, TO_CHAR(bonus_time, 'FMDDD')
+            SELECT phrase, client_creator_id, provided_sub_id, bonus_time
             FROM promocodes_ref
             WHERE id = $1;
             ''',
@@ -772,13 +772,13 @@ async def get_refferal_promo_info_by_clientCreatorID(client_creator_id: int) -> 
     """Return information about referral promocode by specified client creator of promocode id.
 
     :param phrase:
-    :return: asyncgp.Record object having (id, phrase, provided_sub_id, bonus_time, TO_CHAR(bonus_time, 'FMDDD'))
+    :return: asyncgp.Record object having (id, phrase, provided_sub_id, bonus_time)
     :rtype: asyncpg.Record | None
     """
     async with pool.acquire() as conn:
         return await conn.fetchrow(
             '''
-            SELECT id, phrase, provided_sub_id, bonus_time, TO_CHAR(bonus_time, 'FMDDD')
+            SELECT id, phrase, provided_sub_id, bonus_time
             FROM promocodes_ref
             WHERE client_creator_id = $1;
             ''',
