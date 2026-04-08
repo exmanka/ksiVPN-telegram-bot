@@ -57,7 +57,7 @@ services:
       start_interval: 1s
     volumes:
       - ksivpn-tgbot-postgres-data:/var/lib/postgresql/data
-      - ./postgres/init/init-database.sql:/docker-entrypoint-initdb.d/init-database.sql:ro
+      - ./postgres/initdb:/docker-entrypoint-initdb.d:ro
 
   ksivpn-tgbot-redis:
     <<: *service-defaults
