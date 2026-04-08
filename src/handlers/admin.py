@@ -11,7 +11,7 @@ from src.keyboards import admin_kb
 from src.states import admin_fsm
 from src.database import postgres_dbms
 from src.services import internal_functions, localization as loc
-from bot_init import bot, POSTGRES_DB, POSTGRES_PASSWORD
+from src.runtime import bot
 
 
 logger = logging.getLogger(__name__)

@@ -1,11 +1,23 @@
 import logging
 import asyncio
 import signal
+
+# Set up logger before imports
+if __name__ == '__main__':
+    logging.basicConfig(
+        handlers=[logging.FileHandler('bot.log'), logging.StreamHandler()],
+        level=logging.INFO,
+        format='[%(asctime)s: %(levelname)s: %(name)s] %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        encoding='utf-8',
+    )
+    logging.getLogger('aiogram.event').setLevel(logging.WARNING)
+
 from src.middlewares import user_authorized_mw, user_unauthorized_mw, admin_mw, throttling_mw
 from src.handlers import user_authorized, user_unauthorized, admin, other
 from src.database import postgres_dbms
 from src.services import scheduler
-from bot_init import dp, bot
+from src.runtime import dp, bot
 
 
 logger = logging.getLogger(__name__)
@@ -51,11 +63,4 @@ async def main() -> None:
 
 
 if __name__ == '__main__':
-    logging.basicConfig(handlers=[logging.FileHandler('bot.log'), logging.StreamHandler()],
-                        level=logging.INFO,
-                        format='[%(asctime)s: %(levelname)s: %(name)s] %(message)s',
-                        datefmt='%Y-%m-%d %H:%M:%S',
-                        encoding='utf-8')
-    # Suppress per-update INFO lines from aiogram.event ("Update id=… is handled. Duration …")
-    logging.getLogger('aiogram.event').setLevel(logging.WARNING)
     asyncio.run(main())

@@ -6,7 +6,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram.types import FSInputFile
 from src.database import postgres_dbms
 from src.services import internal_functions, localization as loc
-from bot_init import bot, ADMIN_ID, TIMEZONE, BACKUP_PATH
+from src.config import settings
+from src.runtime import bot
 
 
 logger = logging.getLogger(__name__)
@@ -16,9 +17,9 @@ apscheduler_logger = logging.getLogger(apscheduler.__name__).setLevel(logging.WA
 async def apscheduler_start():
     """Run apscheduler and add tasks."""
     global scheduler
-    scheduler = AsyncIOScheduler()
+    scheduler = AsyncIOScheduler(timezone=settings.tz)
     scheduler.add_job(send_subscription_expiration_notifications, 'cron', minute='0,30')
-    scheduler.add_job(send_database_backup, 'cron', hour=23, minute=00, timezone=TIMEZONE)
+    scheduler.add_job(send_database_backup, 'cron', hour=23, minute=00)
     scheduler.start()
     logger.info('Scheduler has been successfully launched!')
 
@@ -53,12 +54,12 @@ async def send_subscription_expiration_notifications():
             surname_str = await internal_functions.format_none_string(surname)
             username_str = await internal_functions.format_none_string(username)
             configurations_info = await postgres_dbms.get_configurations_info(await postgres_dbms.get_clientID_by_telegramID(telegram_id))
-            await bot.send_message(ADMIN_ID,
+            await bot.send_message(settings.bot.admin_id,
                                    loc.admn.msgs['sub_expired'].format(len(configurations_info), client_id, username_str, name, surname_str, telegram_id))
 
             # send client's configurations to admin
             for file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name in configurations_info:
-                await internal_functions.send_configuration(ADMIN_ID, file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name)
+                await internal_functions.send_configuration(settings.bot.admin_id, file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name)
 
         # if client's subscription expires between [CURRENT_TIMESTAMP + INTERVAL '1 day', CURRENT_TIMESTAMP + INTERVAL '1 day 30 minutes')
         if is_sub_expiration_in_1d:
@@ -75,7 +76,7 @@ async def send_subscription_expiration_notifications():
             # convert surname and username for beautiful formatting
             surname_str = await internal_functions.format_none_string(surname)
             username_str = await internal_functions.format_none_string(username)
-            await bot.send_message(ADMIN_ID,
+            await bot.send_message(settings.bot.admin_id,
                                    loc.admn.msgs['sub_expires_1d'].format(client_id, username_str, name, surname_str, telegram_id))
 
         # if client's subscription expires between [CURRENT_TIMESTAMP + INTERVAL '3 days', CURRENT_TIMESTAMP + INTERVAL '3 days 30 minutes')
@@ -93,7 +94,7 @@ async def send_subscription_expiration_notifications():
             # convert surname and username for beautiful formatting
             surname_str = await internal_functions.format_none_string(surname)
             username_str = await internal_functions.format_none_string(username)
-            await bot.send_message(ADMIN_ID,
+            await bot.send_message(settings.bot.admin_id,
                                    loc.admn.msgs['sub_expires_3d'].format(client_id, username_str, name, surname_str, telegram_id))
 
         # if client's subscription expires between [CURRENT_TIMESTAMP + INTERVAL '7 days', CURRENT_TIMESTAMP + INTERVAL '7 days 30 minutes')
@@ -111,12 +112,12 @@ async def send_subscription_expiration_notifications():
             # convert surname and username for beautiful formatting
             surname_str = await internal_functions.format_none_string(surname)
             username_str = await internal_functions.format_none_string(username)
-            await bot.send_message(ADMIN_ID,
+            await bot.send_message(settings.bot.admin_id,
                                    loc.admn.msgs['sub_expires_7d'].format(client_id, username_str, name, surname_str, telegram_id))
 
 
 async def send_database_backup():
     """Send document to admin with database backup."""
     logger.info('Sending database backup to admin via telegram')
-    backup_path_name: str = os.path.join(BACKUP_PATH, 'db-backup.gz')
-    await bot.send_document(ADMIN_ID, FSInputFile(backup_path_name), caption=f'Backup for {datetime.now().strftime("%d.%m.%y %H:%M")}')
+    backup_path_name: str = os.path.join(settings.backup.path, 'db-backup.gz')
+    await bot.send_document(settings.bot.admin_id, FSInputFile(backup_path_name), caption=f'Backup for {datetime.now().strftime("%d.%m.%y %H:%M")}')
