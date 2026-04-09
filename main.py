@@ -56,6 +56,7 @@ async def main() -> None:
     dp.message.middleware(throttling_mw.Throttling())
 
     # register handlers (routers)
+    other.register_handlers_global(dp)
     user_authorized.register_handlers_authorized_client(dp)
     user_unauthorized.register_handlers_unauthorized_client(dp)
     admin.register_handlers_admin(dp)

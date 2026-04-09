@@ -628,6 +628,7 @@ other:
   telegram_file_ids:
     project_info: AgACAgIAAxkBAAJVOWWoH2RGI7pBEGUSvAt_xGjPM9ufAAJW1TEbxdRBSc9pyZvrLmwWAQADAgADcwADNAQ
     hello_message: AgACAgIAAxkBAAJVN2WoH0QQIRjdL-9ZoL8wqhQvEsY4AAJU1TEbxdRBSaknQL9Gkxc1AQADAgADcwADNAQ
+    help: AgACAgIAAxkBAAEDGqRp135c9bBwGwkR4iuNLe6nvdWUIAAC6xRrG035uUqKyrE3f_2NiAEAAwIAA3MAAzsE
 internal_functions:
   messages:
     wait_payment: <b>Waiting for the subscription payment!</b>

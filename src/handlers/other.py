@@ -9,10 +9,11 @@ from src.services import gpt4free, internal_functions, localization as loc
 from src.runtime import bot
 
 
+global_router = Router(name="global_commands")
 router = Router(name="other")
 
 
-@router.message(CommandStart())
+@global_router.message(CommandStart())
 async def command_start(message: Message, state: FSMContext):
     """Send message when user press /start."""
     # if user isn't in db
@@ -35,14 +36,16 @@ async def command_start(message: Message, state: FSMContext):
         await message.answer(loc.other.msgs['restart'], reply_markup=user_authorized_kb.menu)
 
 
-@router.message(Command(commands=['help']))
-@router.message(F.text.lower() == loc.other.btns['help'].lower())
+@global_router.message(Command(commands=['help']))
+@global_router.message(F.text.lower() == loc.other.btns['help'].lower())
 async def command_help(message: Message):
-    """Send message with information about provided help."""
+    """Send message with information about provided help (works in any FSM state)."""
     # if client needs to renew subscription before receiving his first configuration
     await internal_functions.notify_client_if_subscription_must_be_renewed_to_receive_configuration(message.from_user.id)
 
-    await message.answer(loc.other.msgs['help'])
+    await internal_functions.send_photo_safely(message.from_user.id,
+                                               telegram_file_id=loc.other.tfids['help'],
+                                               caption=loc.other.msgs['help'])
 
 
 @router.message(F.text.lower() == loc.other.btns['about_project'].lower())
@@ -85,6 +88,11 @@ async def answer_unrecognized_messages(message: Message):
     # if is not registered of client turns off ChatGPT mode for bot
     else:
         await message.reply(loc.other.msgs['unrecognized_message'])
+
+
+def register_handlers_global(dp):
+    """Attach the global_commands router — must be registered before all other routers."""
+    dp.include_router(global_router)
 
 
 def register_handlers_other(dp):
