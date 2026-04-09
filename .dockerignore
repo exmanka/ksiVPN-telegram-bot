@@ -9,5 +9,19 @@ docker-compose.yml
 docker-compose.yaml
 .dockerignore
 
-# Dotenv
-.env
+# Dotenvs
+.env*
+
+# Python envs
+.venv*
+venv*
+
+# Claude tests
+.claude/
+CLAUDE.md
+
+# PostgreSQL scripts
+postgres/
+
+# Python scripts
+scripts/
