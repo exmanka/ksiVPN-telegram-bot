@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from datetime import datetime
 from enum import Enum
 from typing import Awaitable, Callable
 from aiogram.types import Message, ReplyKeyboardMarkup, InlineKeyboardMarkup
@@ -10,6 +11,7 @@ from src.keyboards import user_authorized_kb, admin_kb
 from src.states import user_authorized_fsm
 from src.database import postgres_dbms
 from src.services import aiomoney, localization as loc
+from src.services.date_formatting import format_localized_bonus_days, format_localized_datetime
 from src.config import settings
 from src.runtime import bot
 
@@ -204,7 +206,7 @@ async def send_message_by_telegram_id(telegram_id: int, message: Message):
 
 async def send_configuration(telegram_id: int,
                              configuration_file_type: str,
-                             configuration_date_of_receipt: str,
+                             configuration_date_of_receipt: datetime,
                              configuration_os: str,
                              configuration_protocol_name: str,
                              server_country: str,
@@ -277,7 +279,7 @@ async def send_configuration_request_to_admin(client: dict, choice: dict, is_new
         else:
 
             # get information about entered referral promocode
-            _, client_creator_id, provided_sub_id, _, bonus_time_parsed = await postgres_dbms.get_refferal_promo_info_by_phrase(choice['promo'])
+            _, client_creator_id, provided_sub_id, bonus_time = await postgres_dbms.get_refferal_promo_info_by_phrase(choice['promo'])
             client_creator_name, client_creator_surname, client_creator_username, client_creator_telegram_id, *_ = await postgres_dbms.get_client_info_by_clientID(client_creator_id)
             *_, price = await postgres_dbms.get_subscription_info_by_subID(provided_sub_id)
 
@@ -285,7 +287,7 @@ async def send_configuration_request_to_admin(client: dict, choice: dict, is_new
             client_creator_surname_str = await format_none_string(client_creator_surname)
             client_creator_username_str = await format_none_string(client_creator_username)
             ref_promo_str = loc.internal.msgs['config_request_new_client_ref_promo_str'].\
-                format(choice['promo'], client_creator_name, client_creator_surname_str, client_creator_username_str, client_creator_telegram_id, bonus_time_parsed, price)
+                format(choice['promo'], client_creator_name, client_creator_surname_str, client_creator_username_str, client_creator_telegram_id, format_localized_bonus_days(bonus_time), price)
 
         await bot.send_message(settings.bot.admin_id,
                                loc.internal.msgs['config_request_new_client'].\
@@ -316,10 +318,11 @@ async def notify_admin_promo_entered(client_id: int, promo_phrase: str, promo_ty
 
     new_sub_str = ''
     if promo_type == 'global':
-        id, _, expiration_date_parsed, *_, bonus_time_parsed = await postgres_dbms.get_global_promo_info(promo_phrase)
+        id, expiration_date, _, bonus_time = await postgres_dbms.get_global_promo_info(promo_phrase)
+        provided_sub_id = None
 
     elif promo_type == 'local':
-        id, _, expiration_date_parsed, _, bonus_time_parsed, provided_sub_id = await postgres_dbms.get_local_promo_info(promo_phrase)
+        id, expiration_date, bonus_time, provided_sub_id = await postgres_dbms.get_local_promo_info(promo_phrase)
 
         # if local promo changes client's subscription
         if provided_sub_id:
@@ -331,7 +334,10 @@ async def notify_admin_promo_entered(client_id: int, promo_phrase: str, promo_ty
 
     await bot.send_message(settings.bot.admin_id,
                            loc.internal.msgs['admin_promo_was_entered'].\
-                            format(client_id, username_str, name, surname_str, telegram_id, promo_type, id, bonus_time_parsed, expiration_date_parsed, new_sub_str=new_sub_str))
+                            format(client_id, username_str, name, surname_str, telegram_id, promo_type, id,
+                                   format_localized_bonus_days(bonus_time),
+                                   format_localized_datetime(expiration_date),
+                                   new_sub_str=new_sub_str))
 
 
 async def notify_admin_payment_success(client_id: int, months_number: int):
@@ -360,13 +366,13 @@ async def notify_client_new_referal(client_creator_id: int, referral_client_name
     referral_client_username_str = await format_none_string(referral_client_username, prefix=' @')
 
     # get information about referral bonus
-    *_, bonus_time_parsed = await postgres_dbms.get_refferal_promo_info_by_clientCreatorID(client_creator_id)
+    *_, bonus_time = await postgres_dbms.get_refferal_promo_info_by_clientCreatorID(client_creator_id)
 
     client_creator_telegram_id = await postgres_dbms.get_telegramID_by_clientID(client_creator_id)
     await safe_deliver(
         lambda: bot.send_message(
             client_creator_telegram_id,
-            loc.internal.msgs['ref_promo_was_entered'].format(referral_client_name, referral_client_username_str, bonus_time_parsed),
+            loc.internal.msgs['ref_promo_was_entered'].format(referral_client_name, referral_client_username_str, format_localized_bonus_days(bonus_time)),
         ),
         telegram_id=client_creator_telegram_id,
     )
@@ -382,7 +388,7 @@ async def notify_client_if_subscription_must_be_renewed_to_receive_configuration
         )
 
 
-async def create_configuration_description(configuration_date_of_receipt: str,
+async def create_configuration_description(configuration_date_of_receipt: datetime,
                                            configuration_os: str,
                                            configuration_protocol_name: str,
                                            server_country: str,
@@ -413,7 +419,7 @@ async def create_configuration_description(configuration_date_of_receipt: str,
 
     return loc.internal.msgs['config_info'].format(server_name, server_country, server_city,
                                                server_bandwidth, server_ping, services_str, configuration_protocol_name,
-                                               configuration_os, configuration_date_of_receipt,
+                                               configuration_os, format_localized_datetime(configuration_date_of_receipt),
                                                configuration_id)
 
 
@@ -573,7 +579,7 @@ async def authorization_complete(message: Message, state: FSMContext):
 
     # if new client entered referral promocode during registration
     if phrase := data['promo']:
-        used_ref_promo_id, _, provided_sub_id, bonus_time, _ = await postgres_dbms.get_refferal_promo_info_by_phrase(phrase)
+        used_ref_promo_id, _, provided_sub_id, bonus_time = await postgres_dbms.get_refferal_promo_info_by_phrase(phrase)
 
     await postgres_dbms.insert_client(client.first_name, client.id, client.last_name, client.username, used_ref_promo_id, provided_sub_id, bonus_time)
     await send_configuration_request_to_admin({'fullname': client.full_name, 'username': client.username, 'id': client.id}, data, is_new_client=True)

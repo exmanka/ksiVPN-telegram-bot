@@ -359,6 +359,21 @@ tests-mypy = ["mypy (>=1.6) ; platform_python_implementation == \"CPython\" and 
 tests-no-zope = ["attrs[tests-mypy]", "cloudpickle ; platform_python_implementation == \"CPython\"", "hypothesis", "pympler", "pytest (>=4.3.0)", "pytest-xdist[psutil]"]
 
 [[package]]
+name = "babel"
+version = "2.18.0"
+description = "Internationalization utilities"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "babel-2.18.0-py3-none-any.whl", hash = "sha256:e2b422b277c2b9a9630c1d7903c2a00d0830c409c59ac8cae9081c92f1aeba35"},
+    {file = "babel-2.18.0.tar.gz", hash = "sha256:b80b99a14bd085fcacfa15c9165f651fbb3406e66cc603abf11c5750937c992d"},
+]
+
+[package.extras]
+dev = ["backports.zoneinfo ; python_version < \"3.9\"", "freezegun (>=1.0,<2.0)", "jinja2 (>=3.0)", "pytest (>=6.0)", "pytest-cov", "pytz", "setuptools", "tzdata ; sys_platform == \"win32\""]
+
+[[package]]
 name = "brotli"
 version = "1.2.0"
 description = "Python bindings for the Brotli compression library"
@@ -1608,4 +1623,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = "~=3.12.0"
-content-hash = "c350619b45a4745cb5107fb784c66e5201fda662fffe839263c6069e6cf9d2f4"
+content-hash = "d7ca87f9c4ab0553d0c2e9013d378cd01b271303fcecc176441dc2396e42c05c"

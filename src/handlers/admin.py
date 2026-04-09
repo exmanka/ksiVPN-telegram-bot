@@ -11,6 +11,7 @@ from src.keyboards import admin_kb
 from src.states import admin_fsm
 from src.database import postgres_dbms
 from src.services import internal_functions, localization as loc
+from src.services.date_formatting import format_localized_datetime
 from src.runtime import bot
 
 
@@ -225,9 +226,10 @@ async def show_clients_info(message: Message):
 
     answer_message = ''
     for [client_id] in await postgres_dbms.get_clients_ids():
-        name, surname, username, telegram_id, _, register_date_parsed, used_ref_promo_id = await postgres_dbms.get_client_info_by_clientID(client_id)
+        name, surname, username, telegram_id, register_date, used_ref_promo_id = await postgres_dbms.get_client_info_by_clientID(client_id)
+        register_date_parsed = format_localized_datetime(register_date)
         *_, sub_price = await postgres_dbms.get_subscription_info_by_clientID(client_id)
-        sub_expiration_date_parsed = await postgres_dbms.get_subscription_expiration_date(telegram_id)
+        sub_expiration_date_parsed = format_localized_datetime(await postgres_dbms.get_subscription_expiration_date(telegram_id))
         config_num = await postgres_dbms.get_configurations_number(client_id)
         paid_sum: Decimal = await postgres_dbms.get_payments_successful_sum(client_id)
         ref_promo_info = await postgres_dbms.get_refferal_promo_info_by_clientCreatorID(client_id)
@@ -284,7 +286,7 @@ async def show_logs(message: Message):
     await message.answer(loc.admn.msgs['show_logs_info'].format(last_rows_number))
 
     last_rows_counter = 0
-    async with aiofiles.open('bot.log', mode='rb') as f:
+    async with aiofiles.open('logs/bot.log', mode='rb') as f:
         try:
             await f.seek(-2, 2)
             while last_rows_counter < last_rows_number:

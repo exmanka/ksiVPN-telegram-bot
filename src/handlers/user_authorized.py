@@ -11,6 +11,7 @@ from src.keyboards import user_authorized_kb
 from src.states import user_authorized_fsm
 from src.database import postgres_dbms
 from src.services import internal_functions, aiomoney, localization as loc
+from src.services.date_formatting import format_localized_bonus_days, format_localized_datetime
 from src.config import settings
 from src.runtime import bot
 
@@ -48,7 +49,7 @@ async def subscription_status(message: Message):
     else:
         await message.answer(loc.auth.msgs['sub_inactive'])
 
-    await message.answer(loc.auth.msgs['sub_expiration_date'].format(await postgres_dbms.get_subscription_expiration_date(message.from_user.id)))
+    await message.answer(loc.auth.msgs['sub_expiration_date'].format(format_localized_datetime(await postgres_dbms.get_subscription_expiration_date(message.from_user.id))))
 
 
 @router.message(
@@ -119,7 +120,7 @@ async def sub_renewal_payment_history(message: Message):
 
     payment_price: Decimal
     for payment_id, sub_title, payment_price, payment_months_number, payment_date in payment_history:
-        await message.answer(loc.auth.msgs['payment_history_message'].format(sub_title, payment_months_number, float(payment_price), payment_date, payment_id))
+        await message.answer(loc.auth.msgs['payment_history_message'].format(sub_title, payment_months_number, float(payment_price), format_localized_datetime(payment_date), payment_id))
         is_payment_found = True
 
     if not is_payment_found:
@@ -192,7 +193,7 @@ async def account_fsm_start(message: Message, state: FSMContext):
 @user_authorized_mw.authorized_only()
 async def account_client_info(message: Message):
     """Send message with information about client."""
-    _, name, surname, username, _, register_date_parsed, *_ = await postgres_dbms.get_client_info_by_telegramID(message.from_user.id)
+    _, name, surname, username, register_date, _ = await postgres_dbms.get_client_info_by_telegramID(message.from_user.id)
 
     surname_str = ''
     if surname is not None:
@@ -202,7 +203,7 @@ async def account_client_info(message: Message):
     if username is not None:
         username_str = loc.auth.msgs['client_info_username_str'].format(username)
 
-    await message.answer(loc.auth.msgs['client_info'].format(name, message.from_user.id, register_date_parsed, surname_str=surname_str, username_str=username_str))
+    await message.answer(loc.auth.msgs['client_info'].format(name, message.from_user.id, format_localized_datetime(register_date), surname_str=surname_str, username_str=username_str))
 
 
 @router.message(
@@ -361,15 +362,15 @@ async def account_promo_info(message: Message):
     global_promos_str = ''
     if global_promos:
         global_promo_row_str = ''
-        for idx, (global_promo_phrase, bonus_time_parsed, date_of_entry_parsed) in enumerate(global_promos):
-            global_promo_row_str += loc.auth.msgs['global_promo_row_str'].format(idx + 1, global_promo_phrase, bonus_time_parsed, date_of_entry_parsed)
+        for idx, (global_promo_phrase, bonus_time, date_of_entry) in enumerate(global_promos):
+            global_promo_row_str += loc.auth.msgs['global_promo_row_str'].format(idx + 1, global_promo_phrase, format_localized_bonus_days(bonus_time), format_localized_datetime(date_of_entry))
         global_promos_str = loc.auth.msgs['global_promos_str'].format(global_promo_row_str=global_promo_row_str)
 
     local_promos_str = ''
     if local_promos:
         local_promo_row_str = ''
-        for idx, (local_promo_phrase, bonus_time_parsed, date_of_entry_parsed) in enumerate(local_promos):
-            local_promo_row_str += loc.auth.msgs['local_promo_row_str'].format(idx + 1, local_promo_phrase, bonus_time_parsed, date_of_entry_parsed)
+        for idx, (local_promo_phrase, bonus_time, date_of_entry) in enumerate(local_promos):
+            local_promo_row_str += loc.auth.msgs['local_promo_row_str'].format(idx + 1, local_promo_phrase, format_localized_bonus_days(bonus_time), format_localized_datetime(date_of_entry))
         local_promos_str = loc.auth.msgs['local_promos_str'].format(local_promo_row_str=local_promo_row_str)
 
     if ref_promo_str + global_promos_str + local_promos_str == '':
@@ -395,14 +396,14 @@ async def account_promo_check(message: Message, state: FSMContext):
     local_promo_info = await postgres_dbms.get_local_promo_info(message.text)
 
     if global_promo_info:
-        global_promo_id, *_, bonus_time, bonus_time_parsed = global_promo_info
+        global_promo_id, _, _, bonus_time = global_promo_info
 
         if not await postgres_dbms.is_global_promo_already_entered(client_id, global_promo_id):
             if await postgres_dbms.is_global_promo_valid(global_promo_id):
                 if await postgres_dbms.is_global_promo_has_remaining_activations(global_promo_id):
                     await postgres_dbms.insert_client_entered_global_promo(client_id, global_promo_id, bonus_time)
                     await internal_functions.notify_admin_promo_entered(client_id, message.text, 'global')
-                    await message.answer(loc.auth.msgs['global_promo_accepted'].format(bonus_time_parsed), reply_markup=user_authorized_kb.account)
+                    await message.answer(loc.auth.msgs['global_promo_accepted'].format(format_localized_bonus_days(bonus_time)), reply_markup=user_authorized_kb.account)
                     await state.set_state(user_authorized_fsm.AccountMenu.menu)
                 else:
                     await message.answer(loc.auth.msgs['error_promo_limit_activations'])
@@ -412,7 +413,7 @@ async def account_promo_check(message: Message, state: FSMContext):
             await message.answer(loc.auth.msgs['error_promo_already_entered'])
 
     elif local_promo_info:
-        local_promo_id, *_, bonus_time, bonus_time_parsed, provided_sub_id = local_promo_info
+        local_promo_id, _, bonus_time, provided_sub_id = local_promo_info
 
         if await postgres_dbms.is_local_promo_accessible(client_id, local_promo_id):
             if not await postgres_dbms.is_local_promo_already_entered(client_id, local_promo_id):
@@ -426,7 +427,7 @@ async def account_promo_check(message: Message, state: FSMContext):
                         _, title, _, price = await postgres_dbms.get_subscription_info_by_subID(provided_sub_id)
                         new_sub_str = loc.auth.msgs['new_sub_str'].format(title, price)
 
-                    await message.answer(loc.auth.msgs['loсal_promo_accepted'].format(bonus_time_parsed, new_sub_str=new_sub_str), reply_markup=user_authorized_kb.account)
+                    await message.answer(loc.auth.msgs['loсal_promo_accepted'].format(format_localized_bonus_days(bonus_time), new_sub_str=new_sub_str), reply_markup=user_authorized_kb.account)
                     await state.set_state(user_authorized_fsm.AccountMenu.menu)
                 else:
                     await message.answer(loc.auth.msgs['error_promo_expired'])

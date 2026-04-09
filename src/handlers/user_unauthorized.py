@@ -7,6 +7,7 @@ from src.keyboards import user_unauthorized_kb
 from src.states import user_unauthorized_fsm
 from src.database import postgres_dbms
 from src.services import internal_functions, localization as loc
+from src.services.date_formatting import format_localized_bonus_days
 
 
 router = Router(name="user_unauthorized")
@@ -119,12 +120,12 @@ async def authorization_promo_yes(message: Message, state: FSMContext):
         await state.update_data(promo=message.text)
 
         # send information to old client that new client joined project by his referral promocode
-        _, client_creator_id, provided_sub_id, _, bonus_time_parsed = await postgres_dbms.get_refferal_promo_info_by_phrase(message.text)
+        _, client_creator_id, provided_sub_id, bonus_time = await postgres_dbms.get_refferal_promo_info_by_phrase(message.text)
         await internal_functions.notify_client_new_referal(client_creator_id, message.from_user.first_name, message.from_user.username)
 
         # send information about promocode bonus time to new client
         client_creator_name, *_ = await postgres_dbms.get_client_info_by_clientID(client_creator_id)
-        await message.answer(loc.unauth.msgs['ref_promo_accepted'].format(client_creator_name, bonus_time_parsed))
+        await message.answer(loc.unauth.msgs['ref_promo_accepted'].format(client_creator_name, format_localized_bonus_days(bonus_time)))
 
         # send information about subscription available by referral promocode
         _, title, _, price = await postgres_dbms.get_subscription_info_by_subID(provided_sub_id)

@@ -14,7 +14,7 @@ workflow:
       when: never
 
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes: [ build/postgres/**/*.sql ]
+      changes: [ postgres/initdb/**/*.sql ]
       variables:
         GITLAB_DCD_FLAGS: --volumes
 
@@ -25,7 +25,7 @@ workflow:
         GITLAB_TAG: $CI_COMMIT_TAG
 
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA != '0000000000000000000000000000000000000000'
-      changes: [ build/postgres/**/*.sql ]
+      changes: [ postgres/initdb/**/*.sql ]
       variables:
         GITLAB_DCD_FLAGS: --volumes
 
@@ -35,7 +35,7 @@ workflow:
         paths: [ '**/*' ]
 
     - if: $CI_COMMIT_BRANCH == $CI_COMMIT_BRANCH && $CI_COMMIT_BEFORE_SHA != '0000000000000000000000000000000000000000'
-      changes: [ build/postgres/**/*.sql ]
+      changes: [ postgres/initdb/**/*.sql ]
       variables:
         GITLAB_DCD_FLAGS: --volumes
         GITLAB_TAG: latest
@@ -66,17 +66,6 @@ include:
       kaniko-context: ${CI_PROJECT_DIR}/
       kaniko-additional-env-file: .env
       job-name: ksivpn-tgbot
-      job-stage: build
-      job-interruptible: true
-
-  - component: ${CI_SERVER_FQDN}/${CICD_CATALOG_PATH}/kaniko/kaniko@1.0.1
-    inputs:
-      kaniko-destination: [ "${CI_REGISTRY_IMAGE}/ksivpn-tgbot-postgres:${GITLAB_TAG}" ]
-      kaniko-dockerfile: ${CI_PROJECT_DIR}/build/postgres/Dockerfile
-      kaniko-context: ${CI_PROJECT_DIR}/build/postgres
-      kaniko-build-args: [ "ADDITIONAL_LANGUAGE=${DOTENV_POSTGRES_ADDITIONAL_LANGUAGE}" ]
-      kaniko-additional-env-file: .env
-      job-name: postgres
       job-stage: build
       job-interruptible: true
 

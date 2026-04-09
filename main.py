@@ -1,11 +1,20 @@
 import logging
+import logging.handlers
 import asyncio
 import signal
+import os
 
 # Set up logger before imports
 if __name__ == '__main__':
+    # 'logs/' dir is relative to bot workdir
+    os.makedirs('logs', exist_ok=True)
     logging.basicConfig(
-        handlers=[logging.FileHandler('bot.log'), logging.StreamHandler()],
+        handlers=[
+            logging.handlers.RotatingFileHandler(
+                'logs/bot.log', maxBytes=10 * 1024 * 1024, backupCount=5, encoding='utf-8'
+            ),
+            logging.StreamHandler(),
+        ],
         level=logging.INFO,
         format='[%(asctime)s: %(levelname)s: %(name)s] %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
