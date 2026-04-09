@@ -25,3 +25,6 @@ postgres/
 
 # Python scripts
 scripts/
+
+# Other
+pyrightconfig.json
