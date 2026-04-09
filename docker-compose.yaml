@@ -29,9 +29,10 @@ services:
       TGBOT_CONNECTIONS__REDIS__FSM_PREFIX: ${DOTENV_TGBOT_REDIS_FSM_PREFIX}
       TGBOT_PAYMENTS__YOOMONEY__TOKEN: ${DOTENV_TGBOT_YOOMONEY_TOKEN}
       TGBOT_PAYMENTS__YOOMONEY__ACCOUNT: ${DOTENV_TGBOT_YOOMONEY_ACCOUNT}
-      TGBOT_BACKUP__PATH: ${DOTENV_TGBOT_BACKUP_PATH}
       TGBOT_LOCALIZATION__LANGUAGE: ${DOTENV_TGBOT_LOCALIZATION_LANGUAGE}
-    volumes: [ "ksivpn-tgbot-backups:${DOTENV_TGBOT_BACKUP_PATH}" ]
+    volumes:
+      - ksivpn-tgbot-backups:/home/ksivpn-tgbot/backups
+      - ksivpn-tgbot-logs:/home/ksivpn-tgbot/logs
     depends_on:
       ksivpn-tgbot-postgres:
         condition: service_healthy
@@ -87,9 +88,11 @@ networks:
     name: ksivpn
 
 volumes:
-  ksivpn-tgbot-postgres-data:
-    name: ksivpn-tgbot-postgres-data
   ksivpn-tgbot-backups:
     name: ksivpn-tgbot-backups
+  ksivpn-tgbot-logs:
+    name: ksivpn-tgbot-logs
+  ksivpn-tgbot-postgres-data:
+    name: ksivpn-tgbot-postgres-data
   ksivpn-tgbot-redis-data:
     name: ksivpn-tgbot-redis-data

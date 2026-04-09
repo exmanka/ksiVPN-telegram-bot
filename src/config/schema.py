@@ -45,7 +45,7 @@ class LocalizationSettings(BaseModel):
 
 
 class BackupSettings(BaseModel):
-    path: str
+    path: str = "/home/ksivpn-tgbot/backups"
 
 
 class Settings(BaseModel):
@@ -54,5 +54,5 @@ class Settings(BaseModel):
     connections: ConnectionsSettings
     payments: PaymentsSettings
     localization: LocalizationSettings = LocalizationSettings()
-    backup: BackupSettings
+    backup: BackupSettings = BackupSettings()
     tz: str = "UTC"

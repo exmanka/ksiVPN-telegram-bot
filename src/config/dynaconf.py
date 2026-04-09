@@ -38,7 +38,7 @@ dynaconf_settings = Dynaconf(
         Validator("payments.yoomoney.account", must_exist=True, is_type_of=int),
 
         Validator("localization.language", must_exist=True, is_type_of=str),
-        Validator("backup.path", must_exist=True, is_type_of=str),
+        Validator("backup.path", default="/home/ksivpn-tgbot/backups", is_type_of=str),
         Validator("tz", default="UTC", is_type_of=str),
     ],
 )

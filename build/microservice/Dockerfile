@@ -36,6 +36,13 @@ RUN poetry install --no-ansi
 
 # Copy source
 COPY --chown=ksivpn-tgbot:ksivpn-tgbot . .
+RUN rm -rf build/
+
+# Pre-create volume mount points with correct ownership so Docker initialises
+# named volumes with the right permissions.
+RUN install -d -o ksivpn-tgbot -g ksivpn-tgbot \
+    ${TGBOT_HOME}/logs \
+    ${TGBOT_HOME}/backups
 
 # Set user
 USER ksivpn-tgbot

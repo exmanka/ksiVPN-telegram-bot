@@ -286,7 +286,7 @@ async def show_logs(message: Message):
     await message.answer(loc.admn.msgs['show_logs_info'].format(last_rows_number))
 
     last_rows_counter = 0
-    async with aiofiles.open('bot.log', mode='rb') as f:
+    async with aiofiles.open('logs/bot.log', mode='rb') as f:
         try:
             await f.seek(-2, 2)
             while last_rows_counter < last_rows_number:
