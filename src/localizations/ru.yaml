@@ -323,14 +323,15 @@ user_authorized:
 
           <b>0.</b> Скачать и установить официальное приложение Happ — <a href="https://github.com/Happ-proxy/happ-desktop/releases/latest/download/setup-Happ.x64.exe">ссылка на загрузку официального exe-файла</a>.
           <b>1.</b> Скопировать ссылку, отправленную ботом.
-          <b>2.</b> Запустить приложение и нажать на значок <b>«+»</b> в правом верхнем углу.
-          <b>3.</b> Выбрать пункт <b>«Вставить из буфера обмена»</b>.
-          <b>4.</b> Убедиться, что отправленная ботом конфигурация добавилась и сейчас выбрана.
+          <b>2.</b> Если приложение запускается впервые, то можно сразу вставить конфигурацию в окно ввода ссылки и переходить к пункту 5.
+          <b>3.</b> Иначе нажать на значок <b>«+»</b> в левом верхнем углу.
+          <b>4.</b> Выбрать тип <b>«Конфигурация»</b>, вставить в поле ниже скопированную из бота ссылку и нажать <b>«Добавить»</b>.
+          <b>5.</b> Убедиться, что отправленная ботом конфигурация добавилась и сейчас выбрана.
 
 
           🎉 <b>Инструкция по использованию:</b>
 
-          <b>1.</b> Для включения VPN достаточно нажать на кнопку включения VPN в центре.
+          <b>1.</b> Для включения VPN достаточно нажать на кнопку включения VPN справа.
           <b>2.</b> Для выключения VPN нужно снова нажать на ту же кнопку.
         macos: |-
           ⚙️ <b>Инструкция по установке xray на MacOS:</b>
@@ -508,10 +509,10 @@ user_authorized:
         - AgACAgIAAxkBAAEDCfJp0_YVAcbu7pZGg_ONz4ahbLwhnwACjxlrG44roUr4QvGWUPV_NgEAAwIAA3MAAzsE
         windows:
         - AgACAgIAAxkBAAEDCZpp0-aYMCDMZK5nU5VTJnDtnotM5wACMBlrG44roUq7bcgw-Uc0nwEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCYlp0-XMiaKdRHdkDbB-wFJhvboMggACHBlrG44roUqtsh29vbfKDwEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCe5p0_W1ekziC8bBttIX0u92u6OkpAACixlrG44roUqGbRaKhbk5sQEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCfBp0_X-G79j8wfqYsQxt1LH1o6zSAACjRlrG44roUrJvycrqZpQ5gEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCfJp0_YVAcbu7pZGg_ONz4ahbLwhnwACjxlrG44roUr4QvGWUPV_NgEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDKnpp32afg_GQdKKgzH6o3wkuKH9oIQACnhNrGwE3AUv4BArSsoohnAEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDKnxp32bjL_W9PbaTGBHJry_RveytlAACoBNrGwE3AUusbWMBgFbODwEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDKoBp32dvZg9-oh1620PpDIrq7aVdMAACoxNrGwE3AUsQFY_nlIZa_wEAAwIAA3MAAzsE
+        - AgACAgIAAxkBAAEDKoJp32gG5Jpzo_aL5JKYTjeqLQ6wxwACqRNrGwE3AUuv59bsNEdxEQEAAwIAA3MAAzsE
         macos:
         - AgACAgIAAxkBAAEDCZxp0-azZ_fDJ-j8iCPplcR235hlZgACMRlrG44roUqiRT5g5qxbgAEAAwIAA3MAAzsE
         - AgACAgIAAxkBAAEDCYlp0-XMiaKdRHdkDbB-wFJhvboMggACHBlrG44roUqtsh29vbfKDwEAAwIAA3MAAzsE
