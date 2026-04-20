@@ -1,6 +1,7 @@
 import asyncpg
 import datetime
 import logging
+import uuid
 from decimal import Decimal
 from src.config import settings
 
@@ -860,8 +861,8 @@ async def insert_client(name: str,
                         used_ref_promo_id: int | None = None,
                         provided_sub_id: int | None = None,
                         bonus_time: datetime.timedelta | None = None,
-                        ) -> None:
-    """Add new client to DB."""
+                        ) -> int:
+    """Add new client to DB. Returns the new client_id."""
     if username:
         username = '@' + username
 
@@ -905,6 +906,9 @@ async def insert_client(name: str,
                 VALUES ($1);
                 ''',
                 client_id)
+
+    return client_id
+
 
 
 async def insert_configuration(client_id: int,
@@ -1106,3 +1110,174 @@ async def add_subscription_period(client_id: int, days: int) -> None:
             WHERE client_id = $2;
             ''',
             days, client_id)
+
+
+async def get_subscription_expiration_date_by_clientID(client_id: int) -> datetime.datetime | None:
+    """Return subscription's expiration date by client_id."""
+    async with pool.acquire() as conn:
+        return await conn.fetchval(
+            '''
+            SELECT expiration_date
+            FROM clients_subscriptions
+            WHERE client_id = $1;
+            ''',
+            client_id)
+
+
+# ---------------------------------------------------------------------------
+# Remnawave — clients_remnawave helpers
+# ---------------------------------------------------------------------------
+
+async def insert_client_remnawave(client_id: int,
+                                  remnawave_uuid: uuid.UUID,
+                                  subscription_url: str) -> None:
+    """Insert Remnawave panel record for a newly registered client."""
+    async with pool.acquire() as conn:
+        await conn.execute(
+            '''
+            INSERT INTO clients_remnawave (client_id, remnawave_uuid, remnawave_subscription_url)
+            VALUES ($1, $2, $3);
+            ''',
+            client_id, remnawave_uuid, subscription_url)
+
+
+async def update_client_remnawave(client_id: int,
+                                  subscription_url: str | None = None) -> None:
+    """Update Remnawave panel record (e.g. after subscription revoke)."""
+    async with pool.acquire() as conn:
+        if subscription_url is not None:
+            await conn.execute(
+                '''
+                UPDATE clients_remnawave
+                SET remnawave_subscription_url = $2, updated_at = NOW()
+                WHERE client_id = $1;
+                ''',
+                client_id, subscription_url)
+        else:
+            await conn.execute(
+                '''
+                UPDATE clients_remnawave
+                SET updated_at = NOW()
+                WHERE client_id = $1;
+                ''',
+                client_id)
+
+
+async def has_remnawave_record(client_id: int) -> bool:
+    """Return True if client already has a Remnawave panel record."""
+    async with pool.acquire() as conn:
+        return bool(await conn.fetchval(
+            '''
+            SELECT EXISTS(
+                SELECT 1 FROM clients_remnawave WHERE client_id = $1
+            );
+            ''',
+            client_id))
+
+
+async def get_client_remnawave_uuid_by_clientID(client_id: int) -> uuid.UUID | None:
+    """Return remnawave_uuid for client_id, or None if not provisioned."""
+    async with pool.acquire() as conn:
+        return await conn.fetchval(
+            '''
+            SELECT remnawave_uuid FROM clients_remnawave WHERE client_id = $1;
+            ''',
+            client_id)
+
+
+async def get_client_remnawave_uuid_by_telegramID(telegram_id: int) -> uuid.UUID | None:
+    """Return remnawave_uuid for telegram_id, or None if not provisioned."""
+    async with pool.acquire() as conn:
+        return await conn.fetchval(
+            '''
+            SELECT cr.remnawave_uuid
+            FROM clients_remnawave AS cr
+            JOIN clients AS c ON cr.client_id = c.id
+            WHERE c.telegram_id = $1;
+            ''',
+            telegram_id)
+
+
+async def get_client_remnawave_subscription_url_by_telegramID(telegram_id: int) -> str | None:
+    """Return remnawave_subscription_url for telegram_id, or None if not provisioned."""
+    async with pool.acquire() as conn:
+        return await conn.fetchval(
+            '''
+            SELECT cr.remnawave_subscription_url
+            FROM clients_remnawave AS cr
+            JOIN clients AS c ON cr.client_id = c.id
+            WHERE c.telegram_id = $1;
+            ''',
+            telegram_id)
+
+
+async def get_clients_without_remnawave_record() -> list[asyncpg.Record]:
+    """Return all clients that have no Remnawave panel record yet (for migration script)."""
+    async with pool.acquire() as conn:
+        return await conn.fetch(
+            '''
+            SELECT c.id, c.telegram_id, c.username, cs.expiration_date
+            FROM clients AS c
+            JOIN clients_subscriptions AS cs ON cs.client_id = c.id
+            LEFT JOIN clients_remnawave AS cr ON cr.client_id = c.id
+            WHERE cr.client_id IS NULL;
+            ''')
+
+
+# ---------------------------------------------------------------------------
+# Remnawave — remnawave_internal_squads helpers
+# ---------------------------------------------------------------------------
+
+async def get_random_active_remnawave_squad_uuid() -> uuid.UUID | None:
+    """Return a random active squad UUID for new user assignment."""
+    async with pool.acquire() as conn:
+        return await conn.fetchval(
+            '''
+            SELECT squad_uuid
+            FROM remnawave_internal_squads
+            WHERE is_active = TRUE
+            ORDER BY RANDOM()
+            LIMIT 1;
+            ''')
+
+
+async def get_active_remnawave_squads() -> list[tuple[uuid.UUID, str]]:
+    """Return list of (squad_uuid, name) for all active squads."""
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(
+            '''
+            SELECT squad_uuid, name
+            FROM remnawave_internal_squads
+            WHERE is_active = TRUE
+            ORDER BY id;
+            ''')
+        return [(row['squad_uuid'], row['name']) for row in rows]
+
+
+async def upsert_remnawave_squad(squad_uuid: uuid.UUID, name: str) -> None:
+    """Insert or update a squad record (marks it active if previously deactivated)."""
+    async with pool.acquire() as conn:
+        await conn.execute(
+            '''
+            INSERT INTO remnawave_internal_squads (squad_uuid, name)
+            VALUES ($1, $2)
+            ON CONFLICT (squad_uuid) DO UPDATE
+                SET name = EXCLUDED.name,
+                    is_active = TRUE,
+                    updated_at = NOW();
+            ''',
+            squad_uuid, name)
+
+
+async def deactivate_missing_remnawave_squads(active_uuids: list[uuid.UUID]) -> int:
+    """Mark squads not present in active_uuids as inactive. Returns count of deactivated rows."""
+    async with pool.acquire() as conn:
+        result = await conn.execute(
+            '''
+            UPDATE remnawave_internal_squads
+            SET is_active = FALSE, updated_at = NOW()
+            WHERE squad_uuid <> ALL($1::uuid[])
+              AND is_active = TRUE;
+            ''',
+            active_uuids)
+        return int(result.split()[-1])
