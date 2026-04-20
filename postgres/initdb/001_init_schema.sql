@@ -175,3 +175,25 @@ CREATE TABLE settings (
 );
 INSERT INTO settings(client_id)
 VALUES(1);
+
+
+CREATE TABLE clients_remnawave (
+	client_id INT UNIQUE NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+	remnawave_uuid UUID UNIQUE NOT NULL,
+	remnawave_subscription_url TEXT NOT NULL,
+	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX clients_remnawave_client_id_idx
+ON clients_remnawave(client_id);
+
+
+CREATE TABLE remnawave_internal_squads (
+	id SMALLSERIAL PRIMARY KEY,
+	squad_uuid UUID UNIQUE NOT NULL,
+	name VARCHAR(64) NOT NULL,
+	is_active BOOLEAN NOT NULL DEFAULT TRUE,
+	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
