@@ -150,7 +150,7 @@ async def notifications_send_message_selected_list(message: Message, state: FSMC
         selected_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, html.escape(name), html.escape(str(surname)), html.escape(str(username)), telegram_id) + '\n'
 
     if selected_clients_str:
-        await message.answer(loc.admn.msgs['message_selected_somebody_received'].format(selected_clients_str=selected_clients_str))
+        await internal_functions.send_long_message(message, loc.admn.msgs['message_selected_somebody_received'].format(selected_clients_str=selected_clients_str))
         await message.answer(loc.admn.msgs['message_selected_enter_message_info'])
     else:
         await message.answer(loc.admn.msgs['message_selected_nobody_received'])
