@@ -50,22 +50,7 @@ user_authorized:
     my_subscription_status_inactive: deactivated 😒
     my_subscription_no_expiry: unlimited
     my_subscription_url_pending: being set up
-    how_to_connect_subscription: |-
-      📲 <b>How to connect?</b>
-
-      Choose an app for your device and copy the link from the "My Subscription" section.
-
-      <b>📱 Android</b>
-      App: <b>Happ</b> (<a href="https://play.google.com/store/apps/details?id=io.happ.vpn">Google Play</a>) or <b>Hiddify</b> (<a href="https://play.google.com/store/apps/details?id=app.hiddify.com">Google Play</a>)
-      Tap «+» → «Add by URL» → paste the link.
-
-      <b>🍎 iOS / iPhone</b>
-      App: <b>Happ</b> (<a href="https://apps.apple.com/app/happ-proxy-utility/id6504287215">App Store</a>) or <b>Streisand</b> (<a href="https://apps.apple.com/app/streisand/id6450534064">App Store</a>)
-      Tap «+» → «Add by URL» → paste the link.
-
-      <b>🖥 Windows / macOS / Linux</b>
-      App: <b>Hiddify</b> (<a href="https://hiddify.com">hiddify.com</a>)
-      Tap «+» → «Add subscription» → paste the link.
+    how_to_connect_subscription: To activate a subscription, just click on the link and follow the instructions provided there!
     return_to_main_menu: <i>Returning to the main menu</i>
     go_sub_renewal_menu: <i>Going to the subscription renewal menu</i>
     sub_renewal_free: <pre><code class="language-matrix">You are the One, Neo! There is no need to pay for a subscription 🐇</code></pre>
