@@ -515,10 +515,11 @@ admin:
       Most likely, you specified the wrong number of flags!
     error_unrecognized: "Error: {0}"
     sub_expired: |-
-      👾 <b>The user's subscription has expired. Disable its configurations (there are {0} in total)!</b>
+      👾 <b>The user's subscription has expired.</b>
 
-      <b>Client ID</b>: <code>{1}</code>
-      <b>Telegram INFO</b>:{2} <code>{3}{4}</code> <code>{5}</code>
+      <b>Client ID</b>: <code>{0}</code>
+      <b>Telegram INFO</b>:{1} <code>{2}{3}</code> <code>{4}</code>
+      <b>Subscription URL</b>: {5}
     sub_expires_1d: |-
       👾 <b>The user's subscription expires in 1 day.</b>
 

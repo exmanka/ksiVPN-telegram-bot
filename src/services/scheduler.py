@@ -52,17 +52,12 @@ async def send_subscription_expiration_notifications():
                 telegram_id=telegram_id,
             )
 
-            # send message to admin
-            # convert surname and username for beautiful formatting
+            # send simplified notification to admin (Remnawave auto-expires, no config rebroadcast)
             surname_str = await internal_functions.format_none_string(surname)
             username_str = await internal_functions.format_none_string(username)
-            configurations_info = await postgres_dbms.get_configurations_info(await postgres_dbms.get_clientID_by_telegramID(telegram_id))
+            subscription_url = await postgres_dbms.get_client_remnawave_subscription_url_by_telegramID(telegram_id) or 'N/A'
             await bot.send_message(settings.bot.admin_id,
-                                   loc.admn.msgs['sub_expired'].format(len(configurations_info), client_id, username_str, name, surname_str, telegram_id))
-
-            # send client's configurations to admin
-            for file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name in configurations_info:
-                await internal_functions.send_configuration(settings.bot.admin_id, file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name)
+                                   loc.admn.msgs['sub_expired'].format(client_id, username_str, name, surname_str, telegram_id, subscription_url))
 
         # if client's subscription expires between [CURRENT_TIMESTAMP + INTERVAL '1 day', CURRENT_TIMESTAMP + INTERVAL '1 day 30 minutes')
         if is_sub_expiration_in_1d:
