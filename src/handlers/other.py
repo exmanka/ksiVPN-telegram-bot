@@ -48,10 +48,10 @@ async def command_help(message: Message):
     await internal_functions.notify_client_if_subscription_must_be_renewed_to_receive_configuration(message.from_user.id)
 
 
-@router.message(F.text.lower() == loc.other.btns['about_project'].lower())
-@router.message(F.text.lower() == loc.other.btns['about_service'].lower())
+@global_router.message(F.text.lower() == loc.other.btns['about_project'].lower())
+@global_router.message(F.text.lower() == loc.other.btns['about_service'].lower())
 async def show_project_info(message: Message):
-    """Send message with information about project."""
+    """Send message with information about project (works in any FSM state)."""
     # use safe sending in case new bot tries to send photo using ksiVPN's bot file_id
     await internal_functions.send_photo_safely(message.from_user.id,
                                                telegram_file_id=loc.other.tfids['project_info'],

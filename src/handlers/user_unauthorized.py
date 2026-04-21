@@ -1,7 +1,7 @@
 from aiogram import F, Router
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import Message
 from src.middlewares import user_unauthorized_mw
 from src.keyboards import user_unauthorized_kb
 from src.states import user_unauthorized_fsm
@@ -33,19 +33,19 @@ async def fsm_cancel(message: Message, state: FSMContext):
 @user_unauthorized_mw.unauthorized_only()
 async def authorization_fsm_start(message: Message, state: FSMContext):
     """Start FSM for registration and request referral promo code."""
-    await message.answer(loc.unauth.msgs['enter_promo_or_skip'], reply_markup=user_unauthorized_kb.reg_promo_inline)
+    await message.answer(loc.unauth.msgs['enter_promo_or_skip'], reply_markup=user_unauthorized_kb.reg_promo)
     await state.set_state(user_unauthorized_fsm.RegistrationMenu.promo)
 
 
-@router.callback_query(
-    F.data == 'skip_promo',
+@router.message(
+    F.text.lower() == loc.unauth.btns['skip_promo'].lower(),
     StateFilter(user_unauthorized_fsm.RegistrationMenu.promo),
 )
-async def authorization_promo_no(callback: CallbackQuery, state: FSMContext):
+@user_unauthorized_mw.unauthorized_only()
+async def authorization_promo_no(message: Message, state: FSMContext):
     """Complete authorization without referral promocode."""
-    await callback.answer()
     await state.update_data(promo=None)
-    await internal_functions.authorization_complete(callback.from_user, state)
+    await internal_functions.authorization_complete(message.from_user, state)
 
 
 @router.message(StateFilter(user_unauthorized_fsm.RegistrationMenu.promo))
