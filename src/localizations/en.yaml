@@ -5,7 +5,8 @@ user_unauthorized:
       🕊 <b>Enter the referral promo code</b>
       
       This way you will receive an invitee's subscription type, as well as a free trial period!
-      If there is no promo code, click on the «<b>Skip</b>» button in the menu under the message entry line for the bot.
+      
+      👇 If there is no promo code, click on the «<b>Skip</b>» button in the menu under the message entry line for the bot.
     ref_promo_accepted: Wow! A promo code has been accepted from <b>client {0}</b>, giving <b>{1} days</b> of free subscription!
     sub_info: 🌟 Connected <b>{0}</b> with <b>cost {1:g}</b>₽ per month.
     invalid_promo: There is no such promo code! Try to enter it again
@@ -382,7 +383,7 @@ other:
       👋 <b>Hi! I am a bot of the ksiVPN project — an unlimited, fast and completely secure VPN service for 200</b>₽<b>/month!</b>
 
       I will help you configure the connection, pay for the subscription, extend it for free, as well as solve many other tasks! If desired, you can even discuss <code>human</code> topics with me!
-    more_info: More information about the service is available by clicking the <b>«About project»</b> button from below
+    more_info: 👇 More information about the service is available by clicking the <b>«About project»</b> button from below
     help: |-
       You can easily write to my creator if you have any problems, as well as if you have ideas to improve my work!
 
