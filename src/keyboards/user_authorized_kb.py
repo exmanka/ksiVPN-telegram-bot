@@ -51,8 +51,10 @@ async def sub_renewal_link_inline(link_for_customer: str) -> InlineKeyboardMarku
 account = ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[
-        [KeyboardButton(text=loc.auth.btns['ref_program'])],
-        [KeyboardButton(text=loc.auth.btns['promo'])],
+        [
+            KeyboardButton(text=loc.auth.btns['ref_program']),
+            KeyboardButton(text=loc.auth.btns['promo'])
+        ],
         [
             KeyboardButton(text=loc.auth.btns['about_client']),
             KeyboardButton(text=loc.auth.btns['settings']),
