@@ -30,32 +30,32 @@ async def _safe_delete_message(chat_id: int, message_id: int) -> None:
 @router.message(F.text == loc.auth.btns['my_subscription'])
 @user_authorized_mw.authorized_only()
 async def my_subscription(message: Message):
-    """Send subscription status, info, and subscription URL with how-to-connect button."""
+    """Send unified subscription info card with how-to-connect button."""
     telegram_id = message.from_user.id
     client_id = await postgres_dbms.get_clientID_by_telegramID(telegram_id)
 
-    # Message 1: status + subscription info
+    # Determine status text and expiration display
     if await postgres_dbms.is_subscription_free(telegram_id):
-        await message.answer(loc.auth.msgs['sub_is_free'])
+        status = loc.auth.msgs['my_subscription_status_free']
+        expiration = loc.auth.msgs['my_subscription_no_expiry']
     elif await postgres_dbms.is_subscription_active(telegram_id):
-        await message.answer(loc.auth.msgs['sub_active'])
+        status = loc.auth.msgs['my_subscription_status_active']
+        expiration_date = await postgres_dbms.get_subscription_expiration_date(telegram_id)
+        expiration = format_localized_datetime(expiration_date) if expiration_date else '—'
     else:
-        await message.answer(loc.auth.msgs['sub_inactive'])
-
-    expiration_date = await postgres_dbms.get_subscription_expiration_date(telegram_id)
-    if expiration_date:
-        await message.answer(loc.auth.msgs['sub_expiration_date'].format(format_localized_datetime(expiration_date)))
+        status = loc.auth.msgs['my_subscription_status_inactive']
+        expiration_date = await postgres_dbms.get_subscription_expiration_date(telegram_id)
+        expiration = format_localized_datetime(expiration_date) if expiration_date else '—'
 
     _, title, description, price = await postgres_dbms.get_subscription_info_by_clientID(client_id)
-    await message.answer(loc.auth.msgs['subscription_info'].format(title, description, price))
 
-    # Message 2: subscription URL + how-to-connect button
     subscription_url = await postgres_dbms.get_client_remnawave_subscription_url_by_telegramID(telegram_id)
-    if subscription_url:
-        await message.answer(loc.auth.msgs['my_subscription_url_intro'].format(subscription_url),
-                             reply_markup=user_authorized_kb.my_subscription_inline)
-    else:
-        await message.answer(loc.auth.msgs['my_subscription_no_remnawave'])
+    url = subscription_url or loc.auth.msgs['my_subscription_url_pending']
+
+    await message.answer(
+        loc.auth.msgs['my_subscription'].format(status, expiration, url, title, description, price),
+        reply_markup=user_authorized_kb.my_subscription_inline if subscription_url else None,
+    )
 
 
 @router.callback_query(F.data == 'subscription_how_to_connect')

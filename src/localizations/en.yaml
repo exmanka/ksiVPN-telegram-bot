@@ -33,14 +33,21 @@ user_authorized:
       Thanks to this, you will not experience problems with your applications.
 
       ❌ <b>Violation of rules 1-2 may result in immediate blocking of the user.</b>
-    my_subscription_url_intro: |-
-      🔗 <b>Your subscription link:</b>
+    my_subscription: |-
+      🌟 <b>Subscription information</b>
 
-      <code>{0}</code>
+      <b>Status</b>: {0}
+      <b>Expires</b>: {1}
+      <b>Subscription link</b>: {2}
 
-      Import this link into any Sing-Box compatible app (Happ, Hiddify, Streisand, v2rayNG, etc.).
-    my_subscription_no_remnawave: |-
-      ⚠️ Your subscription is not yet connected to the new management system. Please contact the administrator.
+      <b>Subscription type</b>: {3}
+      <b>Description</b>: {4}
+      <b>Cost</b>: {5:g}₽ per month
+    my_subscription_status_free: active forever 🔥
+    my_subscription_status_active: active 🔥
+    my_subscription_status_inactive: deactivated 😒
+    my_subscription_no_expiry: unlimited
+    my_subscription_url_pending: being set up 🔄
     how_to_connect_subscription: |-
       📲 <b>How to connect?</b>
 
@@ -57,10 +64,6 @@ user_authorized:
       <b>🖥 Windows / macOS / Linux</b>
       App: <b>Hiddify</b> (<a href="https://hiddify.com">hiddify.com</a>)
       Tap «+» → «Add subscription» → paste the link.
-    sub_active: 🔥 <b>The subscription is active!</b>
-    sub_is_free: 🔥 <b>The subscription is active forever!</b>
-    sub_inactive: 😒 <b>The subscription has been deactivated!</b>
-    sub_expiration_date: "Subscription expiration date: <b>{0}</b>."
     return_to_main_menu: <i>Returning to the main menu</i>
     go_sub_renewal_menu: <i>Going to the subscription renewal menu</i>
     sub_renewal_free: <pre><code class="language-matrix">You are the One, Neo! There is no need to pay for a subscription 🐇</code></pre>
@@ -92,13 +95,6 @@ user_authorized:
       {surname_str}
       <b>Telegram ID</b>: {1}
       <b>Registration date</b>: {2}
-    subscription_info: |-
-      🌟 Subscription information:
-
-      <b>{0}</b>
-      {1}
-
-      <b>Cost</b>: {2:g}₽ per month.
     ref_program_info: |-
       <b>Invite your friends to join the project and get a subscription for free!</b>
 
@@ -419,7 +415,7 @@ other:
     unrecognized_message: |-
       <b>Sorry, I don't understand you</b> 🤔
 
-      <tg-spoiler><i>You can give me unlimited power by enabling ChatGPT mode in the settings or by entering the command /chatgpt_mode</i></tg-spoiler>
+      If I do not perceive button clicks, reset my state using the /start command.
     restart: <i>Oh, oh! Rebooting</i>
     special_thanks: |-
       <b>Special thanks</b>
