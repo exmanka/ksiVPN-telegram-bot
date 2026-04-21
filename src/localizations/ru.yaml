@@ -52,7 +52,7 @@ user_authorized:
     my_subscription_expiry_line_inactive: "\n<b>Истекла</b>: {0}"
     my_subscription_url_pending: в процессе создания
     how_to_connect_subscription: 💫 Чтобы подключить подписку, достаточно перейти по ссылке и выполнить указанную там инструкцию!
-    how_to_renew_subscription: Чтобы оплатить подписку, воспользуйтесь кнопкой «{0}» в меню под строкой ввода сообщений боту
+    how_to_renew_subscription: Чтобы оплатить подписку, воспользуйтесь кнопкой «<b>{0}</b>» в меню под строкой ввода сообщений боту
     return_to_main_menu: <i>Возвращаю в главное меню</i>
     go_sub_renewal_menu: <i>Перехожу в меню продления подписки</i>
     sub_renewal_free: <pre><code class="language-matrix">Ты избранный, Нео! Оплачивать подписку нет необходимости 🐇</code></pre>
