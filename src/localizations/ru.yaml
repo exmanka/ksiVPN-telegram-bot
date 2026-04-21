@@ -428,7 +428,7 @@ user_authorized:
           Ожидайте обновления!
   keyboard_buttons:
     sub_renewal: ❤️‍🔥 Продлить подписку!
-    my_subscription: 🔥 Моя подписка
+    my_subscription: Моя подписка
     how_to_connect: Как подключить подписку?
     personal_account: Личный кабинет
     rules: Правила
@@ -442,7 +442,7 @@ user_authorized:
     pay: Оплатить
     ref_program: 🕊 Реферальная программа
     about_client: О клиенте
-    promo: Промокоды
+    promo: 🎟 Промокоды
     settings: Настройки
     return_to_account_menu_1: Вернуться
     return_to_account_menu_2: Отмена ввода
