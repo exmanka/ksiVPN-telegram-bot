@@ -193,7 +193,8 @@ CREATE TABLE remnawave_internal_squads (
 	id SMALLSERIAL PRIMARY KEY,
 	squad_uuid UUID UNIQUE NOT NULL,
 	name VARCHAR(64) NOT NULL,
-	is_active BOOLEAN NOT NULL DEFAULT TRUE,
+	is_active BOOLEAN NOT NULL DEFAULT TRUE,      -- synced from panel; FALSE = squad no longer exists in panel
+	is_assignable BOOLEAN NOT NULL DEFAULT TRUE,  -- eligible for random assignment to new users; set FALSE for test/admin squads
 	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

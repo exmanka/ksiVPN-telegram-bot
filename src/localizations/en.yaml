@@ -28,7 +28,6 @@ user_authorized:
       Thanks to this, you will not experience problems with your applications.
 
       ❌ <b>Violation of rules 1-2 may result in immediate blocking of the user.</b>
-    sub_isnt_active: The subscription has not been activated yet, as the administrator has not yet sent the configuration! Don't worry, the subscription expiration time report will start only after you receive it!
     my_subscription_url_intro: |-
       🔗 <b>Your subscription link:</b>
 
@@ -95,7 +94,6 @@ user_authorized:
       {1}
 
       <b>Cost</b>: {2:g}₽ per month.
-    go_config_menu: <i>Going to the configuration menu</i>
     ref_program_info: |-
       <b>Invite your friends to join the project and get a subscription for free!</b>
 
@@ -116,25 +114,6 @@ user_authorized:
       3. Downloading files via torrent clients is prohibited!
 
       ❌ Violation of any of the rules may result in the immediate blocking of the user.</b>
-    return_to_configs_menu: <i>Returning to the configuration menu</i>
-    cant_request_config: To request a new configuration, you need to renew your subscription!
-    configs_limit_reached: |-
-      You have reached the configuration limit for your subscription ({0}/{1}) 😪
-      
-      Upgrade your subscription to get more configurations!
-    ask_three_questions: |-
-      You will need to answer 3 questions to request a new configuration!
-
-      Total configurations: <b>{0}/{1}</b>
-    choose_your_platform: <b>Choose your platform</b>
-    choose_your_os: <b>Specify the operating system</b>
-    choose_chatgpt_option: <b>Do you use ChatGPT?</b>
-    chatgpt_info: <b>ChatGPT</b> is a neural network in the form of a chatbot capable of answering complex questions and conducting a meaningful dialogue!
-    wait_for_admin: |-
-      🎉 <b>Great, now we are waiting for a response from the developer!</b>
-
-      He will check your current configurations soon and send a new one!
-    i_wanna_sleep: Please do not forget that he is also a human being, and periodically sleeps (although in fact extremely rarely)
     return_to_settings: <i>Returning to the settings</i>
     go_settings_chatgpt: <i>Going to the ChatGPT mode settings</i>
     settings_chatgpt_info: 💥 When this mode is enabled, I will consciously respond to any of your messages using the full power of the ChatGPT neural network!
@@ -352,7 +331,6 @@ user_authorized:
   keyboard_buttons:
     sub_renewal: ❤️‍🔥 Renew subscription!
     my_subscription: 🔥 My subscription
-    sub_status: Subscription status
     how_to_connect: How to connect?
     smartphone: 📱 Smartphone
     pc: 💻 PC
@@ -376,12 +354,8 @@ user_authorized:
     pay: Pay
     ref_program: 🕊 Referral program
     about_client: About client
-    about_sub: About subscription
-    configs: Configurations
-    promo: Promo Codes
+    promo: 🎟 Promo Codes
     settings: Settings
-    current_configs: My configurations
-    request_config: New configuration
     return_to_account_menu_1: Return
     return_to_account_menu_2: Cancel input
     return_to_configs_menu: Cancel selection
@@ -675,6 +649,7 @@ internal_functions:
       <b>Platform</b>: {7}
 
       <i>Created {8}, ID {9}</i>
+    new_client_joined_no_sub_url: "⚠️ error creating user in Remnawave"
     new_client_joined: |-
       👾 <b>New user registered!</b>
 
@@ -742,10 +717,6 @@ internal_functions:
       🕊 Wow! The client {0}{1} who joined the project using your referral promo code has paid for the subscription for the first time!
 
       <b>You get a month of subscription for free!</b>
-    wait_for_admin_answer: |-
-      🎉 <b>Great, now we are waiting for a response from the developer!</b>
-
-      He will check your registration soon and send you the configuration. In the meantime, you can explore the bot's functions!
     discount_str: (discount {0:g}₽)
     payment_successful: |-
       The payment was made successfully!

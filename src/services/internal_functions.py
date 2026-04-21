@@ -273,7 +273,7 @@ async def _send_new_client_joined_to_admin(client_id: int,
         ref_promo_str = loc.internal.msgs['config_request_new_client_ref_promo_str'].\
             format(promo, client_creator_name, client_creator_surname_str, client_creator_username_str, client_creator_telegram_id, format_localized_bonus_days(bonus_time), price)
 
-    sub_url_str = f'<code>{subscription_url}</code>' if subscription_url else '⚠️ ошибка создания пользователя в Remnawave'
+    sub_url_str = f'<code>{subscription_url}</code>' if subscription_url else loc.internal.msgs['new_client_joined_no_sub_url']
     await bot.send_message(settings.bot.admin_id,
                            loc.internal.msgs['new_client_joined'].format(client_id, username_str, fullname, telegram_id, sub_url_str, ref_promo_str=ref_promo_str))
 
