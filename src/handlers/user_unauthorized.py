@@ -29,14 +29,6 @@ async def fsm_cancel(message: Message, state: FSMContext):
     await message.answer(loc.unauth.msgs['return_to_main_menu'], reply_markup=user_unauthorized_kb.welcome)
 
 
-@router.message(F.text.lower() == loc.unauth.btns['join'].lower())
-@user_unauthorized_mw.unauthorized_only()
-async def authorization_fsm_start(message: Message, state: FSMContext):
-    """Start FSM for registration and request referral promo code."""
-    await message.answer(loc.unauth.msgs['enter_promo_or_skip'], reply_markup=user_unauthorized_kb.reg_promo)
-    await state.set_state(user_unauthorized_fsm.RegistrationMenu.promo)
-
-
 @router.message(
     F.text.lower() == loc.unauth.btns['skip_promo'].lower(),
     StateFilter(user_unauthorized_fsm.RegistrationMenu.promo),
@@ -69,6 +61,14 @@ async def authorization_promo_yes(message: Message, state: FSMContext):
     else:
         await message.answer(loc.unauth.msgs['invalid_promo'])
         await state.update_data(promo=None)
+
+
+@router.message(F.text.lower() == loc.unauth.btns['join'].lower())
+@user_unauthorized_mw.unauthorized_only()
+async def authorization_fsm_start(message: Message, state: FSMContext):
+    """Start FSM for registration and request referral promo code."""
+    await message.answer(loc.unauth.msgs['enter_promo_or_skip'], reply_markup=user_unauthorized_kb.reg_promo)
+    await state.set_state(user_unauthorized_fsm.RegistrationMenu.promo)
 
 
 def register_handlers_unauthorized_client(dp):
