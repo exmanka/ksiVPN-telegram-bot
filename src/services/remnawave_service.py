@@ -91,29 +91,3 @@ async def extend_panel_user_expiry(remnawave_uuid: uuid.UUID,
 
     logger.info("Updated expire_at for Remnawave user %s to %s", remnawave_uuid, new_expire_at)
 
-
-async def sync_internal_squads_from_panel() -> dict:
-    """Sync remnawave_internal_squads table from panel.
-
-    Returns {'total': int, 'upserted': int, 'deactivated': int}.
-    Raises RemnawaveError on panel API failure.
-    """
-    try:
-        response = await remnawave_sdk.internal_squads.get_internal_squads()
-    except httpx.HTTPError as exc:
-        raise RemnawaveError(f"HTTP error while fetching internal squads: {exc}") from exc
-    except Exception as exc:
-        raise RemnawaveError(f"Unexpected error while fetching internal squads: {exc}") from exc
-
-    squads = response.internal_squads
-    active_uuids: list[uuid.UUID] = []
-
-    for squad in squads:
-        await postgres_dbms.upsert_remnawave_squad(squad.uuid, squad.name)
-        active_uuids.append(squad.uuid)
-
-    deactivated = await postgres_dbms.deactivate_missing_remnawave_squads(active_uuids)
-    upserted = len(squads)
-
-    logger.info("Synced %d squads from panel, deactivated %d stale entries", upserted, deactivated)
-    return {"total": len(squads), "upserted": upserted, "deactivated": deactivated}
