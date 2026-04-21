@@ -102,6 +102,10 @@ user_authorized:
       You will need to answer 3 questions to request a new configuration!
 
       Total configurations: <b>{0}/{1}</b>
+    choose_your_platform: <b>Choose your platform</b>
+    choose_your_os: <b>Specify the operating system</b>
+    choose_chatgpt_option: <b>Do you use ChatGPT?</b>
+    chatgpt_info: <b>ChatGPT</b> is a neural network in the form of a chatbot capable of answering complex questions and conducting a meaningful dialogue!
     wait_for_admin: |-
       🎉 <b>Great, now we are waiting for a response from the developer!</b>
 
@@ -324,6 +328,16 @@ user_authorized:
   keyboard_buttons:
     sub_renewal: ❤️‍🔥 Renew subscription!
     sub_status: Subscription status
+    smartphone: 📱 Smartphone
+    pc: 💻 PC
+    android: Android
+    ios: IOS (iPhone)
+    windows: Windows
+    macos: macOS
+    linux: Linux
+    use_chatgpt: Using
+    dont_use_chatgpt: Not using
+    what_is_chatgpt: What is it?
     personal_account: Personal account
     rules: Rules
     payment_1mnth: 1 month
@@ -656,6 +670,8 @@ internal_functions:
       🎉 <b>Welcome to ksiVPN!</b>
 
       Something went wrong while creating your subscription. Please contact the administrator.
+    remnawave_expiry_sync_no_record: "⚠️ Client <code>{0}</code> has no Remnawave record — expiry NOT synced to panel. Manual migration required!"
+    remnawave_expiry_sync_error: "⚠️ Failed to sync Remnawave expiry for client <code>{0}</code>. Check logs!"
     config_request_new_client: |-
       👾 <b>Connection request from a new client!</b>
 

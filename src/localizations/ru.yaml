@@ -108,6 +108,10 @@ user_authorized:
       🙋‍♂️ Понадобиться ответить на 3 вопроса!
 
       Общее число конфигураций: <b>{0}/{1}</b>
+    choose_your_platform: <b>Выберите свою платформу</b>
+    choose_your_os: <b>Укажите операционную систему</b>
+    choose_chatgpt_option: <b>Используете ли вы ChatGPT?</b>
+    chatgpt_info: <b>ChatGPT</b> — нейронная сеть в виде чат-бота, способная отвечать на сложные вопросы и вести осмысленный диалог!
     wait_for_admin: |-
       🎉 <b>Отлично, теперь ждем ответа от администратора!</b>
 
@@ -424,6 +428,16 @@ user_authorized:
   keyboard_buttons:
     sub_renewal: ❤️‍🔥 Продлить подписку!
     sub_status: Статус подписки
+    smartphone: 📱 Смартфон
+    pc: 💻 ПК
+    android: Android
+    ios: IOS (iPhone)
+    windows: Windows
+    macos: macOS
+    linux: Linux
+    use_chatgpt: Использую
+    dont_use_chatgpt: Не использую
+    what_is_chatgpt: Что это?
     personal_account: Личный кабинет
     rules: Правила
     payment_1mnth: 1 месяц
@@ -785,6 +799,8 @@ internal_functions:
       🎉 <b>Добро пожаловать в ksiVPN!</b>
 
       Что-то пошло не так при создании подписки. Пожалуйста, обратитесь к администратору.
+    remnawave_expiry_sync_no_record: "⚠️ Клиент <code>{0}</code> не имеет записи в Remnawave — срок действия НЕ синхронизирован с панелью. Требуется ручная миграция!"
+    remnawave_expiry_sync_error: "⚠️ Не удалось синхронизировать срок действия Remnawave для клиента <code>{0}</code>. Проверьте логи!"
     config_request_new_client: |-
       👾 <b>Запрос на подключение от нового пользователя!</b>
 

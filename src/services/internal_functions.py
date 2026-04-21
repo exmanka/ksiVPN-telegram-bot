@@ -13,7 +13,7 @@ from src.states import user_authorized_fsm
 from src.database import postgres_dbms
 from src.services import aiomoney, localization as loc
 from src.services.date_formatting import format_localized_bonus_days, format_localized_datetime
-from src.services.remnawave_service import RemnawaveError, create_panel_user
+from src.services.remnawave_service import RemnawaveError, create_panel_user, extend_panel_user_expiry
 from src.config import settings
 from src.runtime import bot
 
@@ -292,7 +292,7 @@ async def send_configuration_request_to_admin(client: dict, choice: dict, is_new
     client_id, *_ = await postgres_dbms.get_client_info_by_telegramID(client['id'])
 
     # map displayed OS label back to short alias (android/ios/windows/macos/linux)
-    os_alias_map = {loc.unauth.btns[k]: k for k in ('android', 'ios', 'windows', 'macos', 'linux')}
+    os_alias_map = {loc.auth.btns[k]: k for k in ('android', 'ios', 'windows', 'macos', 'linux')}
     os_alias = os_alias_map.get(choice['os_name'], 'android')
 
     # if request was sended by new client with zero configurations
@@ -631,6 +631,32 @@ async def authorization_complete(from_user: User, state: FSMContext) -> None:
     await state.clear()
 
 
+async def extend_remnawave_expiry_for_client(client_id: int) -> None:
+    """Sync the client's subscription expiry to Remnawave Panel after a payment or promo code.
+
+    Silently skips clients not yet provisioned in Remnawave (warns admin).
+    Logs error and notifies admin on panel API failures without propagating.
+    """
+    remnawave_uuid = await postgres_dbms.get_client_remnawave_uuid_by_clientID(client_id)
+    if remnawave_uuid is None:
+        logger.warning("Client %s has no Remnawave record — skipping expiry sync", client_id)
+        await safe_deliver(
+            lambda: bot.send_message(settings.bot.admin_id, loc.internal.msgs['remnawave_expiry_sync_no_record'].format(client_id)),
+            telegram_id=settings.bot.admin_id,
+        )
+        return
+
+    new_expire_at = await postgres_dbms.get_subscription_expiration_date_by_clientID(client_id)
+    try:
+        await extend_panel_user_expiry(remnawave_uuid, new_expire_at)
+    except RemnawaveError as exc:
+        logger.error("Failed to sync expiry for client_id=%s remnawave_uuid=%s: %s", client_id, remnawave_uuid, exc)
+        await safe_deliver(
+            lambda: bot.send_message(settings.bot.admin_id, loc.internal.msgs['remnawave_expiry_sync_error'].format(client_id)),
+            telegram_id=settings.bot.admin_id,
+        )
+
+
 async def sub_renewal(message: Message, state: FSMContext, months_number: int, discount: float):
     """Create message with subscription renewal payment link, run autochecker for payment and notify about successful payment.
 
@@ -680,6 +706,7 @@ async def sub_renewal(message: Message, state: FSMContext, months_number: int, d
     # if autochecker returns successful payment info
     if client_last_payment_status == 'success':
         await postgres_dbms.update_payment_successful(payment_id, client_id, months_number)
+        await extend_remnawave_expiry_for_client(client_id)
         await state.set_state(user_authorized_fsm.PaymentMenu.menu)
         await notify_admin_payment_success(client_id, months_number)
         await check_referral_reward(client_id)
