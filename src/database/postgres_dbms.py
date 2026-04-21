@@ -1229,20 +1229,25 @@ async def get_clients_without_remnawave_record() -> list[asyncpg.Record]:
 # ---------------------------------------------------------------------------
 
 async def get_random_active_remnawave_squad_uuid() -> uuid.UUID | None:
-    """Return a random active squad UUID for new user assignment."""
+    """Return a random squad UUID eligible for assignment to a new user.
+
+    Filters by both is_active (squad exists in panel) and is_assignable
+    (squad is not a test/admin-only squad).
+    """
     async with pool.acquire() as conn:
         return await conn.fetchval(
             '''
             SELECT squad_uuid
             FROM remnawave_internal_squads
             WHERE is_active = TRUE
+              AND is_assignable = TRUE
             ORDER BY RANDOM()
             LIMIT 1;
             ''')
 
 
 async def get_active_remnawave_squads() -> list[tuple[uuid.UUID, str]]:
-    """Return list of (squad_uuid, name) for all active squads."""
+    """Return list of (squad_uuid, name) for all active squads (synced from panel, regardless of is_assignable)."""
     async with pool.acquire() as conn:
         rows = await conn.fetch(
             '''
