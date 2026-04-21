@@ -606,7 +606,7 @@ async def extend_remnawave_expiry_for_client(client_id: int) -> None:
     except RemnawaveError as exc:
         logger.error("Failed to sync expiry for client_id=%s remnawave_uuid=%s: %s", client_id, remnawave_uuid, exc)
         await safe_deliver(
-            lambda: bot.send_message(settings.bot.admin_id, loc.internal.msgs['remnawave_expiry_sync_error'].format(client_id)),
+            lambda: bot.send_message(settings.bot.admin_id, loc.internal.msgs['remnawave_expiry_sync_error'].format(client_id, exc)),
             telegram_id=settings.bot.admin_id,
         )
 
@@ -660,10 +660,10 @@ async def sub_renewal(message: Message, state: FSMContext, months_number: int, d
     # if autochecker returns successful payment info
     if client_last_payment_status == 'success':
         await postgres_dbms.update_payment_successful(payment_id, client_id, months_number)
-        await extend_remnawave_expiry_for_client(client_id)
-        await state.set_state(user_authorized_fsm.PaymentMenu.menu)
         await notify_admin_payment_success(client_id, months_number)
+        await extend_remnawave_expiry_for_client(client_id)
         await check_referral_reward(client_id)
+        await state.set_state(user_authorized_fsm.PaymentMenu.menu)
 
         # try to delete payment message
         try:

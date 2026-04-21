@@ -39,15 +39,15 @@ user_authorized:
       🌟 <b>Subscription information</b>
 
       <b>Status</b>: {status}{expiry}
+      <b>Cost</b>: {price:g}₽ per month
       <b>Subscription link</b>: {url}
 
       <b>Subscription type</b>: {title}
       <b>Description</b>: {description}
-      <b>Cost</b>: {price:g}₽ per month
     my_subscription_status_blank: inactive 😔
     my_subscription_status_free: active forever 🔥
     my_subscription_status_active: active 🔥
-    my_subscription_status_inactive: deactivated 😪
+    my_subscription_status_inactive: deactivated 💔
     my_subscription_expiry_line_active: "\n<b>Expires</b>: {0}"
     my_subscription_expiry_line_inactive: "\n<b>Expired</b>: {0}"
     my_subscription_url_pending: being set up
@@ -451,8 +451,8 @@ internal_functions:
 
       <b>Client ID</b>: <code>{0}</code>
       <b>Telegram INFO</b>:{1} <code>{2}</code> <code>{3}</code>
-      <b>Subscription URL</b>: {4}
       <b>Referral promo code</b>: {ref_promo_str}
+      <b>Subscription URL</b>: {4}
     new_client_remnawave_error: |-
       ⚠️ <b>Error creating a client in Remnawave</b>
 
@@ -469,8 +469,11 @@ internal_functions:
       Your subscription will be ready soon and is available by clicking «<b>My subscription</b>» in the menu under the message writing line. You will also find connection instructions there!
 
       If you need help interacting with a bot, write the /help command in the chat. The same command will show the project support contacts — be sure to contact us if you have any problems!
-    remnawave_expiry_sync_no_record: ⚠️ Client <code>{0}</code> has no Remnawave record — expiry NOT synced to panel. Manual migration required!
-    remnawave_expiry_sync_error: ⚠️ Failed to sync Remnawave expiry for client <code>{0}</code>. Check logs!
+    remnawave_expiry_sync_no_record: ⚠️ Client <code>{0}</code> has no Remnawave record — expiry not synced to panel. Manual migration required!
+    remnawave_expiry_sync_error: |-
+      ⚠️ Failed to sync Remnawave expiry for client <code>{0}</code>. Error:
+
+      <code>{1}</code>
     config_request_new_client: |-
       👾 <b>Connection request from a new client!</b>
 

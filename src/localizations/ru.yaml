@@ -39,15 +39,15 @@ user_authorized:
       🌟 <b>Информация о подписке</b>
 
       <b>Статус</b>: {status}{expiry}
+      <b>Стоимость</b>: {price:g}₽ в месяц
       <b>Ссылка на подписку</b>: {url}
 
       <b>Тип подписки</b>: {title}
       <b>Описание подписки</b>: {description}
-      <b>Стоимость</b>: {price:g}₽ в месяц
     my_subscription_status_blank: неактивна 😔
     my_subscription_status_free: активна вечно 🔥
     my_subscription_status_active: активна 🔥
-    my_subscription_status_inactive: деактивирована 😪
+    my_subscription_status_inactive: деактивирована 💔
     my_subscription_expiry_line_active: "\n<b>Истекает</b>: {0}"
     my_subscription_expiry_line_inactive: "\n<b>Истекла</b>: {0}"
     my_subscription_url_pending: в процессе создания
@@ -477,8 +477,8 @@ internal_functions:
 
       <b>Client ID</b>: <code>{0}</code>
       <b>Telegram INFO</b>:{1} <code>{2}</code> <code>{3}</code>
-      <b>Ссылка на подписку</b>: {4}
       <b>Реферальный промокод</b>: {ref_promo_str}
+      <b>Ссылка на подписку</b>: {4}
     new_client_remnawave_error: |-
       ⚠️ <b>Ошибка создания клиента в Remnawave</b>
 
@@ -495,8 +495,11 @@ internal_functions:
       Ваша подписка скоро будет доступна по кнопке <b>«Моя подписка»</b> в меню под строкой написания сообщения. Там же вы найдете инструкции по подключению!
 
       Если вам нужна помощь по взаимодействую с ботом — напишите в чат команду /help. Эта же команда покажет контакты поддержки — обязательно обращайтесь при каких-либо проблемах!
-    remnawave_expiry_sync_no_record: ⚠️ Клиент с ID <code>{0}</code> не имеет записи в Remnawave — срок действия НЕ синхронизирован с панелью. Требуется ручная миграция!
-    remnawave_expiry_sync_error: ⚠️ Не удалось синхронизировать срок действия Remnawave для клиента с ID <code>{0}</code>. Проверьте логи!
+    remnawave_expiry_sync_no_record: ⚠️ Клиент с ID <code>{0}</code> не имеет записи в Remnawave — срок действия не синхронизирован с панелью. Требуется ручная миграция!
+    remnawave_expiry_sync_error: |-
+      ⚠️ Не удалось синхронизировать срок действия Remnawave для клиента с ID <code>{0}</code>. Ошибка:
+
+      <code>{1}</code>
     new_client_no_ref_promo_str: без промокода
     new_client_ref_promo_str: <code>{0}</code> от пользователя{3} <code>{1}{2}</code> <code>{4}</code> на {5} по подписке {6:g}₽/мес.
     admin_promo_was_entered_local_promo_new_sub_str: ", предоставляющий подписку за {0:g}₽/мес,"

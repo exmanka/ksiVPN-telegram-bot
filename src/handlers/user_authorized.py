@@ -411,8 +411,8 @@ async def account_promo_check(message: Message, state: FSMContext):
             if await postgres_dbms.is_global_promo_valid(global_promo_id):
                 if await postgres_dbms.is_global_promo_has_remaining_activations(global_promo_id):
                     await postgres_dbms.insert_client_entered_global_promo(client_id, global_promo_id, bonus_time)
-                    await internal_functions.extend_remnawave_expiry_for_client(client_id)
                     await internal_functions.notify_admin_promo_entered(client_id, message.text, 'global')
+                    await internal_functions.extend_remnawave_expiry_for_client(client_id)
                     await message.answer(loc.auth.msgs['global_promo_accepted'].format(format_localized_bonus_days(bonus_time)), reply_markup=user_authorized_kb.account)
                     await state.set_state(user_authorized_fsm.AccountMenu.menu)
                 else:
@@ -429,8 +429,8 @@ async def account_promo_check(message: Message, state: FSMContext):
             if not await postgres_dbms.is_local_promo_already_entered(client_id, local_promo_id):
                 if await postgres_dbms.is_local_promo_valid(local_promo_id):
                     await postgres_dbms.insert_client_entered_local_promo(client_id, local_promo_id, bonus_time)
-                    await internal_functions.extend_remnawave_expiry_for_client(client_id)
                     await internal_functions.notify_admin_promo_entered(client_id, message.text, 'local')
+                    await internal_functions.extend_remnawave_expiry_for_client(client_id)
 
                     new_sub_str = ''
                     if provided_sub_id:
