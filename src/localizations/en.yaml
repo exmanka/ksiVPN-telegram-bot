@@ -503,7 +503,7 @@ internal_functions:
 
       <b>Client ID</b>: <code>{0}</code>
       <b>Telegram INFO</b>:{1} <code>{2}{3}</code> <code>{4}</code>
-      <b>Promo code</b>: <code>{5}</code> from user {6} for {7} of subscription
+      <b>Promo code</b>: <code>{5}</code> from user {6} for {7} by subscription {8:g}₽/month
     admin_promo_was_entered_local_promo_new_sub_str: providing subscription for {0:g}₽/month,
     admin_promo_was_entered: |-
       👾 <b>A promo code has been entered!</b>
