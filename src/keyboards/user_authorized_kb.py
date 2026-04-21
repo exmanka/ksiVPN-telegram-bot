@@ -53,6 +53,8 @@ account = ReplyKeyboardMarkup(
     keyboard=[
         [
             KeyboardButton(text=loc.auth.btns['ref_program']),
+        ],
+        [
             KeyboardButton(text=loc.auth.btns['promo'])
         ],
         [
