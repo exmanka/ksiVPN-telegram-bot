@@ -54,7 +54,7 @@ async def my_subscription(message: Message):
 
     await message.answer(
         loc.auth.msgs['my_subscription'].format(status, expiration, url, title, description, price),
-        reply_markup=user_authorized_kb.my_subscription_inline if subscription_url else None,
+        reply_markup=user_authorized_kb.my_subscription_inline,
     )
 
 

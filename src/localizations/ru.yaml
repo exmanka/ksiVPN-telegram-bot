@@ -50,22 +50,7 @@ user_authorized:
     my_subscription_status_inactive: деактивирована 😒
     my_subscription_no_expiry: бессрочно
     my_subscription_url_pending: в процессе создания
-    how_to_connect_subscription: |-
-      📲 <b>Как подключить подписку?</b>
-
-      Выберите приложение для вашего устройства и скопируйте ссылку из раздела «Моя подписка».
-
-      <b>📱 Android</b>
-      Приложение: <b>Happ</b> (<a href="https://play.google.com/store/apps/details?id=io.happ.vpn">Google Play</a>) или <b>Hiddify</b> (<a href="https://play.google.com/store/apps/details?id=app.hiddify.com">Google Play</a>)
-      Нажмите «+» → «Добавить по ссылке» → вставьте ссылку.
-
-      <b>🍎 iOS / iPhone</b>
-      Приложение: <b>Happ</b> (<a href="https://apps.apple.com/app/happ-proxy-utility/id6504287215">App Store</a>) или <b>Streisand</b> (<a href="https://apps.apple.com/app/streisand/id6450534064">App Store</a>)
-      Нажмите «+» → «Добавить по ссылке» → вставьте ссылку.
-
-      <b>🖥 Windows / macOS / Linux</b>
-      Приложение: <b>Hiddify</b> (<a href="https://hiddify.com">hiddify.com</a>)
-      Нажмите «+» → «Добавить подписку» → вставьте ссылку.
+    how_to_connect_subscription: 💫 Чтобы подключить подписку, достаточно перейти по ссылке и выполнить указанную там инструкцию!
     return_to_main_menu: <i>Возвращаю в главное меню</i>
     go_sub_renewal_menu: <i>Перехожу в меню продления подписки</i>
     sub_renewal_free: <pre><code class="language-matrix">Ты избранный, Нео! Оплачивать подписку нет необходимости 🐇</code></pre>
