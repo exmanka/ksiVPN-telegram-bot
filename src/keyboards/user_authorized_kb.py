@@ -81,8 +81,8 @@ config_platform = ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[
         [
-            KeyboardButton(text="📱 Смартфон"),
-            KeyboardButton(text="💻 ПК"),
+            KeyboardButton(text=loc.auth.btns['smartphone']),
+            KeyboardButton(text=loc.auth.btns['pc']),
         ],
         [KeyboardButton(text=loc.auth.btns['return_to_configs_menu'])],
     ],
@@ -92,8 +92,8 @@ config_mobile_os = ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[
         [
-            KeyboardButton(text="Android"),
-            KeyboardButton(text="IOS (iPhone)"),
+            KeyboardButton(text=loc.auth.btns['android']),
+            KeyboardButton(text=loc.auth.btns['ios']),
         ],
         [KeyboardButton(text=loc.auth.btns['return_to_configs_menu'])],
     ],
@@ -103,9 +103,9 @@ config_desktop_os = ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[
         [
-            KeyboardButton(text="Windows"),
-            KeyboardButton(text="macOS"),
-            KeyboardButton(text="Linux"),
+            KeyboardButton(text=loc.auth.btns['windows']),
+            KeyboardButton(text=loc.auth.btns['macos']),
+            KeyboardButton(text=loc.auth.btns['linux']),
         ],
         [KeyboardButton(text=loc.auth.btns['return_to_configs_menu'])],
     ],
@@ -115,9 +115,9 @@ config_chatgpt = ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[
         [
-            KeyboardButton(text="Использую"),
-            KeyboardButton(text="Не использую"),
-            KeyboardButton(text="Что это?"),
+            KeyboardButton(text=loc.auth.btns['use_chatgpt']),
+            KeyboardButton(text=loc.auth.btns['dont_use_chatgpt']),
+            KeyboardButton(text=loc.auth.btns['what_is_chatgpt']),
         ],
         [KeyboardButton(text=loc.auth.btns['return_to_configs_menu'])],
     ],

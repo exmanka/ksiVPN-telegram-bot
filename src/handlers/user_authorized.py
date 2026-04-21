@@ -402,6 +402,7 @@ async def account_promo_check(message: Message, state: FSMContext):
             if await postgres_dbms.is_global_promo_valid(global_promo_id):
                 if await postgres_dbms.is_global_promo_has_remaining_activations(global_promo_id):
                     await postgres_dbms.insert_client_entered_global_promo(client_id, global_promo_id, bonus_time)
+                    await internal_functions.extend_remnawave_expiry_for_client(client_id)
                     await internal_functions.notify_admin_promo_entered(client_id, message.text, 'global')
                     await message.answer(loc.auth.msgs['global_promo_accepted'].format(format_localized_bonus_days(bonus_time)), reply_markup=user_authorized_kb.account)
                     await state.set_state(user_authorized_fsm.AccountMenu.menu)
@@ -419,6 +420,7 @@ async def account_promo_check(message: Message, state: FSMContext):
             if not await postgres_dbms.is_local_promo_already_entered(client_id, local_promo_id):
                 if await postgres_dbms.is_local_promo_valid(local_promo_id):
                     await postgres_dbms.insert_client_entered_local_promo(client_id, local_promo_id, bonus_time)
+                    await internal_functions.extend_remnawave_expiry_for_client(client_id)
                     await internal_functions.notify_admin_promo_entered(client_id, message.text, 'local')
 
                     new_sub_str = ''
@@ -496,12 +498,12 @@ async def account_configurations_request_fsm_start(message: Message, state: FSMC
     await message.answer(loc.auth.msgs['ask_three_questions'].format(configs_number, max_configs))
 
     await state.set_state(user_authorized_fsm.ConfigMenu.platform)
-    await message.answer("<b>Выберите свою платформу</b>", reply_markup=user_authorized_kb.config_platform)
+    await message.answer(loc.auth.msgs['choose_your_platform'], reply_markup=user_authorized_kb.config_platform)
 
 
 # LEGACY: pre-Remnawave config distribution handlers, kept for edge cases (Stage 9)
 @router.message(
-    F.text.in_({"📱 Смартфон", "💻 ПК"}),
+    F.text.in_({loc.auth.btns[key] for key in ('smartphone', 'pc')}),
     StateFilter(user_authorized_fsm.ConfigMenu.platform),
 )
 @user_authorized_mw.authorized_only()
@@ -509,16 +511,16 @@ async def account_configurations_request_platform(message: Message, state: FSMCo
     """Change account configurations request FSM state, save client's platform and request user's OS."""
     await state.update_data(platform=message.text)
 
-    if message.text == "📱 Смартфон":
-        await message.answer("<b>Укажите операционную систему</b>", reply_markup=user_authorized_kb.config_mobile_os)
+    if message.text == loc.auth.btns['smartphone']:
+        await message.answer(loc.auth.msgs['choose_your_os'], reply_markup=user_authorized_kb.config_mobile_os)
     else:
-        await message.answer("<b>Укажите операционную систему</b>", reply_markup=user_authorized_kb.config_desktop_os)
+        await message.answer(loc.auth.msgs['choose_your_os'], reply_markup=user_authorized_kb.config_desktop_os)
 
     await state.set_state(user_authorized_fsm.ConfigMenu.os)
 
 
 @router.message(
-    F.text.in_({"Android", "IOS (iPhone)", "Windows", "macOS", "Linux"}),
+    F.text.in_({loc.auth.btns[key] for key in ('android', 'ios', 'windows', 'macos', 'linux')}),
     StateFilter(user_authorized_fsm.ConfigMenu.os),
 )
 @user_authorized_mw.authorized_only()
@@ -527,21 +529,21 @@ async def account_configurations_request_os(message: Message, state: FSMContext)
     await state.update_data(os_name=message.text)
 
     await state.set_state(user_authorized_fsm.ConfigMenu.chatgpt)
-    await message.answer("<b>Используете ли вы ChatGPT?</b>", reply_markup=user_authorized_kb.config_chatgpt)
+    await message.answer(loc.auth.msgs['choose_chatgpt_option'], reply_markup=user_authorized_kb.config_chatgpt)
 
 
 @router.message(
-    F.text.lower() == "что это?",
+    F.text.lower() == loc.auth.btns['what_is_chatgpt'].lower(),
     StateFilter(user_authorized_fsm.ConfigMenu.chatgpt),
 )
 @user_authorized_mw.authorized_only()
 async def account_configurations_request_chatgpt_info(message: Message):
     """Send message with information about ChatGPT."""
-    await message.answer("<b>ChatGPT</b> — нейронная сеть в виде чат-бота, способная отвечать на сложные вопросы и вести осмысленный диалог!")
+    await message.answer(loc.auth.msgs['chatgpt_info'])
 
 
 @router.message(
-    F.text.in_({"Использую", "Не использую"}),
+    F.text.in_({loc.auth.btns[key] for key in ('use_chatgpt', 'dont_use_chatgpt')}),
     StateFilter(user_authorized_fsm.ConfigMenu.chatgpt),
 )
 @user_authorized_mw.authorized_only()
