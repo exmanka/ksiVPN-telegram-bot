@@ -38,19 +38,21 @@ user_authorized:
     my_subscription: |-
       🌟 <b>Subscription information</b>
 
-      <b>Status</b>: {0}
-      <b>Expires</b>: {1}
-      <b>Subscription link</b>: {2}
+      <b>Status</b>: {status}{expiry}
+      <b>Subscription link</b>: {url}
 
-      <b>Subscription type</b>: {3}
-      <b>Description</b>: {4}
-      <b>Cost</b>: {5:g}₽ per month
+      <b>Subscription type</b>: {title}
+      <b>Description</b>: {description}
+      <b>Cost</b>: {price:g}₽ per month
+    my_subscription_status_blank: inactive 😔
     my_subscription_status_free: active forever 🔥
     my_subscription_status_active: active 🔥
-    my_subscription_status_inactive: deactivated 😒
-    my_subscription_no_expiry: unlimited
+    my_subscription_status_inactive: deactivated 😪
+    my_subscription_expiry_line_active: "\n<b>Expires</b>: {0}"
+    my_subscription_expiry_line_inactive: "\n<b>Expired</b>: {0}"
     my_subscription_url_pending: being set up
     how_to_connect_subscription: To activate a subscription, just click on the link and follow the instructions provided there!
+    how_to_renew_subscription: To pay for the subscription, use the «{0}» button in the menu below the bot message input line
     return_to_main_menu: <i>Returning to the main menu</i>
     go_sub_renewal_menu: <i>Going to the subscription renewal menu</i>
     sub_renewal_free: <pre><code class="language-matrix">You are the One, Neo! There is no need to pay for a subscription 🐇</code></pre>
@@ -206,6 +208,7 @@ user_authorized:
     sub_renewal: ❤️‍🔥 Renew subscription!
     my_subscription: My subscription
     how_to_connect: How to connect?
+    how_to_renew: How to renew subscription?
     personal_account: Personal account
     rules: Rules
     payment_1mnth: 1 month
