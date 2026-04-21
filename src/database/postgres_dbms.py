@@ -1036,15 +1036,11 @@ async def update_payment_successful(payment_id: int, client_id: int, paid_months
                 SET paid_months_counter = paid_months_counter + $1,
                 expiration_date =
                 CASE
-                    -- If client renews blank subscription
-                    WHEN expiration_date < TIMESTAMP 'EPOCH' + INTERVAL '10 years'
-                    THEN expiration_date + make_interval(months => $1)
-
-                    -- If client renews expired subscription
+                    -- Blank (EPOCH) or expired: count from now
                     WHEN expiration_date <= CURRENT_TIMESTAMP
                     THEN CURRENT_TIMESTAMP + make_interval(months => $1)
 
-                    -- If client renews active subscription
+                    -- Active: extend from current expiry
                     ELSE expiration_date + make_interval(months => $1)
                 END
                 WHERE client_id = $2;
