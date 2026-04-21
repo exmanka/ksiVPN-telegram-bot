@@ -556,6 +556,8 @@ async def authorization_complete(from_user: User, state: FSMContext) -> None:
         used_ref_promo_id, _, provided_sub_id, bonus_time = await postgres_dbms.get_refferal_promo_info_by_phrase(phrase)
 
     client_id = await postgres_dbms.insert_client(from_user.first_name, from_user.id, from_user.last_name, from_user.username, used_ref_promo_id, provided_sub_id, bonus_time)
+    if bonus_time:
+        await postgres_dbms.activate_client_bonus_time(client_id)
     expire_at = await postgres_dbms.get_subscription_expiration_date_by_clientID(client_id)
 
     subscription_url: str | None = None

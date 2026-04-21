@@ -7,8 +7,10 @@ user_unauthorized:
       Так вы получите тип подписки приглашающего, а также пробный бесплатный период!
       
       Если промокода нет, нажмите на кнопку «<b>Пропустить</b>» в меню снизу
-    ref_promo_accepted: ✨ Ух ты! Принят промокод от <b>пользователя {0}</b>, дающий <b>{1} дней</b> бесплатной подписки!
-    sub_info: 🌟 Подключена <b>{0}</b> со <b>стоимостью {1:g}</b>₽ в месяц.
+    ref_promo_accepted: |-
+      ✨ Ух ты! Принят промокод от <b>пользователя {0}</b>, дающий <b>{1}</b> бесплатной подписки!
+
+      Подключена <b>{2}</b> со <b>стоимостью {3:g}</b>₽ в месяц.
     invalid_promo: Такого промокода нет! Попробуйте ввести его еще раз
     need_renew_sub: ❗️ <b>Чтобы активировать подписку, вам необходимо совершить первую оплату</b>
   keyboard_buttons:
@@ -47,7 +49,7 @@ user_authorized:
     my_subscription_status_active: активна 🔥
     my_subscription_status_inactive: деактивирована 😒
     my_subscription_no_expiry: бессрочно
-    my_subscription_url_pending: в процессе создания 🔄
+    my_subscription_url_pending: в процессе создания
     how_to_connect_subscription: |-
       📲 <b>Как подключить подписку?</b>
 
@@ -173,12 +175,12 @@ user_authorized:
     error_promo_already_entered: Вы уже вводили данный промокод ранее!
     error_promo_inaccessible: К сожалению, вы не можете использовать данный специальный промокод 😪
     error_promo_not_exist: Такого промокода нет! Попробуйте ввести его еще раз
-    global_promo_accepted: ✨ Ура! Промокод на <b>{0} дней</b> бесплатной подписки принят!
+    global_promo_accepted: ✨ Ура! Промокод на <b>{0}</b> бесплатной подписки принят!
     new_sub_str: |2-
 
 
       «<b>{0}</b>» — ваш новый тип подписки со стоимостью {1:g}₽ в месяц
-    loсal_promo_accepted: ✨ Ура! Специальный промокод на <b>{0} дней</b> бесплатной подписки принят!{new_sub_str}
+    loсal_promo_accepted: ✨ Ура! Специальный промокод на <b>{0}</b> бесплатной подписки принят!{new_sub_str}
     ref_promo_str: |-
       <b>🕊 Использованный реферальный промокод</b>:
       <code>{0}</code> от пользователя {1}.
@@ -186,13 +188,13 @@ user_authorized:
       <b>📣 Использованные общедоступные промокоды</b>:
       {global_promo_row_str}
     global_promo_row_str: |-
-      {0}. <code>{1}</code> на {2} дней подписки.
+      {0}. <code>{1}</code> на {2} подписки.
       Введен {3}.
     local_promos_str: |-
       <b>💎 Использованные специальные промокоды</b>:
       {local_promo_row_str}
     local_promo_row_str: |-
-      {0}. <code>{1}</code> на {2} дней подписки.
+      {0}. <code>{1}</code> на {2} подписки.
       Введен {3}.
     no_promo_entered: Вы еще не вводили ни одного промокода. Следите за новостями! 🚀
     config_was_received: ✨ <b>Ура, конфигурация получена!</b>
@@ -481,7 +483,7 @@ internal_functions:
       <b>Платформа</b>: {7}
 
       <i>Создана {8}, ID {9}</i>
-    new_client_joined_no_sub_url: ⚠️ ошибка создания пользователя в Remnawave
+    new_client_joined_no_sub_url: ошибка создания пользователя в Remnawave
     new_client_joined: |-
       👾 <b>Зарегистрирован новый пользователь!</b>
 
@@ -508,7 +510,7 @@ internal_functions:
     remnawave_expiry_sync_no_record: ⚠️ Клиент с ID <code>{0}</code> не имеет записи в Remnawave — срок действия НЕ синхронизирован с панелью. Требуется ручная миграция!
     remnawave_expiry_sync_error: ⚠️ Не удалось синхронизировать срок действия Remnawave для клиента с ID <code>{0}</code>. Проверьте логи!
     new_client_no_ref_promo_str: без промокода
-    new_client_ref_promo_str: <code>{0}</code> от пользователя{3} <code>{1}{2}</code> <code>{4}</code> на {5} бесплатных дней по подписке {6:g}₽/мес.
+    new_client_ref_promo_str: <code>{0}</code> от пользователя{3} <code>{1}{2}</code> <code>{4}</code> на {5} по подписке {6:g}₽/мес.
     admin_promo_was_entered_local_promo_new_sub_str: ", предоставляющий подписку за {0:g}₽/мес,"
     admin_promo_was_entered: |-
       👾 <b>Введен промокод!</b>
@@ -524,7 +526,7 @@ internal_functions:
     ref_promo_was_entered: |-
       🕊 Ух ты! Пользователь {0}{1} использовал ваш реферальный промокод при регистрации!
 
-      <b>После того, как он (она) впервые оплатит подписку, вы получите {2} дней подписки бесплатно!</b>
+      <b>После того, как он (она) впервые оплатит подписку, вы получите {2} подписки бесплатно!</b>
     error_no_telegram_file_id: при попытке создания конфигурации не был указан telegram_file_id!
     error_bad_file_type: при попытке создания конфигурации был указан неверный file_type!
     error_bad_protocol: неверное значение параметра <b>protocol</b>

@@ -910,6 +910,24 @@ async def insert_client(name: str,
     return client_id
 
 
+async def activate_client_bonus_time(client_id: int) -> None:
+    """Convert EPOCH-based pending bonus to NOW()-based active expiry.
+
+    insert_client stores expiration_date as EPOCH + bonus_time when a referral promo
+    is used. This function activates the bonus by rewriting it as NOW() + bonus_time.
+    Safe to call only when bonus_time > 0; the 10-year guard prevents touching
+    subscriptions that have already been activated or paid.
+    """
+    async with pool.acquire() as conn:
+        await conn.execute(
+            '''
+            UPDATE clients_subscriptions
+            SET expiration_date = NOW() + (expiration_date - TIMESTAMP 'EPOCH')
+            WHERE client_id = $1
+              AND expiration_date < TIMESTAMP 'EPOCH' + INTERVAL '10 years';
+            ''',
+            client_id)
+
 
 async def insert_configuration(client_id: int,
                                protocol_id: int,
