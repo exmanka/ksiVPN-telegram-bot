@@ -1,13 +1,7 @@
 user_unauthorized:
   messages:
     return_to_main_menu: <i>Returning to the main menu</i>
-    need_define_config: To connect, I need to define your configuration
-    ask_four_questions: 🙋‍♂️ <b>I will ask 4 short questions!</b>
-    choose_your_platform: <b>Choose your platform</b>
-    choose_your_os: <b>Specify the operating system</b>
-    choose_chatgpt_option: <b>Do you use ChatGPT?</b>
-    chatgpt_info: <b>ChatGPT</b> is a neural network in the form of a chatbot capable of answering complex questions and conducting a meaningful dialogue!
-    enter_ref_promo: "<b>And the last step: enter the referral promo code, if available</b>"
+    enter_promo_or_skip: "<b>Last step!</b>\n\nIf you have a <b>referral promo code</b> — enter it. Otherwise press the button below"
     ref_promo_accepted: Wow! A promo code has been accepted from <b>client {0}</b>, giving <b>{1} days</b> of free subscription!
     sub_info: 🌟 Connected <b>{0}</b> with <b>cost {1:g}</b>₽ per month.
     invalid_promo: There is no such promo code! Try to enter it again
@@ -15,18 +9,8 @@ user_unauthorized:
   keyboard_buttons:
     join: 🔥 Connect!
     project_info: About project
-    smartphone: 📱 Smartphone
-    pc: 💻 PC
     cancel: Cancel
-    android: Android
-    ios: IOS (iPhone)
-    windows: Windows
-    macos: macOS
-    linux: Linux
-    use_chatgpt: Using
-    dont_use_chatgpt: Not using
-    what_is_chatgpt: What is it?
-    no_promo: No promo code
+    skip_promo: Skip
   telegram_file_ids: {}
 user_authorized:
   messages:
@@ -650,6 +634,28 @@ internal_functions:
       <b>Platform</b>: {7}
 
       <i>Created {8}, ID {9}</i>
+    new_client_joined: |-
+      👾 <b>New user registered!</b>
+
+      <b>Client ID</b>: <code>{0}</code>
+      <b>Telegram INFO</b>:{1} <code>{2}</code> <code>{3}</code>
+      <b>Subscription URL</b>: {4}
+      <b>Referral promo code</b>: {ref_promo_str}
+    new_client_remnawave_error: |-
+      ⚠️ <b>REMNAWAVE ERROR</b>
+
+      Client <code>{0}</code> (tg_id: <code>{1}</code>) registered in DB but <b>NOT created in Remnawave</b>. Manual registration required!
+    registration_complete: |-
+      🎉 <b>Welcome to ksiVPN!</b>
+
+      🔗 <b>Your subscription link:</b>
+      <code>{0}</code>
+
+      To activate the subscription, you need to renew it.
+    registration_complete_no_url: |-
+      🎉 <b>Welcome to ksiVPN!</b>
+
+      Something went wrong while creating your subscription. Please contact the administrator.
     config_request_new_client: |-
       👾 <b>Connection request from a new client!</b>
 

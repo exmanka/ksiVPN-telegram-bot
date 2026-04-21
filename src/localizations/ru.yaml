@@ -1,13 +1,7 @@
 user_unauthorized:
   messages:
     return_to_main_menu: <i>Возвращаю в главное меню</i>
-    need_define_config: Для подключения мне необходимо определить вашу конфигурацию
-    ask_four_questions: 🙋‍♂️ <b>Задам 4 коротких вопроса!</b>
-    choose_your_platform: <b>Выберите свою платформу</b>
-    choose_your_os: <b>Укажите операционную систему</b>
-    choose_chatgpt_option: <b>Используете ли вы ChatGPT?</b>
-    chatgpt_info: <b>ChatGPT</b> — нейронная сеть в виде чат-бота, способная отвечать на сложные вопросы и вести осмысленный диалог!
-    enter_ref_promo: "<b>И последний шаг: введите реферальный промокод, если он имеется</b>"
+    enter_promo_or_skip: "<b>Последний шаг!</b>\n\nЕсли у вас есть <b>реферальный промокод</b> — введите его. Если нет — нажмите кнопку ниже"
     ref_promo_accepted: ✨ Ух ты! Принят промокод от <b>пользователя {0}</b>, дающий <b>{1} дней</b> бесплатной подписки!
     sub_info: 🌟 Подключена <b>{0}</b> со <b>стоимостью {1:g}</b>₽ в месяц.
     invalid_promo: Такого промокода нет! Попробуйте ввести его еще раз
@@ -15,18 +9,8 @@ user_unauthorized:
   keyboard_buttons:
     join: 🔥 Подключиться!
     project_info: О проекте
-    smartphone: 📱 Смартфон
-    pc: 💻 ПК
     cancel: Отмена
-    android: Android
-    ios: IOS (iPhone)
-    windows: Windows
-    macos: macOS
-    linux: Linux
-    use_chatgpt: Использую
-    dont_use_chatgpt: Не использую
-    what_is_chatgpt: Что это?
-    no_promo: Нет промокода
+    skip_promo: Пропустить
   telegram_file_ids: {}
 user_authorized:
   messages:
@@ -779,6 +763,28 @@ internal_functions:
       <b>Платформа</b>: {7}
 
       <i>Создана {8}, ID {9}</i>
+    new_client_joined: |-
+      👾 <b>Новый пользователь зарегистрирован!</b>
+
+      <b>Client ID</b>: <code>{0}</code>
+      <b>Telegram INFO</b>:{1} <code>{2}</code> <code>{3}</code>
+      <b>Ссылка на подписку</b>: {4}
+      <b>Реферальный промокод</b>: {ref_promo_str}
+    new_client_remnawave_error: |-
+      ⚠️ <b>ОШИБКА REMNAWAVE</b>
+
+      Клиент <code>{0}</code> (tg_id: <code>{1}</code>) зарегистрирован в БД, но <b>НЕ создан в Remnawave</b>. Требуется ручная регистрация!
+    registration_complete: |-
+      🎉 <b>Добро пожаловать в ksiVPN!</b>
+
+      🔗 <b>Ваша ссылка на подписку:</b>
+      <code>{0}</code>
+
+      Для активации подписки необходимо её продлить.
+    registration_complete_no_url: |-
+      🎉 <b>Добро пожаловать в ksiVPN!</b>
+
+      Что-то пошло не так при создании подписки. Пожалуйста, обратитесь к администратору.
     config_request_new_client: |-
       👾 <b>Запрос на подключение от нового пользователя!</b>
 

@@ -1,4 +1,4 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
 from src.services import localization as loc
 
 
@@ -10,50 +10,6 @@ welcome = ReplyKeyboardMarkup(
     ],
 )
 
-reg_platform = ReplyKeyboardMarkup(
-    resize_keyboard=True,
-    keyboard=[
-        [KeyboardButton(text=loc.unauth.btns['smartphone']), KeyboardButton(text=loc.unauth.btns['pc'])],
-        [KeyboardButton(text=loc.unauth.btns['cancel'])],
-    ],
-)
-
-reg_mobile_os = ReplyKeyboardMarkup(
-    resize_keyboard=True,
-    keyboard=[
-        [KeyboardButton(text=loc.unauth.btns['android']), KeyboardButton(text=loc.unauth.btns['ios'])],
-        [KeyboardButton(text=loc.unauth.btns['cancel'])],
-    ],
-)
-
-reg_desktop_os = ReplyKeyboardMarkup(
-    resize_keyboard=True,
-    keyboard=[
-        [
-            KeyboardButton(text=loc.unauth.btns['windows']),
-            KeyboardButton(text=loc.unauth.btns['macos']),
-            KeyboardButton(text=loc.unauth.btns['linux']),
-        ],
-        [KeyboardButton(text=loc.unauth.btns['cancel'])],
-    ],
-)
-
-reg_chatgpt = ReplyKeyboardMarkup(
-    resize_keyboard=True,
-    keyboard=[
-        [
-            KeyboardButton(text=loc.unauth.btns['use_chatgpt']),
-            KeyboardButton(text=loc.unauth.btns['dont_use_chatgpt']),
-            KeyboardButton(text=loc.unauth.btns['what_is_chatgpt']),
-        ],
-        [KeyboardButton(text=loc.unauth.btns['cancel'])],
-    ],
-)
-
-reg_ref_promo = ReplyKeyboardMarkup(
-    resize_keyboard=True,
-    keyboard=[
-        [KeyboardButton(text=loc.unauth.btns['no_promo'])],
-        [KeyboardButton(text=loc.unauth.btns['cancel'])],
-    ],
-)
+reg_promo_inline = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text=loc.unauth.btns['skip_promo'], callback_data='skip_promo')],
+])
