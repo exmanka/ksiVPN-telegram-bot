@@ -524,7 +524,7 @@ internal_functions:
 
       <b>Client ID</b>: <code>{0}</code>
       <b>Telegram INFO</b>:{1} <code>{2}{3}</code> <code>{4}</code>
-      <b>Промокод</b>: <code>{5}</code> от пользователя {6} на {7} подписки
+      <b>Промокод</b>: <code>{5}</code> от пользователя {6} на {7} по подписке {8:g}₽/мес.
     admin_promo_was_entered_local_promo_new_sub_str: ", предоставляющий подписку за {0:g}₽/мес,"
     admin_promo_was_entered: |-
       👾 <b>Введен промокод!</b>
