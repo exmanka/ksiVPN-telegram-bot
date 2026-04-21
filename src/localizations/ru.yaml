@@ -38,19 +38,21 @@ user_authorized:
     my_subscription: |-
       🌟 <b>Информация о подписке</b>
 
-      <b>Статус</b>: {0}
-      <b>Истекает</b>: {1}
-      <b>Ссылка на подписку</b>: {2}
+      <b>Статус</b>: {status}{expiry}
+      <b>Ссылка на подписку</b>: {url}
 
-      <b>Тип подписки</b>: {3}
-      <b>Описание подписки</b>: {4}
-      <b>Стоимость</b>: {5:g}₽ в месяц
+      <b>Тип подписки</b>: {title}
+      <b>Описание подписки</b>: {description}
+      <b>Стоимость</b>: {price:g}₽ в месяц
+    my_subscription_status_blank: неактивна 😔
     my_subscription_status_free: активна вечно 🔥
     my_subscription_status_active: активна 🔥
-    my_subscription_status_inactive: деактивирована 😒
-    my_subscription_no_expiry: бессрочно
+    my_subscription_status_inactive: деактивирована 😪
+    my_subscription_expiry_line_active: "\n<b>Истекает</b>: {0}"
+    my_subscription_expiry_line_inactive: "\n<b>Истекла</b>: {0}"
     my_subscription_url_pending: в процессе создания
     how_to_connect_subscription: 💫 Чтобы подключить подписку, достаточно перейти по ссылке и выполнить указанную там инструкцию!
+    how_to_renew_subscription: Чтобы оплатить подписку, воспользуйтесь кнопкой «{0}» в меню под строкой ввода сообщений боту
     return_to_main_menu: <i>Возвращаю в главное меню</i>
     go_sub_renewal_menu: <i>Перехожу в меню продления подписки</i>
     sub_renewal_free: <pre><code class="language-matrix">Ты избранный, Нео! Оплачивать подписку нет необходимости 🐇</code></pre>
@@ -217,6 +219,7 @@ user_authorized:
     sub_renewal: ❤️‍🔥 Продлить подписку!
     my_subscription: Моя подписка
     how_to_connect: Как подключить подписку?
+    how_to_renew: Как продлить подписку?
     personal_account: Личный кабинет
     rules: Правила
     payment_1mnth: 1 месяц
