@@ -332,16 +332,6 @@ user_authorized:
     sub_renewal: ❤️‍🔥 Renew subscription!
     my_subscription: 🔥 My subscription
     how_to_connect: How to connect?
-    smartphone: 📱 Smartphone
-    pc: 💻 PC
-    android: Android
-    ios: IOS (iPhone)
-    windows: Windows
-    macos: macOS
-    linux: Linux
-    use_chatgpt: Using
-    dont_use_chatgpt: Not using
-    what_is_chatgpt: What is it?
     personal_account: Personal account
     rules: Rules
     payment_1mnth: 1 month
@@ -358,7 +348,6 @@ user_authorized:
     settings: Settings
     return_to_account_menu_1: Return
     return_to_account_menu_2: Cancel input
-    return_to_configs_menu: Cancel selection
     used_promos: Used promo codes
     ref_program_participation: Participation in referral program
     generate_invite: Generate an invitation

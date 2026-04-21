@@ -67,53 +67,6 @@ my_subscription_inline = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text=loc.auth.btns['how_to_connect'], callback_data='subscription_how_to_connect')],
 ])
 
-# LEGACY: pre-Remnawave config distribution keyboards, kept for edge cases (Stage 9)
-config_platform = ReplyKeyboardMarkup(
-    resize_keyboard=True,
-    keyboard=[
-        [
-            KeyboardButton(text=loc.auth.btns['smartphone']),
-            KeyboardButton(text=loc.auth.btns['pc']),
-        ],
-        [KeyboardButton(text=loc.auth.btns['return_to_configs_menu'])],
-    ],
-)
-
-config_mobile_os = ReplyKeyboardMarkup(
-    resize_keyboard=True,
-    keyboard=[
-        [
-            KeyboardButton(text=loc.auth.btns['android']),
-            KeyboardButton(text=loc.auth.btns['ios']),
-        ],
-        [KeyboardButton(text=loc.auth.btns['return_to_configs_menu'])],
-    ],
-)
-
-config_desktop_os = ReplyKeyboardMarkup(
-    resize_keyboard=True,
-    keyboard=[
-        [
-            KeyboardButton(text=loc.auth.btns['windows']),
-            KeyboardButton(text=loc.auth.btns['macos']),
-            KeyboardButton(text=loc.auth.btns['linux']),
-        ],
-        [KeyboardButton(text=loc.auth.btns['return_to_configs_menu'])],
-    ],
-)
-
-config_chatgpt = ReplyKeyboardMarkup(
-    resize_keyboard=True,
-    keyboard=[
-        [
-            KeyboardButton(text=loc.auth.btns['use_chatgpt']),
-            KeyboardButton(text=loc.auth.btns['dont_use_chatgpt']),
-            KeyboardButton(text=loc.auth.btns['what_is_chatgpt']),
-        ],
-        [KeyboardButton(text=loc.auth.btns['return_to_configs_menu'])],
-    ],
-)
-
 promo = ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[
