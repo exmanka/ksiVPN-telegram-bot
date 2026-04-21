@@ -537,35 +537,23 @@ async def account_settings_notifications_7d(message: Message):
         await message.answer(loc.auth.msgs['7d_off'], reply_markup=await user_authorized_kb.settings_notifications(client_id))
 
 
+# LEGACY: pre-Remnawave config distribution — answer with soft migration message
 @router.callback_query(F.data.startswith('basic--'))
 @user_authorized_mw.authorized_only()
 @user_authorized_mw.nonblank_subscription_only()
 async def configuration_instruction(call: CallbackQuery):
-    """Send message with instruction for configuration specified by inline button."""
-    _, configuration_protocol_name, configuration_os = call.data.split('--')
-
-    instruction_text = loc.auth.msgs['basic_instructions'][configuration_protocol_name.lower()][configuration_os.lower()]
-    instruction_images_list = loc.auth.tfids['basic_instructions'][configuration_protocol_name.lower()][configuration_os.lower()]
-
-    await internal_functions.reply_media_group_safely(call.message,
-                                                      telegram_files_ids_list=instruction_images_list,
-                                                      caption=instruction_text)
+    """Send message with Remnawave subscription migration."""
+    await call.message.answer(loc.auth.msgs['basic_instructions'])
     await call.answer()
 
 
+# LEGACY: pre-Remnawave config distribution — answer with soft migration message
 @router.callback_query(F.data.startswith('advanced--'))
 @user_authorized_mw.authorized_only()
 @user_authorized_mw.nonblank_subscription_only()
 async def configuration_advanced_instruction(call: CallbackQuery):
-    """Send message with advanced instruction for configuration specified by inline button."""
-    _, configuration_protocol_name, configuration_os = call.data.split('--')
-
-    instruction_text = loc.auth.msgs['advanced_instructions'][configuration_protocol_name.lower()][configuration_os.lower()]
-    instruction_images_list = loc.auth.tfids['advanced_instructions'][configuration_protocol_name.lower()][configuration_os.lower()]
-
-    await internal_functions.reply_media_group_safely(call.message,
-                                                      telegram_files_ids_list=instruction_images_list,
-                                                      caption=instruction_text)
+    """Send message with Remnawave subscription migration."""
+    await call.message.answer(loc.auth.msgs['advanced_instructions'])
     await call.answer()
 
 

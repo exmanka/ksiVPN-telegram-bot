@@ -263,70 +263,19 @@ async def _send_new_client_joined_to_admin(client_id: int,
     username_str = await format_none_string(username, prefix=' @')
 
     if promo is None:
-        ref_promo_str = loc.internal.msgs['config_request_new_client_no_ref_promo_str']
+        ref_promo_str = loc.internal.msgs['new_client_no_ref_promo_str']
     else:
         _, client_creator_id, provided_sub_id, bonus_time = await postgres_dbms.get_refferal_promo_info_by_phrase(promo)
         client_creator_name, client_creator_surname, client_creator_username, client_creator_telegram_id, *_ = await postgres_dbms.get_client_info_by_clientID(client_creator_id)
         *_, price = await postgres_dbms.get_subscription_info_by_subID(provided_sub_id)
         client_creator_surname_str = await format_none_string(client_creator_surname)
         client_creator_username_str = await format_none_string(client_creator_username)
-        ref_promo_str = loc.internal.msgs['config_request_new_client_ref_promo_str'].\
+        ref_promo_str = loc.internal.msgs['new_client_ref_promo_str'].\
             format(promo, client_creator_name, client_creator_surname_str, client_creator_username_str, client_creator_telegram_id, format_localized_bonus_days(bonus_time), price)
 
     sub_url_str = f'<code>{subscription_url}</code>' if subscription_url else loc.internal.msgs['new_client_joined_no_sub_url']
     await bot.send_message(settings.bot.admin_id,
                            loc.internal.msgs['new_client_joined'].format(client_id, username_str, fullname, telegram_id, sub_url_str, ref_promo_str=ref_promo_str))
-
-
-async def send_configuration_request_to_admin(client: dict, choice: dict, is_new_client: bool):
-    """Send message for administrator with information about new configuration request from client.
-
-    :param client: dict with information about client ('fullname', 'username', 'id')
-    :param choice: dict with information about client's choice ('platform', 'os_name', 'chatgpt', 'promo')
-    :param is_new_client: if client is new TRUE else FALSE
-    """
-    # convert username for beautiful formatting
-    username_str = await format_none_string(client['username'], prefix=' @')
-
-    # get client_id from db
-    client_id, *_ = await postgres_dbms.get_client_info_by_telegramID(client['id'])
-
-    # map displayed OS label back to short alias (android/ios/windows/macos/linux)
-    os_alias_map = {loc.auth.btns[k]: k for k in ('android', 'ios', 'windows', 'macos', 'linux')}
-    os_alias = os_alias_map.get(choice['os_name'], 'android')
-
-    # if request was sended by new client with zero configurations
-    if is_new_client:
-
-        # if client didn't enter referral promocode during registration
-        if choice['promo'] is None:
-            ref_promo_str = loc.internal.msgs['config_request_new_client_no_ref_promo_str']
-
-        # if client entered referral promocode during registration
-        else:
-
-            # get information about entered referral promocode
-            _, client_creator_id, provided_sub_id, bonus_time = await postgres_dbms.get_refferal_promo_info_by_phrase(choice['promo'])
-            client_creator_name, client_creator_surname, client_creator_username, client_creator_telegram_id, *_ = await postgres_dbms.get_client_info_by_clientID(client_creator_id)
-            *_, price = await postgres_dbms.get_subscription_info_by_subID(provided_sub_id)
-
-            # convert surname and username for beautiful formatting
-            client_creator_surname_str = await format_none_string(client_creator_surname)
-            client_creator_username_str = await format_none_string(client_creator_username)
-            ref_promo_str = loc.internal.msgs['config_request_new_client_ref_promo_str'].\
-                format(choice['promo'], client_creator_name, client_creator_surname_str, client_creator_username_str, client_creator_telegram_id, format_localized_bonus_days(bonus_time), price)
-
-        await bot.send_message(settings.bot.admin_id,
-                               loc.internal.msgs['config_request_new_client'].\
-                                format(client['fullname'], username_str, client['id'], choice['platform'][2:], choice['os_name'], choice['chatgpt'], client_id, ref_promo_str=ref_promo_str),
-                               reply_markup=await admin_kb.configuration_inline(client['id'], os_alias))
-
-    # if request was sended by old client with at least one configuration
-    else:
-        await bot.send_message(settings.bot.admin_id,
-                               loc.internal.msgs['config_request_old_client'].\
-                                format(client['fullname'], username_str, client['id'], choice['platform'][2:], choice['os_name'], choice['chatgpt'], client_id),
-                               reply_markup=await admin_kb.configuration_inline(client['id'], os_alias))
 
 
 async def notify_admin_promo_entered(client_id: int, promo_phrase: str, promo_type: str):
@@ -354,7 +303,7 @@ async def notify_admin_promo_entered(client_id: int, promo_phrase: str, promo_ty
         # if local promo changes client's subscription
         if provided_sub_id:
             *_, price = await postgres_dbms.get_subscription_info_by_subID(provided_sub_id)
-            new_sub_str = loc.internal.msgs['admin_promo_was_etnered_local_promo_new_sub_str'].format(price)
+            new_sub_str = loc.internal.msgs['admin_promo_was_entered_local_promo_new_sub_str'].format(price)
 
     else:
         raise Exception('wrong promo type was entered')
@@ -623,11 +572,14 @@ async def authorization_complete(from_user: User, state: FSMContext) -> None:
     await _send_new_client_joined_to_admin(client_id, from_user.full_name, from_user.username, from_user.id, subscription_url, data.get('promo'))
 
     if subscription_url:
-        welcome_text = loc.internal.msgs['registration_complete'].format(subscription_url)
+        welcome_text = loc.internal.msgs['registration_complete']
     else:
         welcome_text = loc.internal.msgs['registration_complete_no_url']
 
-    await bot.send_message(from_user.id, welcome_text, reply_markup=user_authorized_kb.menu)
+    await send_photo_safely(from_user.id,
+                            telegram_file_id=loc.auth.tfids['welcome'],
+                            caption=welcome_text,
+                            reply_markup=user_authorized_kb.menu)
     await state.clear()
 
 

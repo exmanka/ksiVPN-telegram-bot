@@ -40,12 +40,12 @@ async def command_start(message: Message, state: FSMContext):
 @global_router.message(F.text.lower() == loc.other.btns['help'].lower())
 async def command_help(message: Message):
     """Send message with information about provided help (works in any FSM state)."""
-    # if client needs to renew subscription before receiving his first configuration
-    await internal_functions.notify_client_if_subscription_must_be_renewed_to_receive_configuration(message.from_user.id)
-
     await internal_functions.send_photo_safely(message.from_user.id,
                                                telegram_file_id=loc.other.tfids['help'],
                                                caption=loc.other.msgs['help'])
+
+    # if client needs to renew subscription before receiving his first configuration
+    await internal_functions.notify_client_if_subscription_must_be_renewed_to_receive_configuration(message.from_user.id)
 
 
 @router.message(F.text.lower() == loc.other.btns['about_project'].lower())

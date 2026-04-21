@@ -1,11 +1,15 @@
 user_unauthorized:
   messages:
     return_to_main_menu: <i>Возвращаю в главное меню</i>
-    enter_promo_or_skip: "<b>Последний шаг!</b>\n\nЕсли у вас есть <b>реферальный промокод</b> — введите его. Если нет — нажмите кнопку ниже"
+    enter_promo_or_skip: |-
+      🕊 <b>Введите реферальный промокод</b>
+      
+      Так вы получите тип подписки приглашающего, а также пробный бесплатный период!
+      Если промокода нет, нажмите на кнопку «<b>Пропустить</b>» в меню под строкой ввода сообщений боту.
     ref_promo_accepted: ✨ Ух ты! Принят промокод от <b>пользователя {0}</b>, дающий <b>{1} дней</b> бесплатной подписки!
     sub_info: 🌟 Подключена <b>{0}</b> со <b>стоимостью {1:g}</b>₽ в месяц.
     invalid_promo: Такого промокода нет! Попробуйте ввести его еще раз
-    need_renew_sub: ❗️ <b>Для получения первой конфигурации вам необходимо продлить подписку</b>
+    need_renew_sub: ❗️ <b>Чтобы активировать подписку, вам необходимо совершить первую оплату</b>
   keyboard_buttons:
     join: 🔥 Подключиться!
     project_info: О проекте
@@ -31,7 +35,7 @@ user_authorized:
     my_subscription_url_intro: |-
       🔗 <b>Ваша ссылка на подписку:</b>
 
-      <code>{0}</code>
+      {0}
 
       Импортируйте эту ссылку в любое приложение с поддержкой Sing-Box (Happ, Hiddify, Streisand, v2rayNG и др.).
     my_subscription_no_remnawave: |-
@@ -217,215 +221,14 @@ user_authorized:
       Не забудьте продлить подписку!
 
       <tg-spoiler><i>Напоминание можно отключить, перейдя в «Личный кабинет» — «Настройки» — «Уведомления».</i></tg-spoiler>
-    basic_instructions:
-      wireguard:
-        android: |-
-          ⚙️ <b>Инструкция по установке WireGuard на Android:</b>
+    basic_instructions: |-
+      👾 <b>Инструкции для подключения отдельных конфигураций больше недоступны</b>
 
-          <b>1.</b> Скачать и установить официальное приложение Wireguard (<a href="https://play.google.com/store/apps/details?id=com.wireguard.android">ссылка в Play Market</a>).
-          <b>2.</b> После запуска нажать на значок <b>«+»</b> в нижнем правом углу экрана.
-          <b>3.</b> Выбрать опцию <b>«Создать из QR-кода»</b>/<b>«Scan from QR code»</b>, разрешить доступ к камере и отсканировать QR-код.
-          <b>4.</b> Ввести название вашего VPN-туннеля! Именование можно задавать любое, но рекомендуется называть туннель страной расположения (Netherlands/Germany/Latvia/USA).
+      Воспользуйтесь новым функционалом подписки — он удобнее и дает доступ сразу ко всем локациям на проекте!
+    advanced_instructions: |-
+      👾 <b>Инструкции для подключения отдельных конфигураций больше недоступны</b>
 
-
-          🎉 <b>Инструкция по использованию:</b>
-
-          <b>1.</b> Для включения VPN достаточно нажать на переключатель справа от названия туннеля.
-          В первый раз телефон может выдать уведомление о добавлении нового VPN-соединения — необходимо согласиться.
-          <b>2.</b> Для выключения VPN нужно снова изменить положение переключателя.
-        ios: |-
-          ⚙️ <b>Инструкция по установке WireGuard на IOS:</b>
-
-          <b>1.</b> Скачать и установить официальное приложение Wireguard (<a href="https://apps.apple.com/ru/app/wireguard/id1441195209">ссылка в App Store</a>).
-          <b>2.</b> После запуска нажать на значок <b>«+»</b> в нижнем правом углу экрана.
-          <b>3.</b> Выбрать опцию <b>«Создать из QR-кода»</b>/<b>«Scan from QR code»</b>, разрешить доступ к камере и отсканировать QR-код.
-          <b>4.</b> Ввести название вашего VPN-туннеля! Именование можно задавать любое, но рекомендуется называть туннель страной расположения (Netherlands/Germany/Latvia/USA).
-
-
-          🎉 <b>Инструкция по использованию:</b>
-
-          <b>1.</b> Для включения VPN достаточно нажать на переключатель справа от названия туннеля.
-          В первый раз телефон может выдать уведомление о добавлении нового VPN-соединения — необходимо согласиться.
-          <b>2.</b> Для выключения VPN нужно снова изменить положение переключателя.
-        windows: |-
-          ⚙️ <b>Инструкция по установке WireGuard на Windows:</b>
-
-          <b>1.</b> Скачать и установить приложение Wireguard (<a href="https://www.wireguard.com/install/">ссылка на официальный сайт</a>).
-          <b>2.</b> После запуска нажать на кнопку <b>«Добавить туннель»</b>/<b>«Add tunnel»</b> и выбрать отправленный вам файл расширения <code>*.conf</code>.
-
-
-          🎉 <b>Инструкция по использованию:</b>
-
-          <b>1.</b> Для включения VPN достаточно выбрать туннель и нажать <b>«Подключить»</b>.
-          <b>2.</b> Для выключения VPN достаточно нажать <b>«Отключить»</b>.
-        macos: |-
-          ⚙️ <b>Инструкция по установке WireGuard на macOS:</b>
-
-          <b>1.</b> Скачать и установить официальное приложение Wireguard (<a href="https://apps.apple.com/ru/app/wireguard/id1451685025">ссылка в App Store</a>).
-          <b>2.</b> После запуска нажать на кнопку <b>«Добавить туннель»</b>/<b>«Add tunnel»</b> и выбрать отправленный вам файл расширения <code>*.conf</code>.
-
-
-          🎉 <b>Инструкция по использованию:</b>
-
-          <b>1.</b> Для включения VPN достаточно выбрать туннель и нажать <b>«Подключить»</b>.
-          <b>2.</b> Для выключения VPN достаточно нажать <b>«Отключить»</b>.
-        linux: |-
-          ⚙️ <b>Инструкция по установке и использованию WireGuard на GNU/Linux:</b>
-
-          Ой-ой, вы уже не маленькие, раз используете Linux!
-          Отправляю вам большой респект и ссылку на документацию: https://www.wireguard.com/install/#ubuntu-module-tools
-
-          Подсказки по установки можно найти здесь: https://shrub-coriander-4a3.notion.site/Linux-Mint-Cinnamon-21-1-29cda1060f4d4ab48c483cfa70948e46?pvs=4
-      xray vless xtls-reality:
-        android: |-
-          ⚙️ <b>Инструкция по установке xray на Android:</b>
-
-          <b>0.</b> Скачать и установить официальное приложение Happ — <a href="https://play.google.com/store/apps/details?id=com.happproxy">ссылка в Play Market</a>.
-          <b>1.</b> Скопировать ссылку, отправленную ботом.
-          <b>2.</b> Запустить приложение и нажать на значок <b>«+»</b> в правом верхнем углу.
-          <b>3.</b> Выбрать пункт <b>«Вставить из буфера обмена»</b>.
-          <b>4.</b> Убедиться, что отправленная ботом конфигурация добавилась и сейчас выбрана.
-
-
-          🎉 <b>Инструкция по использованию:</b>
-
-          <b>1.</b> Для включения VPN достаточно нажать на кнопку включения VPN в центре.
-          В первый раз телефон может выдать уведомление о добавлении нового VPN-соединения — необходимо согласиться.
-          <b>2.</b> Для выключения VPN нужно снова нажать на ту же кнопку.
-        ios: |-
-          ⚙️ <b>Инструкция по установке xray на iOS:</b>
-
-          <b>0.</b> Скачать и установить официальное приложение Happ — <a href="https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973">ссылка в App Store</a>.
-          <b>1.</b> Скопировать ссылку, отправленную ботом.
-          <b>2.</b> Запустить приложение и нажать на значок <b>«+»</b> в правом верхнем углу.
-          <b>3.</b> Выбрать пункт <b>«Вставить из буфера обмена»</b>.
-          <b>4.</b> Убедиться, что отправленная ботом конфигурация добавилась и сейчас выбрана.
-
-
-          🎉 <b>Инструкция по использованию:</b>
-
-          <b>1.</b> Для включения VPN достаточно нажать на кнопку включения VPN в центре.
-          В первый раз телефон может выдать уведомление о добавлении нового VPN-соединения — необходимо согласиться.
-          <b>2.</b> Для выключения VPN нужно снова нажать на ту же кнопку.
-        windows: |-
-          ⚙️ <b>Инструкция по установке xray на Windows:</b>
-
-          <b>0.</b> Скачать и установить официальное приложение Happ — <a href="https://github.com/Happ-proxy/happ-desktop/releases/latest/download/setup-Happ.x64.exe">ссылка на загрузку официального exe-файла</a>.
-          <b>1.</b> Скопировать ссылку, отправленную ботом.
-          <b>2.</b> Если приложение запускается впервые, то можно сразу вставить конфигурацию в окно ввода ссылки и переходить к пункту 5.
-          <b>3.</b> Иначе нажать на значок <b>«+»</b> в левом верхнем углу.
-          <b>4.</b> Выбрать тип <b>«Конфигурация»</b>, вставить в поле ниже скопированную из бота ссылку и нажать <b>«Добавить»</b>.
-          <b>5.</b> Убедиться, что отправленная ботом конфигурация добавилась и сейчас выбрана.
-
-
-          🎉 <b>Инструкция по использованию:</b>
-
-          <b>1.</b> Для включения VPN достаточно нажать на кнопку включения VPN справа.
-          <b>2.</b> Для выключения VPN нужно снова нажать на ту же кнопку.
-        macos: |-
-          ⚙️ <b>Инструкция по установке xray на MacOS:</b>
-
-          <b>0.</b> Скачать и установить официальное приложение Happ — <a href="https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973">ссылка в App Store</a>.
-          <b>1.</b> Скопировать ссылку, отправленную ботом.
-          <b>2.</b> Запустить приложение и нажать на значок <b>«+»</b> в правом верхнем углу.
-          <b>3.</b> Выбрать пункт <b>«Вставить из буфера обмена»</b>.
-          <b>4.</b> Убедиться, что отправленная ботом конфигурация добавилась и сейчас выбрана.
-
-
-          🎉 <b>Инструкция по использованию:</b>
-
-          <b>1.</b> Для включения VPN достаточно нажать на кнопку включения VPN в центре.
-          <b>2.</b> Для выключения VPN нужно снова нажать на ту же кнопку.
-        linux: |-
-          ⚙️ <b>Инструкция по установке и использованию xray на GNU/Linux:</b>
-
-          Ой-ой, вы уже не маленькие, раз используете Linux!
-          Отправляю вам большой респект и ссылку на документацию: https://github.com/hiddify/hiddify-app
-      shadowsocks-2022:
-        android: |-
-          <b>Протокол Shadowsocks-2022 в данный момент используется только командой тестирования.</b>
-
-          Если вы читаете данное сообщение, не являясь тестировщиком, значит, администратор ошибся при создании конфигурации. Напишите ему для выяснения проблемы!
-        ios: |-
-          <b>Протокол Shadowsocks-2022 в данный момент используется только командой тестирования.</b>
-
-          Если вы читаете данное сообщение, не являясь тестировщиком, значит, администратор ошибся при создании конфигурации. Напишите ему для выяснения проблемы!
-        windows: |-
-          <b>Протокол Shadowsocks-2022 в данный момент используется только командой тестирования.</b>
-
-          Если вы читаете данное сообщение, не являясь тестировщиком, значит, администратор ошибся при создании конфигурации. Напишите ему для выяснения проблемы!
-        macos: |-
-          <b>Протокол Shadowsocks-2022 в данный момент используется только командой тестирования.</b>
-
-          Если вы читаете данное сообщение, не являясь тестировщиком, значит, администратор ошибся при создании конфигурации. Напишите ему для выяснения проблемы!
-        linux: |-
-          <b>Протокол Shadowsocks-2022 в данный момент используется только командой тестирования.</b>
-
-          Если вы читаете данное сообщение, не являясь тестировщиком, значит, администратор ошибся при создании конфигурации. Напишите ему для выяснения проблемы!
-    advanced_instructions:
-      wireguard:
-        android: |-
-          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
-          
-          Ожидайте обновления!
-        ios: |-
-          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
-          
-          Ожидайте обновления!
-        windows: |-
-          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
-          
-          Ожидайте обновления!
-        macos: |-
-          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
-          
-          Ожидайте обновления!
-        linux: |-
-          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
-          
-          Ожидайте обновления!
-      xray vless xtls-reality:
-        android: |-
-          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
-          
-          Ожидайте обновления!
-        ios: |-
-          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
-          
-          Ожидайте обновления!
-        windows: |-
-          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
-          
-          Ожидайте обновления!
-        macos: |-
-          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
-          
-          Ожидайте обновления!
-        linux: |-
-          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
-          
-          Ожидайте обновления!
-      shadowsocks-2022:
-        android: |-
-          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
-          
-          Ожидайте обновления!
-        ios: |-
-          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
-          
-          Ожидайте обновления!
-        windows: |-
-          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
-          
-          Ожидайте обновления!
-        macos: |-
-          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
-          
-          Ожидайте обновления!
-        linux: |-
-          <i>Скоро здесь появится инструкция по продвинутой настройке VPN — как настроить возможность для приложений и сайтов загружаться напрямую без VPN — полезно для российских сервисов и ПО.</i>
-          
-          Ожидайте обновления!
+      Воспользуйтесь новым функционалом подписки — он удобнее и дает доступ сразу ко всем локациям на проекте!
   keyboard_buttons:
     sub_renewal: ❤️‍🔥 Продлить подписку!
     my_subscription: Моя подписка
@@ -466,91 +269,7 @@ user_authorized:
   telegram_file_ids:
     rules: AgACAgIAAxkBAAJUyGWoBkWcqxDLR5T7rxSAgxD9k8LJAALd1DEbxdRBSUXUhjzY2aggAQADAgADcwADNAQ
     ref_program_info: AgACAgIAAxkBAAJUv2WoBaYCCxzAlLwaiIEttY5NnqytAALa1DEbxdRBSdtn1kU78RbOAQADAgADcwADNAQ
-    basic_instructions:
-      wireguard:
-        android:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-        ios:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-        windows:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-        macos:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-        linux:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-      xray vless xtls-reality:
-        android:
-        - AgACAgIAAxkBAAEDCYVp0-WPTsNqWkqWd4QGs9c1QDNEnQACGBlrG44roUrtHB29Gg0xGQEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCYdp0-W7RpGpxvL7NpRIzCCck8NhKgACGhlrG44roUp9-rGsCRj73gEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCYlp0-XMiaKdRHdkDbB-wFJhvboMggACHBlrG44roUqtsh29vbfKDwEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCe5p0_W1ekziC8bBttIX0u92u6OkpAACixlrG44roUqGbRaKhbk5sQEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCfBp0_X-G79j8wfqYsQxt1LH1o6zSAACjRlrG44roUrJvycrqZpQ5gEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCfJp0_YVAcbu7pZGg_ONz4ahbLwhnwACjxlrG44roUr4QvGWUPV_NgEAAwIAA3MAAzsE
-        ios:
-        - AgACAgIAAxkBAAEDCZJp0-Y4vjo2N5jKoPndYZ1blPuOAwACJBlrG44roUqTdGIxFiKORAEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCYlp0-XMiaKdRHdkDbB-wFJhvboMggACHBlrG44roUqtsh29vbfKDwEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCe5p0_W1ekziC8bBttIX0u92u6OkpAACixlrG44roUqGbRaKhbk5sQEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCfBp0_X-G79j8wfqYsQxt1LH1o6zSAACjRlrG44roUrJvycrqZpQ5gEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCfJp0_YVAcbu7pZGg_ONz4ahbLwhnwACjxlrG44roUr4QvGWUPV_NgEAAwIAA3MAAzsE
-        windows:
-        - AgACAgIAAxkBAAEDCZpp0-aYMCDMZK5nU5VTJnDtnotM5wACMBlrG44roUq7bcgw-Uc0nwEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDKnpp32afg_GQdKKgzH6o3wkuKH9oIQACnhNrGwE3AUv4BArSsoohnAEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDKnxp32bjL_W9PbaTGBHJry_RveytlAACoBNrGwE3AUusbWMBgFbODwEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDKoBp32dvZg9-oh1620PpDIrq7aVdMAACoxNrGwE3AUsQFY_nlIZa_wEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDKoJp32gG5Jpzo_aL5JKYTjeqLQ6wxwACqRNrGwE3AUuv59bsNEdxEQEAAwIAA3MAAzsE
-        macos:
-        - AgACAgIAAxkBAAEDCZxp0-azZ_fDJ-j8iCPplcR235hlZgACMRlrG44roUqiRT5g5qxbgAEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCYlp0-XMiaKdRHdkDbB-wFJhvboMggACHBlrG44roUqtsh29vbfKDwEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCe5p0_W1ekziC8bBttIX0u92u6OkpAACixlrG44roUqGbRaKhbk5sQEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCfBp0_X-G79j8wfqYsQxt1LH1o6zSAACjRlrG44roUrJvycrqZpQ5gEAAwIAA3MAAzsE
-        - AgACAgIAAxkBAAEDCfJp0_YVAcbu7pZGg_ONz4ahbLwhnwACjxlrG44roUr4QvGWUPV_NgEAAwIAA3MAAzsE
-        linux:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-      shadowsocks-2022:
-        android:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-        ios:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-        windows:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-        macos:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-        linux:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-    advanced_instructions:
-      wireguard:
-        android:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-        ios:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-        windows:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-        macos:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-        linux:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-      xray vless xtls-reality:
-        android:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-        ios:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-        windows:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-        macos:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-        linux:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-      shadowsocks-2022:
-        android:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-        ios:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-        windows:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-        macos:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
-        linux:
-        - AgACAgIAAxkBAAJVO2WoH6HmHCMo-Igp1kGsfvKRD9DjAAJZ1TEbxdRBSbevtCy0Y1JFAQADAgADcwADNAQ
+    welcome: AgACAgIAAxkBAAEDPARp537L0PjCIu8qP93cvXO1UapqcQACwhhrG7LHQEs5Dt3-t8IJJgEAAwIAA3MAAzsE
 admin:
   messages:
     reset_fsm_keyboard: <i>Сброс машинного состояния и клавиатуры</i>
@@ -765,49 +484,35 @@ internal_functions:
       <b>Платформа</b>: {7}
 
       <i>Создана {8}, ID {9}</i>
-    new_client_joined_no_sub_url: "⚠️ ошибка создания пользователя в Remnawave"
+    new_client_joined_no_sub_url: ⚠️ ошибка создания пользователя в Remnawave
     new_client_joined: |-
-      👾 <b>Новый пользователь зарегистрирован!</b>
+      👾 <b>Зарегистрирован новый пользователь!</b>
 
       <b>Client ID</b>: <code>{0}</code>
       <b>Telegram INFO</b>:{1} <code>{2}</code> <code>{3}</code>
       <b>Ссылка на подписку</b>: {4}
       <b>Реферальный промокод</b>: {ref_promo_str}
     new_client_remnawave_error: |-
-      ⚠️ <b>ОШИБКА REMNAWAVE</b>
+      ⚠️ <b>Ошибка создания клиента в Remnawave/b>
 
-      Клиент <code>{0}</code> (tg_id: <code>{1}</code>) зарегистрирован в БД, но <b>НЕ создан в Remnawave</b>. Требуется ручная регистрация!
+      Клиент зарегистрирован в БД, но не создан в Remnawave. Требуется ручная регистрация!
     registration_complete: |-
-      🎉 <b>Добро пожаловать в ksiVPN!</b>
+      ❤️‍🔥 <b>Добро пожаловать на проект ksiVPN!</b>
 
-      🔗 <b>Ваша ссылка на подписку:</b>
-      <code>{0}</code>
+      Ваша подписка готова и доступна по кнопке <b>«Моя подписка»</b> в меню под строкой написания сообщения. Там же вы найдете инструкции по подключению!
 
-      Для активации подписки необходимо её продлить.
+      Если вам нужна помощь по взаимодействую с ботом — напишите в чат команду /help. Эта же команда покажет контакты поддержки проекта — обязательно обращайтесь при каких-либо проблемах!
     registration_complete_no_url: |-
-      🎉 <b>Добро пожаловать в ksiVPN!</b>
+      ❤️‍🔥 <b>Добро пожаловать на проект ksiVPN!</b>
 
-      Что-то пошло не так при создании подписки. Пожалуйста, обратитесь к администратору.
-    remnawave_expiry_sync_no_record: "⚠️ Клиент <code>{0}</code> не имеет записи в Remnawave — срок действия НЕ синхронизирован с панелью. Требуется ручная миграция!"
-    remnawave_expiry_sync_error: "⚠️ Не удалось синхронизировать срок действия Remnawave для клиента <code>{0}</code>. Проверьте логи!"
-    config_request_new_client: |-
-      👾 <b>Запрос на подключение от нового пользователя!</b>
+      Ваша подписка скоро будет готова и доступна по кнопке <b>«Моя подписка»</b> в меню под строкой написания сообщения. Там же вы найдете инструкции по подключению!
 
-      <b>Client ID</b>: <code>{6}</code>
-      <b>Telegram INFO</b>:{1} <code>{0}</code> <code>{2}</code>
-      <b>Конфигурация</b>: {3}, {4}, {5} ChatGPT
-      <b>Реферальный промокод</b>: {ref_promo_str}
-    config_request_new_client_no_ref_promo_str: |-
-      Пользователь не использовал промокод, конфигурацию можно отправить <b>ТОЛЬКО ПОСЛЕ ОПЛАТЫ ПОДПИСКИ ИЛИ ВВОДА ПРОМОКОДА</b>
-    config_request_new_client_ref_promo_str: |-
-      <code>{0}</code> от пользователя{3} <code>{1}{2}</code> <code>{4}</code> на {5} бесплатных дней по подписке {6:g}₽/мес.
-    config_request_old_client: |-
-      👾 <b>Запрос дополнительной конфигурации от пользователя!</b>
-
-      <b>Client ID</b>: <code>{6}</code>
-      <b>Telegram INFO</b>:{1} <code>{0}</code> <code>{2}</code>
-      <b>Конфигурация</b>: {3}, {4}, {5} ChatGPT
-    admin_promo_was_etnered_local_promo_new_sub_str: ", предоставляющий подписку за {0:g}₽/мес,"
+      Если вам нужна помощь по взаимодействую с ботом — напишите в чат команду /help. Эта же команда покажет контакты поддержки проекта — обязательно обращайтесь при каких-либо проблемах!
+    remnawave_expiry_sync_no_record: ⚠️ Клиент с ID <code>{0}</code> не имеет записи в Remnawave — срок действия НЕ синхронизирован с панелью. Требуется ручная миграция!
+    remnawave_expiry_sync_error: ⚠️ Не удалось синхронизировать срок действия Remnawave для клиента с ID <code>{0}</code>. Проверьте логи!
+    new_client_no_ref_promo_str: без промокода
+    new_client_ref_promo_str: <code>{0}</code> от пользователя{3} <code>{1}{2}</code> <code>{4}</code> на {5} бесплатных дней по подписке {6:g}₽/мес.
+    admin_promo_was_entered_local_promo_new_sub_str: ", предоставляющий подписку за {0:g}₽/мес,"
     admin_promo_was_entered: |-
       👾 <b>Введен промокод!</b>
 
