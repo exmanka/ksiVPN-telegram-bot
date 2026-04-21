@@ -11,6 +11,8 @@ from datetime import datetime, timezone
 from typing import Any, Awaitable, Callable
 
 import httpx
+from remnawave.exceptions import NetworkError as RemnawaveNetworkError
+from remnawave.exceptions import ServerError as RemnawaveServerError
 from remnawave.models import CreateUserRequestDto, UpdateUserRequestDto
 
 from src.database import postgres_dbms
@@ -31,23 +33,31 @@ class RemnawaveError(Exception):
 _RETRY_DELAYS: tuple[float, ...] = (1.0, 2.0)
 
 
-async def _call_with_http_retry(coro_factory: Callable[[], Awaitable[Any]], *, label: str) -> Any:
-    """Execute coro_factory(), retrying on httpx.HTTPError with exponential backoff.
+_RETRYABLE = (httpx.HTTPError, RemnawaveServerError, RemnawaveNetworkError)
 
-    Only httpx.HTTPError (network / 5xx) is retried — other exceptions indicate
-    a logic error (bad DTO, SDK bug) that a retry won't fix.
+
+async def _call_with_http_retry(coro_factory: Callable[[], Awaitable[Any]], *, label: str) -> Any:
+    """Execute coro_factory(), retrying on transient errors with exponential backoff.
+
+    Retried:
+    - httpx.HTTPError — raw network / TLS failures (before SDK processing)
+    - RemnawaveServerError — panel 5xx responses
+    - RemnawaveNetworkError — SDK-level network errors
+
+    Not retried: 4xx client errors (BadRequestError, ValidationError, NotFoundError,
+    ConflictError, etc.) — a retry won't fix a logic/validation problem.
 
     :param coro_factory: zero-arg callable returning the coroutine to await
     :param label: human-readable name for log messages
     :raises RemnawaveError: when all attempts are exhausted
     """
-    last_exc: httpx.HTTPError | None = None
+    last_exc: Exception | None = None
     total_attempts = len(_RETRY_DELAYS) + 1
 
     for attempt in range(1, total_attempts + 1):
         try:
             return await coro_factory()
-        except httpx.HTTPError as exc:
+        except _RETRYABLE as exc:
             last_exc = exc
             if attempt < total_attempts:
                 delay = _RETRY_DELAYS[attempt - 1]
@@ -57,7 +67,7 @@ async def _call_with_http_retry(coro_factory: Callable[[], Awaitable[Any]], *, l
                 )
                 await asyncio.sleep(delay)
 
-    raise RemnawaveError(f"HTTP error after {total_attempts} attempts in {label}: {last_exc}") from last_exc
+    raise RemnawaveError(f"Transient error after {total_attempts} attempts in {label}: {last_exc}") from last_exc
 
 
 def _sanitize_username(telegram_id: int, tg_username: str | None) -> str:
