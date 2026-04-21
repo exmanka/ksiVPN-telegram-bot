@@ -456,7 +456,9 @@ internal_functions:
     new_client_remnawave_error: |-
       ⚠️ <b>Error creating a client in Remnawave</b>
 
-      The client is registered in the database, but not created in Remnawave. Manual registration is required!
+      The client with ID <code>{0}</code>  is registered in the database, but not created in Remnawave. Manual registration is required! Error:
+
+      <code>{1}</code>
     registration_complete: |-
       ❤️‍🔥 <b>Welcome to the ksiVPN project!</b>
 

@@ -482,7 +482,9 @@ internal_functions:
     new_client_remnawave_error: |-
       ⚠️ <b>Ошибка создания клиента в Remnawave</b>
 
-      Клиент зарегистрирован в БД, но не создан в Remnawave. Требуется ручная регистрация!
+      Клиент c ID <code>{0}</code> зарегистрирован в БД, но не создан в Remnawave. Необходимо зарегистрировать клиента вручную. Лог ошибки:
+
+      <code>{1}</code>
     registration_complete: |-
       ❤️‍🔥 <b>Добро пожаловать в проект ksiVPN!</b>
 
