@@ -430,16 +430,6 @@ user_authorized:
     sub_renewal: ❤️‍🔥 Продлить подписку!
     my_subscription: 🔥 Моя подписка
     how_to_connect: Как подключить подписку?
-    smartphone: 📱 Смартфон
-    pc: 💻 ПК
-    android: Android
-    ios: IOS (iPhone)
-    windows: Windows
-    macos: macOS
-    linux: Linux
-    use_chatgpt: Использую
-    dont_use_chatgpt: Не использую
-    what_is_chatgpt: Что это?
     personal_account: Личный кабинет
     rules: Правила
     payment_1mnth: 1 месяц
@@ -456,7 +446,6 @@ user_authorized:
     settings: Настройки
     return_to_account_menu_1: Вернуться
     return_to_account_menu_2: Отмена ввода
-    return_to_configs_menu: Отмена выбора
     used_promos: Использованные промокоды
     ref_program_participation: Участие в реферальной программе
     generate_invite: Сгенерировать приглашение
