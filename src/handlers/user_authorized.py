@@ -87,6 +87,14 @@ async def subscription_how_to_renew(callback: CallbackQuery):
     )
 
 
+@router.callback_query(F.data == 'subscription_location_types')
+@user_authorized_mw.authorized_only()
+async def subscription_location_types(callback: CallbackQuery):
+    """Send explanation of Fast, Breach and Access+ location types."""
+    await callback.answer()
+    await callback.message.answer(loc.auth.msgs['location_types_info'])
+
+
 @router.message(
     F.text == loc.auth.btns['return_main_menu'],
     StateFilter(None, user_authorized_fsm.AccountMenu.menu, user_authorized_fsm.PaymentMenu.menu),
