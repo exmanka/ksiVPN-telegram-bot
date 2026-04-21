@@ -559,22 +559,28 @@ async def account_settings_notifications_7d(message: Message):
 
 
 # LEGACY: pre-Remnawave config distribution — answer with soft migration message
-@router.callback_query(F.data.startswith('basic--'))
+@router.callback_query(F.data.startswith('basic--') | F.data.startswith('advanced--'))
 @user_authorized_mw.authorized_only()
 @user_authorized_mw.nonblank_subscription_only()
 async def configuration_instruction(call: CallbackQuery):
     """Send message with Remnawave subscription migration."""
-    await call.message.answer(loc.auth.msgs['basic_instructions'])
+    await call.message.answer(loc.auth.msgs['advanced_instructions'])
     await call.answer()
 
 
 # LEGACY: pre-Remnawave config distribution — answer with soft migration message
-@router.callback_query(F.data.startswith('advanced--'))
+@router.message(F.text.in_(
+    {
+    'Конфигурации',
+    'Новая конфигурация',
+    'Мои конфигурации',
+    }
+))
 @user_authorized_mw.authorized_only()
 @user_authorized_mw.nonblank_subscription_only()
 async def configuration_advanced_instruction(call: CallbackQuery):
     """Send message with Remnawave subscription migration."""
-    await call.message.answer(loc.auth.msgs['advanced_instructions'])
+    await call.message.answer(loc.auth.msgs['basic_instructions'])
     await call.answer()
 
 

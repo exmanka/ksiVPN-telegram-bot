@@ -197,7 +197,7 @@ user_authorized:
 
       <tg-spoiler><i>You can disable the reminder by going to «Personal Account» — «Settings» — «Notifications».</i></tg-spoiler>
     basic_instructions: |-
-      👾 <b>Instructions for connecting individual configurations are no longer available</b>
+      👾 <b>Individual configurations are no longer available</b>
 
       Take advantage of the new subscription functionality — it is more convenient and gives you access to all locations on the project at once!
     advanced_instructions: |-
