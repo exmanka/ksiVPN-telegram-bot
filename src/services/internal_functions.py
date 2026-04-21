@@ -283,7 +283,7 @@ async def notify_admin_promo_entered(client_id: int, promo_phrase: str, promo_ty
 
     :param client_id:
     :param promo_phrase: phrase of entered promocode
-    :param promo_type: type of promocode as string ('global', 'local')
+    :param promo_type: type of promocode as string ('global', 'local', 'ref')
     :raises Exception: wrong type of promo code was entered
     """
     name, surname, username, telegram_id, *_ = await postgres_dbms.get_client_info_by_clientID(client_id)
@@ -304,6 +304,17 @@ async def notify_admin_promo_entered(client_id: int, promo_phrase: str, promo_ty
         if provided_sub_id:
             *_, price = await postgres_dbms.get_subscription_info_by_subID(provided_sub_id)
             new_sub_str = loc.internal.msgs['admin_promo_was_entered_local_promo_new_sub_str'].format(price)
+
+    elif promo_type == 'ref':
+        _, client_creator_id, _, bonus_time = await postgres_dbms.get_refferal_promo_info_by_phrase(promo_phrase)
+        creator_name, *_ = await postgres_dbms.get_client_info_by_clientID(client_creator_id)
+        await bot.send_message(
+            settings.bot.admin_id,
+            loc.internal.msgs['admin_ref_promo_was_entered'].format(
+                client_id, username_str, name, surname_str, telegram_id,
+                promo_phrase, creator_name, format_localized_bonus_days(bonus_time),
+            ))
+        return
 
     else:
         raise Exception('wrong promo type was entered')

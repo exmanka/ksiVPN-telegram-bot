@@ -288,7 +288,6 @@ async def account_ref_program_fsm_start(message: Message, state: FSMContext):
     StateFilter(user_authorized_fsm.AccountMenu.menu),
 )
 @user_authorized_mw.authorized_only()
-@user_authorized_mw.nonblank_subscription_only()
 async def account_promo_fsm_start(message: Message, state: FSMContext):
     """Start FSM for account promocodes menu and show account promocodes menu keyboard."""
     await state.set_state(user_authorized_fsm.AccountMenu.promo)
@@ -366,7 +365,6 @@ async def account_ref_program_promocode(message: Message):
     StateFilter(user_authorized_fsm.AccountMenu.promo),
 )
 @user_authorized_mw.authorized_only()
-@user_authorized_mw.nonblank_subscription_only()
 async def account_promo_info(message: Message):
     """Send message with information about entered by client promocodes."""
     ref_promos, global_promos, local_promos = await postgres_dbms.get_client_entered_promos(await postgres_dbms.get_clientID_by_telegramID(message.from_user.id))
@@ -398,17 +396,41 @@ async def account_promo_info(message: Message):
 
 @router.message(StateFilter(user_authorized_fsm.AccountMenu.promo))
 @user_authorized_mw.authorized_only()
-@user_authorized_mw.nonblank_subscription_only()
 async def account_promo_check(message: Message, state: FSMContext):
     """Check entered promocode is valid, send information about successfuly entered promocode, update subscription period for client.
 
     If specified promocode is local promocode, it can also change subscription type for client.
+    Referral promocodes are accepted within 7 days of registration for clients who haven't used one yet.
     """
+    client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
+
     if await postgres_dbms.is_referral_promo(message.text):
-        await message.answer(loc.auth.msgs['error_promo_entered_ref_code'])
+        # Referral promos are only accepted within 7 days of registration and only once.
+        if not await postgres_dbms.can_enter_ref_promo_as_authorized(client_id):
+            await message.answer(loc.auth.msgs['error_promo_entered_ref_code'])
+            return
+
+        ref_promo_info = await postgres_dbms.get_refferal_promo_info_by_phrase(message.text)
+        if not ref_promo_info:
+            await message.answer(loc.auth.msgs['error_promo_not_exist'])
+            return
+
+        ref_promo_id, client_creator_id, provided_sub_id, bonus_time = ref_promo_info
+
+        await postgres_dbms.apply_ref_promo_to_existing_client(client_id, ref_promo_id, provided_sub_id, bonus_time)
+        await internal_functions.notify_client_new_referal(client_creator_id, message.from_user.first_name, message.from_user.username)
+        await internal_functions.notify_admin_promo_entered(client_id, message.text, 'ref')
+        await internal_functions.extend_remnawave_expiry_for_client(client_id)
+
+        creator_name, *_ = await postgres_dbms.get_client_info_by_clientID(client_creator_id)
+        _, title, _, price = await postgres_dbms.get_subscription_info_by_clientID(client_id)
+        await message.answer(
+            loc.auth.msgs['ref_promo_accepted'].format(creator_name, format_localized_bonus_days(bonus_time), title, price),
+            reply_markup=user_authorized_kb.account,
+        )
+        await state.set_state(user_authorized_fsm.AccountMenu.menu)
         return
 
-    client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
     global_promo_info = await postgres_dbms.get_global_promo_info(message.text)
     local_promo_info = await postgres_dbms.get_local_promo_info(message.text)
 

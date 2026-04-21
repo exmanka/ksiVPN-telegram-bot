@@ -377,6 +377,20 @@ async def get_subscription_info_by_subID(subscription_id: int) -> asyncpg.Record
             subscription_id)
 
 
+async def get_ref_provided_sub_id(sub_id: int) -> int:
+    """Return the subscription type that invitees receive when a user with sub_id uses their ref promo.
+
+    Reads subscriptions.ref_provided_sub_id — the value is defined per-row in the DB,
+    so adding new subscription types never requires code changes.
+    Falls back to 1 (Standard) if the row is missing (should not happen under FK constraints).
+    """
+    async with pool.acquire() as conn:
+        result = await conn.fetchval(
+            'SELECT ref_provided_sub_id FROM subscriptions WHERE id = $1;',
+            sub_id)
+    return result if result is not None else 1
+
+
 async def get_subscription_expiration_date(telegram_id: int) -> datetime.datetime | None:
     """Return subscription's expiration date as a raw timestamp.
 
@@ -867,14 +881,14 @@ async def insert_client(name: str,
         username = '@' + username
 
     if provided_sub_id is None:
-        provided_sub_id = 1  # добавить глобальную константу
+        provided_sub_id = 1  # default: Standard subscription
 
     if bonus_time is None:
         bonus_time = datetime.timedelta()    # zero days
 
-    provided_ref_sub_id = provided_sub_id
-    if provided_sub_id in [3, 4]:  # добавить глобальную константу
-        provided_ref_sub_id = 1  # добавить глобальную константу
+    # Determine what subscription type the new client's OWN referral promo will offer.
+    # Defined per-subscription in subscriptions.ref_provided_sub_id — no magic numbers.
+    provided_ref_sub_id = await get_ref_provided_sub_id(provided_sub_id)
 
     async with pool.acquire() as conn:
         async with conn.transaction():
@@ -927,6 +941,74 @@ async def activate_client_bonus_time(client_id: int) -> None:
               AND expiration_date < TIMESTAMP 'EPOCH' + INTERVAL '10 years';
             ''',
             client_id)
+
+
+async def can_enter_ref_promo_as_authorized(client_id: int) -> bool:
+    """Return True if the authorized client is eligible to enter a referral promo code.
+
+    Conditions:
+    - registered within the last 7 days (registration window for referral codes)
+    - has not yet used any referral promo (used_ref_promo_id IS NULL)
+    """
+    async with pool.acquire() as conn:
+        return bool(await conn.fetchval(
+            '''
+            SELECT TRUE
+            FROM clients
+            WHERE id = $1
+              AND register_date > NOW() - INTERVAL '7 days'
+              AND used_ref_promo_id IS NULL;
+            ''',
+            client_id))
+
+
+async def apply_ref_promo_to_existing_client(
+    client_id: int,
+    ref_promo_id: int,
+    provided_sub_id: int | None,
+    bonus_time: datetime.timedelta,
+) -> None:
+    """Apply a referral promo code to an already-registered authorized client.
+
+    In one transaction:
+    - sets clients.used_ref_promo_id
+    - updates clients_subscriptions.sub_id when provided_sub_id is given
+    - updates the client's own promocodes_ref.provided_sub_id to propagate inheritance
+    - extends expiration_date (for blank/EPOCH subscriptions counts from NOW())
+    """
+    # Resolve what subscription type the client's OWN invitees will receive.
+    # Uses subscriptions.ref_provided_sub_id — no magic numbers.
+    new_ref_sub_id: int | None = None
+    if provided_sub_id is not None:
+        new_ref_sub_id = await get_ref_provided_sub_id(provided_sub_id)
+
+    async with pool.acquire() as conn:
+        async with conn.transaction():
+            await conn.execute(
+                'UPDATE clients SET used_ref_promo_id = $1 WHERE id = $2;',
+                ref_promo_id, client_id)
+
+            if provided_sub_id is not None:
+                await conn.execute(
+                    'UPDATE clients_subscriptions SET sub_id = $1 WHERE client_id = $2;',
+                    provided_sub_id, client_id)
+                # Propagate inheritance: update the client's own referral promo so
+                # that people they invite in turn receive the correct subscription type.
+                await conn.execute(
+                    'UPDATE promocodes_ref SET provided_sub_id = $1 WHERE client_creator_id = $2;',
+                    new_ref_sub_id, client_id)
+
+            await conn.execute(
+                '''
+                UPDATE clients_subscriptions
+                SET expiration_date = CASE
+                    WHEN expiration_date <= CURRENT_TIMESTAMP
+                    THEN CURRENT_TIMESTAMP + $1
+                    ELSE expiration_date + $1
+                END
+                WHERE client_id = $2;
+                ''',
+                bonus_time, client_id)
 
 
 async def insert_configuration(client_id: int,
@@ -984,7 +1066,11 @@ async def insert_client_entered_local_promo(client_id: int, local_promo_id: int,
             await conn.execute(
                 '''
                 UPDATE clients_subscriptions
-                SET expiration_date = expiration_date + $1
+                SET expiration_date = CASE
+                    WHEN expiration_date <= CURRENT_TIMESTAMP
+                    THEN CURRENT_TIMESTAMP + $1
+                    ELSE expiration_date + $1
+                END
                 WHERE client_id = $2;
                 ''',
                 local_promo_bonus_time, client_id)
@@ -1012,7 +1098,11 @@ async def insert_client_entered_global_promo(client_id: int, global_promo_id: in
             await conn.execute(
                 '''
                 UPDATE clients_subscriptions
-                SET expiration_date = expiration_date + $1
+                SET expiration_date = CASE
+                    WHEN expiration_date <= CURRENT_TIMESTAMP
+                    THEN CURRENT_TIMESTAMP + $1
+                    ELSE expiration_date + $1
+                END
                 WHERE client_id = $2;
                 ''',
                 global_promo_bonus_time, client_id)
