@@ -76,12 +76,13 @@ config = ReplyKeyboardMarkup(
     ],
 )
 
+# LEGACY: pre-Remnawave config distribution keyboards, kept for edge cases (Stage 9)
 config_platform = ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[
         [
-            KeyboardButton(text=loc.unauth.btns['smartphone']),
-            KeyboardButton(text=loc.unauth.btns['pc']),
+            KeyboardButton(text="📱 Смартфон"),
+            KeyboardButton(text="💻 ПК"),
         ],
         [KeyboardButton(text=loc.auth.btns['return_to_configs_menu'])],
     ],
@@ -91,8 +92,8 @@ config_mobile_os = ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[
         [
-            KeyboardButton(text=loc.unauth.btns['android']),
-            KeyboardButton(text=loc.unauth.btns['ios']),
+            KeyboardButton(text="Android"),
+            KeyboardButton(text="IOS (iPhone)"),
         ],
         [KeyboardButton(text=loc.auth.btns['return_to_configs_menu'])],
     ],
@@ -102,9 +103,9 @@ config_desktop_os = ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[
         [
-            KeyboardButton(text=loc.unauth.btns['windows']),
-            KeyboardButton(text=loc.unauth.btns['macos']),
-            KeyboardButton(text=loc.unauth.btns['linux']),
+            KeyboardButton(text="Windows"),
+            KeyboardButton(text="macOS"),
+            KeyboardButton(text="Linux"),
         ],
         [KeyboardButton(text=loc.auth.btns['return_to_configs_menu'])],
     ],
@@ -114,9 +115,9 @@ config_chatgpt = ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[
         [
-            KeyboardButton(text=loc.unauth.btns['use_chatgpt']),
-            KeyboardButton(text=loc.unauth.btns['dont_use_chatgpt']),
-            KeyboardButton(text=loc.unauth.btns['what_is_chatgpt']),
+            KeyboardButton(text="Использую"),
+            KeyboardButton(text="Не использую"),
+            KeyboardButton(text="Что это?"),
         ],
         [KeyboardButton(text=loc.auth.btns['return_to_configs_menu'])],
     ],

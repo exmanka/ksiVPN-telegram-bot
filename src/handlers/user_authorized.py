@@ -496,11 +496,12 @@ async def account_configurations_request_fsm_start(message: Message, state: FSMC
     await message.answer(loc.auth.msgs['ask_three_questions'].format(configs_number, max_configs))
 
     await state.set_state(user_authorized_fsm.ConfigMenu.platform)
-    await message.answer(loc.unauth.msgs['choose_your_platform'], reply_markup=user_authorized_kb.config_platform)
+    await message.answer("<b>Выберите свою платформу</b>", reply_markup=user_authorized_kb.config_platform)
 
 
+# LEGACY: pre-Remnawave config distribution handlers, kept for edge cases (Stage 9)
 @router.message(
-    F.text.in_({loc.unauth.btns[key] for key in ('smartphone', 'pc')}),
+    F.text.in_({"📱 Смартфон", "💻 ПК"}),
     StateFilter(user_authorized_fsm.ConfigMenu.platform),
 )
 @user_authorized_mw.authorized_only()
@@ -508,16 +509,16 @@ async def account_configurations_request_platform(message: Message, state: FSMCo
     """Change account configurations request FSM state, save client's platform and request user's OS."""
     await state.update_data(platform=message.text)
 
-    if message.text == loc.unauth.btns['smartphone']:
-        await message.answer(loc.unauth.msgs['choose_your_os'], reply_markup=user_authorized_kb.config_mobile_os)
+    if message.text == "📱 Смартфон":
+        await message.answer("<b>Укажите операционную систему</b>", reply_markup=user_authorized_kb.config_mobile_os)
     else:
-        await message.answer(loc.unauth.msgs['choose_your_os'], reply_markup=user_authorized_kb.config_desktop_os)
+        await message.answer("<b>Укажите операционную систему</b>", reply_markup=user_authorized_kb.config_desktop_os)
 
     await state.set_state(user_authorized_fsm.ConfigMenu.os)
 
 
 @router.message(
-    F.text.in_({loc.unauth.btns[key] for key in ('android', 'ios', 'windows', 'macos', 'linux')}),
+    F.text.in_({"Android", "IOS (iPhone)", "Windows", "macOS", "Linux"}),
     StateFilter(user_authorized_fsm.ConfigMenu.os),
 )
 @user_authorized_mw.authorized_only()
@@ -526,21 +527,21 @@ async def account_configurations_request_os(message: Message, state: FSMContext)
     await state.update_data(os_name=message.text)
 
     await state.set_state(user_authorized_fsm.ConfigMenu.chatgpt)
-    await message.answer(loc.unauth.msgs['choose_chatgpt_option'], reply_markup=user_authorized_kb.config_chatgpt)
+    await message.answer("<b>Используете ли вы ChatGPT?</b>", reply_markup=user_authorized_kb.config_chatgpt)
 
 
 @router.message(
-    F.text.lower() == loc.unauth.btns['what_is_chatgpt'].lower(),
+    F.text.lower() == "что это?",
     StateFilter(user_authorized_fsm.ConfigMenu.chatgpt),
 )
 @user_authorized_mw.authorized_only()
 async def account_configurations_request_chatgpt_info(message: Message):
     """Send message with information about ChatGPT."""
-    await message.answer(loc.unauth.msgs['chatgpt_info'])
+    await message.answer("<b>ChatGPT</b> — нейронная сеть в виде чат-бота, способная отвечать на сложные вопросы и вести осмысленный диалог!")
 
 
 @router.message(
-    F.text.in_({loc.unauth.btns[key] for key in ('use_chatgpt', 'dont_use_chatgpt')}),
+    F.text.in_({"Использую", "Не использую"}),
     StateFilter(user_authorized_fsm.ConfigMenu.chatgpt),
 )
 @user_authorized_mw.authorized_only()

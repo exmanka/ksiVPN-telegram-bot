@@ -7,11 +7,13 @@ from aiogram.types import Message, ReplyKeyboardMarkup, InlineKeyboardMarkup
 from aiogram.fsm.context import FSMContext
 from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
 from aiogram.utils.media_group import MediaGroupBuilder
+from aiogram.types import User
 from src.keyboards import user_authorized_kb, admin_kb
 from src.states import user_authorized_fsm
 from src.database import postgres_dbms
 from src.services import aiomoney, localization as loc
 from src.services.date_formatting import format_localized_bonus_days, format_localized_datetime
+from src.services.remnawave_service import RemnawaveError, create_panel_user
 from src.config import settings
 from src.runtime import bot
 
@@ -249,6 +251,31 @@ async def send_configuration(telegram_id: int,
 
     else:
         raise Exception('wrong file type')
+
+
+async def _send_new_client_joined_to_admin(client_id: int,
+                                            fullname: str,
+                                            username: str | None,
+                                            telegram_id: int,
+                                            subscription_url: str | None,
+                                            promo: str | None) -> None:
+    """Send admin notification when a new client completes registration."""
+    username_str = await format_none_string(username, prefix=' @')
+
+    if promo is None:
+        ref_promo_str = loc.internal.msgs['config_request_new_client_no_ref_promo_str']
+    else:
+        _, client_creator_id, provided_sub_id, bonus_time = await postgres_dbms.get_refferal_promo_info_by_phrase(promo)
+        client_creator_name, client_creator_surname, client_creator_username, client_creator_telegram_id, *_ = await postgres_dbms.get_client_info_by_clientID(client_creator_id)
+        *_, price = await postgres_dbms.get_subscription_info_by_subID(provided_sub_id)
+        client_creator_surname_str = await format_none_string(client_creator_surname)
+        client_creator_username_str = await format_none_string(client_creator_username)
+        ref_promo_str = loc.internal.msgs['config_request_new_client_ref_promo_str'].\
+            format(promo, client_creator_name, client_creator_surname_str, client_creator_username_str, client_creator_telegram_id, format_localized_bonus_days(bonus_time), price)
+
+    sub_url_str = f'<code>{subscription_url}</code>' if subscription_url else '⚠️ ошибка создания пользователя в Remnawave'
+    await bot.send_message(settings.bot.admin_id,
+                           loc.internal.msgs['new_client_joined'].format(client_id, username_str, fullname, telegram_id, sub_url_str, ref_promo_str=ref_promo_str))
 
 
 async def send_configuration_request_to_admin(client: dict, choice: dict, is_new_client: bool):
@@ -565,27 +592,42 @@ async def autocheck_payment_status(payment_id: int) -> str:
     return 'failure'
 
 
-async def authorization_complete(message: Message, state: FSMContext):
-    """Complete authorization of new client: add client to db and send new client's configuration request to administrator.
+async def authorization_complete(from_user: User, state: FSMContext) -> None:
+    """Complete authorization of new client: insert into DB, provision in Remnawave, notify admin.
 
-    :param message:
+    :param from_user: Telegram User object (message.from_user or callback.from_user)
     :param state:
     """
     used_ref_promo_id = None
     provided_sub_id = None
     bonus_time = None
-    client = message.from_user
     data = await state.get_data()
 
-    # if new client entered referral promocode during registration
-    if phrase := data['promo']:
+    if phrase := data.get('promo'):
         used_ref_promo_id, _, provided_sub_id, bonus_time = await postgres_dbms.get_refferal_promo_info_by_phrase(phrase)
 
-    await postgres_dbms.insert_client(client.first_name, client.id, client.last_name, client.username, used_ref_promo_id, provided_sub_id, bonus_time)
-    await send_configuration_request_to_admin({'fullname': client.full_name, 'username': client.username, 'id': client.id}, data, is_new_client=True)
+    client_id = await postgres_dbms.insert_client(from_user.first_name, from_user.id, from_user.last_name, from_user.username, used_ref_promo_id, provided_sub_id, bonus_time)
+    expire_at = await postgres_dbms.get_subscription_expiration_date_by_clientID(client_id)
 
-    await message.answer(loc.internal.msgs['wait_for_admin_answer'], reply_markup=user_authorized_kb.menu)
-    await message.answer(loc.auth.msgs['i_wanna_sleep'])
+    subscription_url: str | None = None
+    try:
+        remnawave_uuid, subscription_url = await create_panel_user(from_user.id, from_user.username, expire_at)
+        await postgres_dbms.insert_client_remnawave(client_id, remnawave_uuid, subscription_url)
+    except RemnawaveError as exc:
+        logger.error("Failed to create Remnawave user for client_id=%s tg_id=%s: %s", client_id, from_user.id, exc)
+        await safe_deliver(
+            lambda: bot.send_message(settings.bot.admin_id, loc.internal.msgs['new_client_remnawave_error'].format(client_id, from_user.id)),
+            telegram_id=settings.bot.admin_id,
+        )
+
+    await _send_new_client_joined_to_admin(client_id, from_user.full_name, from_user.username, from_user.id, subscription_url, data.get('promo'))
+
+    if subscription_url:
+        welcome_text = loc.internal.msgs['registration_complete'].format(subscription_url)
+    else:
+        welcome_text = loc.internal.msgs['registration_complete_no_url']
+
+    await bot.send_message(from_user.id, welcome_text, reply_markup=user_authorized_kb.menu)
     await state.clear()
 
 
