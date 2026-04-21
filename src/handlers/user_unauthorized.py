@@ -51,10 +51,8 @@ async def authorization_promo_yes(message: Message, state: FSMContext):
         await internal_functions.notify_client_new_referal(client_creator_id, message.from_user.first_name, message.from_user.username)
 
         client_creator_name, *_ = await postgres_dbms.get_client_info_by_clientID(client_creator_id)
-        await message.answer(loc.unauth.msgs['ref_promo_accepted'].format(client_creator_name, format_localized_bonus_days(bonus_time)))
-
         _, title, _, price = await postgres_dbms.get_subscription_info_by_subID(provided_sub_id)
-        await message.answer(loc.unauth.msgs['sub_info'].format(title, price))
+        await message.answer(loc.unauth.msgs['ref_promo_accepted'].format(client_creator_name, format_localized_bonus_days(bonus_time), title, price))
 
         await internal_functions.authorization_complete(message.from_user, state)
 

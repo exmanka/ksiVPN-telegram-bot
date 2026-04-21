@@ -7,8 +7,10 @@ user_unauthorized:
       This way you will receive an invitee's subscription type, as well as a free trial period!
       
       If there is no promo code, click on the «<b>Skip</b>» button in the menu under the message entry line for the bot.
-    ref_promo_accepted: Wow! A promo code has been accepted from <b>client {0}</b>, giving <b>{1} days</b> of free subscription!
-    sub_info: 🌟 Connected <b>{0}</b> with <b>cost {1:g}</b>₽ per month.
+    ref_promo_accepted: |-
+      ✨ Wow! A promo code has been accepted from <b>client {0}</b>, giving <b>{1}</b> of free subscription!
+
+      Connected <b>{2}</b> with <b>cost {3:g}</b>₽ per month.
     invalid_promo: There is no such promo code! Try to enter it again
     need_renew_sub: ❗️ <b>To activate your subscription, you need to make the first payment</b>
   keyboard_buttons:
@@ -47,7 +49,7 @@ user_authorized:
     my_subscription_status_active: active 🔥
     my_subscription_status_inactive: deactivated 😒
     my_subscription_no_expiry: unlimited
-    my_subscription_url_pending: being set up 🔄
+    my_subscription_url_pending: being set up
     how_to_connect_subscription: |-
       📲 <b>How to connect?</b>
 
@@ -162,12 +164,12 @@ user_authorized:
     error_promo_already_entered: You have already entered this promo code earlier!
     error_promo_inaccessible: Unfortunately, you cannot use this special promo code 😪
     error_promo_not_exist: There is no such promo code! Try to enter it again
-    global_promo_accepted: ✨ Hooray! Promo code for <b>{0} days</b> free subscription accepted!
+    global_promo_accepted: ✨ Hooray! Promo code for <b>{0}</b> free subscription accepted!
     new_sub_str: |2-
 
 
       «<b>{0}</b>» — Your new subscription type with a cost of {1:g}₽ per month
-    loсal_promo_accepted: ✨ Hooray! Special promo code for <b>{0} days</b> free subscription accepted!{new_sub_str}
+    loсal_promo_accepted: ✨ Hooray! Special promo code for <b>{0}</b> free subscription accepted!{new_sub_str}
     ref_promo_str: |-
       <b>🕊 Used referral promo code</b>:
       <code>{0}</code> from client {1}.
@@ -175,13 +177,13 @@ user_authorized:
       <b>📣 Used public promo codes</b>:
       {global_promo_row_str}
     global_promo_row_str: |-
-      {0}. <code>{1}</code> for {2} days of subscription.
+      {0}. <code>{1}</code> for {2} of subscription.
       LED {3}.
     local_promos_str: |-
       <b>💎 Used special promo codes</b>:
       {local_promo_row_str}
     local_promo_row_str: |-
-      {0}. <code>{1}</code> for {2} days of subscription.
+      {0}. <code>{1}</code> for {2} of subscription.
       LED {3}.
     no_promo_entered: You have not entered any promo codes yet. Follow the news! 🚀
     config_was_received: ✨ <b>Hooray, the configuration is received!</b>
@@ -455,7 +457,7 @@ internal_functions:
       <b>Platform</b>: {7}
 
       <i>Created {8}, ID {9}</i>
-    new_client_joined_no_sub_url: ⚠️ error creating user in Remnawave
+    new_client_joined_no_sub_url: error creating user in Remnawave
     new_client_joined: |-
       👾 <b>New user registered!</b>
 
@@ -489,14 +491,14 @@ internal_functions:
       <b>Configuration</b>: {3}, {4}, {5} ChatGPT
       <b>Referral promo code</b>: {ref_promo_str}
     new_client_no_ref_promo_str: no promocode
-    new_client_ref_promo_str: <code>{0}</code> from client{3} <code>{1}{2}</code> <code>{4}</code> for {5} free days by subscription {6:g}₽/month.
+    new_client_ref_promo_str: <code>{0}</code> from client{3} <code>{1}{2}</code> <code>{4}</code> for free {5} by subscription {6:g}₽/month.
     admin_promo_was_entered_local_promo_new_sub_str: providing subscription for {0:g}₽/month,
     admin_promo_was_entered: |-
       👾 <b>A promo code has been entered!</b>
 
       <b>Client ID</b>: <code>{0}</code>
       <b>Telegram INFO</b>:{1} <code>{2}{3}</code> <code>{4}</code>
-      <b>About the promo code</b>: {5} with id {6} for {7} subscription days{new_sub_str} ending {8}
+      <b>About the promo code</b>: {5} with id {6} for {7} subscription{new_sub_str} ending {8}
     admin_successful_payment: |-
       👾 <b>Successful subscription renewal for {0} months!</b>
 
@@ -505,7 +507,7 @@ internal_functions:
     ref_promo_was_entered: |-
       Wow! User {0}{1} used your referral promo code when registering!
 
-      <b>After he pays for the subscription for the first time, you will receive {2} days of subscription for free!</b>
+      <b>After he pays for the subscription for the first time, you will receive {2} of subscription for free!</b>
     error_no_telegram_file_id: when trying to create a configuration, the telegram_file_id was not specified!
     error_bad_file_type: when trying to create a configuration, an invalid file_type was specified!
     error_bad_protocol: incorrect input of <b>protocol</b>
