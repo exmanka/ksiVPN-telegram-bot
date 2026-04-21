@@ -383,6 +383,7 @@ other:
 
       <b>If I do not perceive button clicks, reset my state using the /start command</b>
     project_info: Unlimited, fast and completely secure service that allows you to establish a VPN connection in various countries of the world through your own VPS for 200₽ per month.
+    service_info: Unlimited, fast and completely secure service that allows you to establish a VPN connection in various countries of the world through your own VPS for 200₽ per month.
     faq_info: |-
       💬 <b>How much does the subscription cost?</b>
       The cost of a basic subscription is 200rubles per month.
@@ -391,13 +392,13 @@ other:
       VPN connection at maximum speed with no traffic limit on all project servers. The number of VPN connections is also unlimited within reason! And additional bot functions will be available.
 
       💬 <b>How does the connection work?</b>
-      In the question-answer mode, the BOT learns the necessary information from you, sends instructions and configuration. You need to download the application from the official store (PlayMarket or App Store) and, following the instructions, add the configuration (usually you just need to scan the QR code).
+      Registration is done in one click — the bot will only ask for a referral promo code, which is not necessary to enter. Next, the bot will send a link to the subscription with detailed instructions. You will need to download the app from the official store (PlayMarket or App Store) and add a subscription by simply clicking on the link from the instructions.
 
       💬 <b>Is the subscription price fixed?</b>
       No, the cost of a subscription depends on its type, there are several of them. For example, a discounted subscription is available to testers and some others. The final subscription price will be displayed after entering the referral promo code.
 
       💬 <b>Are ChatGPT-type services available with this VPN?</b>
-      Always available! Do not forget to specify their use when answering the bot's questions when creating the configuration.
+      Of course they are available! Moreover, some locations allow you to bypass even extremely strict site restrictions — from such servers you can access Gemini registration, view Reddit without logging into your account, and so on.
 
       💬 <b>Which operating systems are supported?</b>
       The service is available on all possible operating systems, including Android, iOS, Windows, macOS, Linux.

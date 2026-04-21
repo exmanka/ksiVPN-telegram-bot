@@ -23,7 +23,7 @@ async def command_start(message: Message, state: FSMContext):
         await internal_functions.send_photo_safely(message.from_user.id,
                                                    telegram_file_id=loc.other.tfids['hello_message'],
                                                    caption=loc.other.msgs['hello_message'],
-                                                   reply_markup=other_kb.faq_inline)
+                                                   reply_markup=other_kb.faq_channel_inline)
 
         # reset FSM state and show welcome keyboard
         await state.clear()
@@ -42,31 +42,47 @@ async def command_help(message: Message):
     """Send message with information about provided help (works in any FSM state)."""
     await internal_functions.send_photo_safely(message.from_user.id,
                                                telegram_file_id=loc.other.tfids['help'],
-                                               caption=loc.other.msgs['help'])
+                                               caption=loc.other.msgs['help'],
+                                               reply_markup=other_kb.faq_inline)
 
     # if client needs to renew subscription before receiving his first configuration
     await internal_functions.notify_client_if_subscription_must_be_renewed_to_receive_configuration(message.from_user.id)
 
 
 @global_router.message(F.text.lower() == loc.other.btns['about_project'].lower())
-@global_router.message(F.text.lower() == loc.other.btns['about_service'].lower())
 async def show_project_info(message: Message):
     """Send message with information about project (works in any FSM state)."""
     # use safe sending in case new bot tries to send photo using ksiVPN's bot file_id
     await internal_functions.send_photo_safely(message.from_user.id,
                                                telegram_file_id=loc.other.tfids['project_info'],
                                                caption=loc.other.msgs['project_info'],
-                                               reply_markup=other_kb.faq_inline)
+                                               reply_markup=other_kb.faq_channel_inline)
+
+
+@global_router.message(F.text.lower() == loc.other.btns['about_service'].lower())
+async def show_service_info(message: Message):
+    """Send message with information about project (works in any FSM state)."""
+    # use safe sending in case new bot tries to send photo using ksiVPN's bot file_id
+    await internal_functions.send_photo_safely(message.from_user.id,
+                                               telegram_file_id=loc.other.tfids['project_info'],
+                                               caption=loc.other.msgs['service_info'],
+                                               reply_markup=other_kb.channel_inline)
     # if client is registered
     if await postgres_dbms.is_user_registered(message.from_user.id):
         await message.answer(loc.other.msgs['special_thanks'])
 
 
 @router.callback_query(F.data == loc.other.btns['faq_inline_callback'])
-async def show_faq(call: CallbackQuery):
+async def show_faq_callback(call: CallbackQuery):
     """Send message with F.A.Q. information."""
     await call.message.answer(loc.other.msgs['faq_info'])
     await call.answer()
+
+
+@global_router.message(Command(commands=['faq']))
+async def show_faq_message(message: Message):
+    """Send message with F.A.Q. information."""
+    await message.answer(loc.other.msgs['faq_info'])
 
 
 @router.message()
