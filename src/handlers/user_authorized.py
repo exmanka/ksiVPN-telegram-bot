@@ -578,10 +578,9 @@ async def configuration_instruction(call: CallbackQuery):
 ))
 @user_authorized_mw.authorized_only()
 @user_authorized_mw.nonblank_subscription_only()
-async def configuration_advanced_instruction(call: CallbackQuery):
+async def configuration_advanced_instruction(message: Message):
     """Send message with Remnawave subscription migration."""
-    await call.message.answer(loc.auth.msgs['basic_instructions'])
-    await call.answer()
+    await message.answer(loc.auth.msgs['basic_instructions'])
 
 
 @router.message(F.text == loc.auth.btns['rules'])
