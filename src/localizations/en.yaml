@@ -468,7 +468,7 @@ internal_functions:
       <b>Subscription URL</b>: {4}
       <b>Referral promo code</b>: {ref_promo_str}
     new_client_remnawave_error: |-
-      ⚠️ <b>Error creating a client in Remnawave/b>
+      ⚠️ <b>Error creating a client in Remnawave</b>
 
       The client is registered in the database, but not created in Remnawave. Manual registration is required!
     registration_complete: |-
