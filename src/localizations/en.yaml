@@ -29,6 +29,30 @@ user_authorized:
 
       ❌ <b>Violation of rules 1-2 may result in immediate blocking of the user.</b>
     sub_isnt_active: The subscription has not been activated yet, as the administrator has not yet sent the configuration! Don't worry, the subscription expiration time report will start only after you receive it!
+    my_subscription_url_intro: |-
+      🔗 <b>Your subscription link:</b>
+
+      <code>{0}</code>
+
+      Import this link into any Sing-Box compatible app (Happ, Hiddify, Streisand, v2rayNG, etc.).
+    my_subscription_no_remnawave: |-
+      ⚠️ Your subscription is not yet connected to the new management system. Please contact the administrator.
+    how_to_connect_subscription: |-
+      📲 <b>How to connect?</b>
+
+      Choose an app for your device and copy the link from the "My Subscription" section.
+
+      <b>📱 Android</b>
+      App: <b>Happ</b> (<a href="https://play.google.com/store/apps/details?id=io.happ.vpn">Google Play</a>) or <b>Hiddify</b> (<a href="https://play.google.com/store/apps/details?id=app.hiddify.com">Google Play</a>)
+      Tap «+» → «Add by URL» → paste the link.
+
+      <b>🍎 iOS / iPhone</b>
+      App: <b>Happ</b> (<a href="https://apps.apple.com/app/happ-proxy-utility/id6504287215">App Store</a>) or <b>Streisand</b> (<a href="https://apps.apple.com/app/streisand/id6450534064">App Store</a>)
+      Tap «+» → «Add by URL» → paste the link.
+
+      <b>🖥 Windows / macOS / Linux</b>
+      App: <b>Hiddify</b> (<a href="https://hiddify.com">hiddify.com</a>)
+      Tap «+» → «Add subscription» → paste the link.
     sub_active: 🔥 <b>The subscription is active!</b>
     sub_is_free: 🔥 <b>The subscription is active forever!</b>
     sub_inactive: 😒 <b>The subscription has been deactivated!</b>
@@ -327,7 +351,9 @@ user_authorized:
         linux: Coming soon!
   keyboard_buttons:
     sub_renewal: ❤️‍🔥 Renew subscription!
+    my_subscription: 🔥 My subscription
     sub_status: Subscription status
+    how_to_connect: How to connect?
     smartphone: 📱 Smartphone
     pc: 💻 PC
     android: Android

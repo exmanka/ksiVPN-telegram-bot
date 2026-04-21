@@ -9,7 +9,7 @@ menu = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text=loc.auth.btns['sub_renewal'])],
         [
-            KeyboardButton(text=loc.auth.btns['sub_status']),
+            KeyboardButton(text=loc.auth.btns['my_subscription']),
             KeyboardButton(text=loc.auth.btns['personal_account']),
         ],
         [
@@ -52,29 +52,18 @@ account = ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[
         [KeyboardButton(text=loc.auth.btns['ref_program'])],
-        [
-            KeyboardButton(text=loc.auth.btns['configs']),
-            KeyboardButton(text=loc.auth.btns['promo']),
-        ],
+        [KeyboardButton(text=loc.auth.btns['promo'])],
         [
             KeyboardButton(text=loc.auth.btns['about_client']),
-            KeyboardButton(text=loc.auth.btns['about_sub']),
             KeyboardButton(text=loc.auth.btns['settings']),
         ],
         [KeyboardButton(text=loc.auth.btns['return_main_menu'])],
     ],
 )
 
-config = ReplyKeyboardMarkup(
-    resize_keyboard=True,
-    keyboard=[
-        [
-            KeyboardButton(text=loc.auth.btns['current_configs']),
-            KeyboardButton(text=loc.auth.btns['request_config']),
-        ],
-        [KeyboardButton(text=loc.auth.btns['return_to_account_menu_1'])],
-    ],
-)
+my_subscription_inline = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text=loc.auth.btns['how_to_connect'], callback_data='subscription_how_to_connect')],
+])
 
 # LEGACY: pre-Remnawave config distribution keyboards, kept for edge cases (Stage 9)
 config_platform = ReplyKeyboardMarkup(

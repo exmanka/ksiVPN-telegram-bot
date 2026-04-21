@@ -29,6 +29,30 @@ user_authorized:
 
       ❌ <b>Нарушение правил 1-2 может привести к незамедлительной блокировке пользователя.</b>
     sub_isnt_active: Подписка еще не активирована, так как администратор пока что не прислал конфигурацию! Не переживайте, отчет времени истечения подписки начнется только после ее получения!
+    my_subscription_url_intro: |-
+      🔗 <b>Ваша ссылка на подписку:</b>
+
+      <code>{0}</code>
+
+      Импортируйте эту ссылку в любое приложение с поддержкой Sing-Box (Happ, Hiddify, Streisand, v2rayNG и др.).
+    my_subscription_no_remnawave: |-
+      ⚠️ Ваша подписка ещё не подключена к новой системе управления. Пожалуйста, обратитесь к администратору.
+    how_to_connect_subscription: |-
+      📲 <b>Как подключить подписку?</b>
+
+      Выберите приложение для вашего устройства и скопируйте ссылку из раздела «Моя подписка».
+
+      <b>📱 Android</b>
+      Приложение: <b>Happ</b> (<a href="https://play.google.com/store/apps/details?id=io.happ.vpn">Google Play</a>) или <b>Hiddify</b> (<a href="https://play.google.com/store/apps/details?id=app.hiddify.com">Google Play</a>)
+      Нажмите «+» → «Добавить по ссылке» → вставьте ссылку.
+
+      <b>🍎 iOS / iPhone</b>
+      Приложение: <b>Happ</b> (<a href="https://apps.apple.com/app/happ-proxy-utility/id6504287215">App Store</a>) или <b>Streisand</b> (<a href="https://apps.apple.com/app/streisand/id6450534064">App Store</a>)
+      Нажмите «+» → «Добавить по ссылке» → вставьте ссылку.
+
+      <b>🖥 Windows / macOS / Linux</b>
+      Приложение: <b>Hiddify</b> (<a href="https://hiddify.com">hiddify.com</a>)
+      Нажмите «+» → «Добавить подписку» → вставьте ссылку.
     sub_is_free: 🔥 <b>Подписка активна вечно!</b>
     sub_active: 🔥 <b>Подписка активна!</b>
     sub_inactive: 😒 <b>Подписка деактивирована!</b>
@@ -427,7 +451,9 @@ user_authorized:
           Ожидайте обновления!
   keyboard_buttons:
     sub_renewal: ❤️‍🔥 Продлить подписку!
+    my_subscription: 🔥 Моя подписка
     sub_status: Статус подписки
+    how_to_connect: Как подключить подписку?
     smartphone: 📱 Смартфон
     pc: 💻 ПК
     android: Android
