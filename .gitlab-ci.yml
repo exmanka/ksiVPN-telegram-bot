@@ -85,6 +85,7 @@ include:
         GITLAB_TGBOT_PROXY_URL=ksivpn-kv2-test/data/tgbot/bot/proxy,url
         GITLAB_TGBOT_YOOMONEY_TOKEN=ksivpn-kv2-test/data/tgbot/yoomoney/credentials,token
         GITLAB_TGBOT_YOOMONEY_ACCOUNT=ksivpn-kv2-test/data/tgbot/yoomoney/credentials,account
+        GITLAB_TGBOT_REMNAWAVE_TOKEN=ksivpn-kv2-test/data/tgbot/remnawave/credentials,token
       vault-jwt-role: gitlab.ksivpn.tgbot.test
       job-name: deploy-test
       job-stage: deploy:test
@@ -100,7 +101,7 @@ include:
   - component: ${CI_SERVER_FQDN}/${CICD_CATALOG_PATH}/docker-cd/compose-ssh@1.1.1
     inputs:
       docker-compose-flags: --env-file .env --env-file .env.gitlab
-      docker-compose-down-flags: ${GITLAB_DCD_FLAGS}
+      docker-compose-down-flags: ""
       ssh-host: ${GITLAB_SSH_IP}
       ssh-port: ${GITLAB_SSH_PORT}
       ssh-username: ${GITLAB_SSH_USER}
@@ -125,6 +126,7 @@ include:
         GITLAB_TGBOT_ADMIN_ID=$GITLAB_TGBOT_ADMIN_ID
         GITLAB_TGBOT_BACKUP_PATH=$GITLAB_TGBOT_BACKUP_PATH
         GITLAB_TGBOT_LOCALIZATION_LANGUAGE=$GITLAB_TGBOT_LOCALIZATION_LANGUAGE
+        GITLAB_TGBOT_REMNAWAVE_TOKEN=$GITLAB_TGBOT_REMNAWAVE_TOKEN
       vault-enabled: true
       vault-address: ${VAULT_URL}
       vault-secrets: |-
@@ -135,6 +137,7 @@ include:
         GITLAB_TGBOT_PROXY_URL=ksivpn-kv2-prod/data/tgbot/bot/proxy,url
         GITLAB_TGBOT_YOOMONEY_TOKEN=ksivpn-kv2-prod/data/tgbot/yoomoney/credentials,token
         GITLAB_TGBOT_YOOMONEY_ACCOUNT=ksivpn-kv2-prod/data/tgbot/yoomoney/credentials,account
+        GITLAB_TGBOT_REMNAWAVE_TOKEN=ksivpn-kv2-prod/data/tgbot/remnawave/credentials,token
       vault-jwt-role: gitlab.ksivpn.tgbot.prod
       job-name: deploy-prod
       job-stage: deploy:prod

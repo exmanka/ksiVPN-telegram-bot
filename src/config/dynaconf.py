@@ -40,6 +40,16 @@ dynaconf_settings = Dynaconf(
         Validator("localization.language", must_exist=True, is_type_of=str),
         Validator("backup.path", default="/home/ksivpn-tgbot/backups", is_type_of=str),
         Validator("tz", default="UTC", is_type_of=str),
+
+        Validator(
+            "remnawave.base_url",
+            must_exist=True,
+            is_type_of=str,
+            condition=lambda v: isinstance(v, str) and v.startswith(("http://", "https://")),
+            messages={"condition": "remnawave.base_url must start with http:// or https://"},
+        ),
+        Validator("remnawave.token", must_exist=True, is_type_of=str, len_min=10),
+        Validator("remnawave.caddy_token", default=None),
     ],
 )
 

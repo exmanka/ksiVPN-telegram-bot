@@ -27,29 +27,72 @@ async def _safe_delete_message(chat_id: int, message_id: int) -> None:
         pass
 
 
-@router.message(F.text == loc.auth.btns['sub_status'])
+@router.message(F.text == loc.auth.btns['my_subscription'])
 @user_authorized_mw.authorized_only()
-async def subscription_status(message: Message):
-    """Send message with subscription status."""
-    # if admin hasn't still sent client's first configuration
-    if await postgres_dbms.is_subscription_not_started(message.from_user.id):
-        # if client needs to renew subscription before receiving his first configuration
-        await internal_functions.notify_client_if_subscription_must_be_renewed_to_receive_configuration(message.from_user.id)
+async def my_subscription(message: Message):
+    """Send unified subscription info card with how-to-connect and how-to-renew buttons."""
+    telegram_id = message.from_user.id
+    client_id = await postgres_dbms.get_clientID_by_telegramID(telegram_id)
 
-        await message.answer(loc.auth.msgs['sub_isnt_active'])
-        return
-
-    elif await postgres_dbms.is_subscription_free(message.from_user.id):
-        await message.answer(loc.auth.msgs['sub_is_free'])
-        return
-
-    elif await postgres_dbms.is_subscription_active(message.from_user.id):
-        await message.answer(loc.auth.msgs['sub_active'])
-
+    # Determine status and expiry line.
+    # Priority: blank (EPOCH) → free → active → inactive/expired.
+    # blank and free subscriptions carry no expiry line.
+    if await postgres_dbms.is_subscription_blank(telegram_id):
+        status = loc.auth.msgs['my_subscription_status_blank']
+        expiry = ''
+        await message.answer(loc.unauth.msgs['need_renew_sub'])
+    elif await postgres_dbms.is_subscription_free(telegram_id):
+        status = loc.auth.msgs['my_subscription_status_free']
+        expiry = ''
+    elif await postgres_dbms.is_subscription_active(telegram_id):
+        status = loc.auth.msgs['my_subscription_status_active']
+        expiration_date = await postgres_dbms.get_subscription_expiration_date(telegram_id)
+        expiry = loc.auth.msgs['my_subscription_expiry_line_active'].format(
+            format_localized_datetime(expiration_date)) if expiration_date else ''
     else:
-        await message.answer(loc.auth.msgs['sub_inactive'])
+        status = loc.auth.msgs['my_subscription_status_inactive']
+        expiration_date = await postgres_dbms.get_subscription_expiration_date(telegram_id)
+        expiry = loc.auth.msgs['my_subscription_expiry_line_inactive'].format(
+            format_localized_datetime(expiration_date)) if expiration_date else ''
 
-    await message.answer(loc.auth.msgs['sub_expiration_date'].format(format_localized_datetime(await postgres_dbms.get_subscription_expiration_date(message.from_user.id))))
+    _, title, description, price = await postgres_dbms.get_subscription_info_by_clientID(client_id)
+
+    subscription_url = await postgres_dbms.get_client_remnawave_subscription_url_by_telegramID(telegram_id)
+    url = subscription_url or loc.auth.msgs['my_subscription_url_pending']
+
+    await message.answer(
+        loc.auth.msgs['my_subscription'].format(
+            status=status, expiry=expiry, url=url,
+            title=title, description=description, price=price,
+        ),
+        reply_markup=user_authorized_kb.my_subscription_inline,
+    )
+
+
+@router.callback_query(F.data == 'subscription_how_to_connect')
+@user_authorized_mw.authorized_only()
+async def subscription_how_to_connect(callback: CallbackQuery):
+    """Send instructions on how to connect the subscription."""
+    await callback.answer()
+    await callback.message.answer(loc.auth.msgs['how_to_connect_subscription'])
+
+
+@router.callback_query(F.data == 'subscription_how_to_renew')
+@user_authorized_mw.authorized_only()
+async def subscription_how_to_renew(callback: CallbackQuery):
+    """Send instructions on how to renew/pay for the subscription."""
+    await callback.answer()
+    await callback.message.answer(
+        loc.auth.msgs['how_to_renew_subscription'].format(loc.auth.btns['sub_renewal'])
+    )
+
+
+@router.callback_query(F.data == 'subscription_location_types')
+@user_authorized_mw.authorized_only()
+async def subscription_location_types(callback: CallbackQuery):
+    """Send explanation of Fast, Breach and Access+ location types."""
+    await callback.answer()
+    await callback.message.answer(loc.auth.msgs['location_types_info'])
 
 
 @router.message(
@@ -197,31 +240,19 @@ async def account_client_info(message: Message):
 
     surname_str = ''
     if surname is not None:
-        surname_str = loc.auth.msgs['client_info_surname_str'].format(surname)
+        surname_str = loc.auth.msgs['client_info_surname_str'].format(surname) + '\n'
 
     username_str = ''
     if username is not None:
-        username_str = loc.auth.msgs['client_info_username_str'].format(username)
+        username_str = loc.auth.msgs['client_info_username_str'].format(username) + '\n'
 
     await message.answer(loc.auth.msgs['client_info'].format(name, message.from_user.id, format_localized_datetime(register_date), surname_str=surname_str, username_str=username_str))
-
-
-@router.message(
-    F.text == loc.auth.btns['about_sub'],
-    StateFilter(user_authorized_fsm.AccountMenu.menu),
-)
-@user_authorized_mw.authorized_only()
-async def account_subscription_info(message: Message):
-    """Send message with information about client's subscription."""
-    _, title, description, price = await postgres_dbms.get_subscription_info_by_clientID(await postgres_dbms.get_clientID_by_telegramID(message.from_user.id))
-    await message.answer(loc.auth.msgs['subscription_info'].format(title, description, price))
 
 
 @router.message(
     F.text == loc.auth.btns['return_to_account_menu_1'],
     StateFilter(
         None,
-        user_authorized_fsm.AccountMenu.configs,
         user_authorized_fsm.AccountMenu.ref_program,
         user_authorized_fsm.AccountMenu.settings,
     ),
@@ -257,26 +288,11 @@ async def account_ref_program_fsm_start(message: Message, state: FSMContext):
     StateFilter(user_authorized_fsm.AccountMenu.menu),
 )
 @user_authorized_mw.authorized_only()
-@user_authorized_mw.nonblank_subscription_only()
 async def account_promo_fsm_start(message: Message, state: FSMContext):
     """Start FSM for account promocodes menu and show account promocodes menu keyboard."""
     await state.set_state(user_authorized_fsm.AccountMenu.promo)
     await message.answer(loc.auth.msgs['go_promo_menu'], reply_markup=user_authorized_kb.promo)
     await message.answer(loc.auth.msgs['enter_promo'])
-
-
-@router.message(
-    F.text == loc.auth.btns['configs'],
-    StateFilter(user_authorized_fsm.AccountMenu.menu),
-)
-@user_authorized_mw.authorized_only()
-@user_authorized_mw.nonblank_subscription_only()
-async def account_configurations_fsm_start(message: Message, state: FSMContext):
-    """Start FSM for account configurations menu and show account configurations menu keyboard."""
-    await internal_functions.notify_client_if_subscription_must_be_renewed_to_receive_configuration(message.from_user.id)
-
-    await state.set_state(user_authorized_fsm.AccountMenu.configs)
-    await message.answer(loc.auth.msgs['go_config_menu'], reply_markup=user_authorized_kb.config)
 
 
 @router.message(
@@ -312,7 +328,7 @@ async def account_ref_program_info(message: Message):
         invited_str = ''
         for idx, (name, username) in enumerate(who_was_invited_by_client):
             username_str = await internal_functions.format_none_string(username)
-            invited_str += loc.auth.msgs['who_was_invited_str'].format(idx + 1, name, username_str)
+            invited_str += loc.auth.msgs['who_was_invited_str'].format(idx + 1, name, username_str) + '\n'
 
         await message.answer(loc.auth.msgs['who_was_invited'].format(invited_str=invited_str))
     else:
@@ -349,49 +365,80 @@ async def account_ref_program_promocode(message: Message):
     StateFilter(user_authorized_fsm.AccountMenu.promo),
 )
 @user_authorized_mw.authorized_only()
-@user_authorized_mw.nonblank_subscription_only()
 async def account_promo_info(message: Message):
     """Send message with information about entered by client promocodes."""
     ref_promos, global_promos, local_promos = await postgres_dbms.get_client_entered_promos(await postgres_dbms.get_clientID_by_telegramID(message.from_user.id))
 
+    has_entered_promos = False
     ref_promo_str = ''
     if ref_promos:
         ref_promo_phrase, client_creator_name = ref_promos
-        ref_promo_str = loc.auth.msgs['ref_promo_str'].format(ref_promo_phrase, client_creator_name)
+        ref_promo_str = loc.auth.msgs['ref_promo_str'].format(ref_promo_phrase, client_creator_name) + '\n\n'
+        has_entered_promos = True
 
     global_promos_str = ''
     if global_promos:
         global_promo_row_str = ''
         for idx, (global_promo_phrase, bonus_time, date_of_entry) in enumerate(global_promos):
-            global_promo_row_str += loc.auth.msgs['global_promo_row_str'].format(idx + 1, global_promo_phrase, format_localized_bonus_days(bonus_time), format_localized_datetime(date_of_entry))
-        global_promos_str = loc.auth.msgs['global_promos_str'].format(global_promo_row_str=global_promo_row_str)
+            global_promo_row_str += loc.auth.msgs['global_promo_row_str'].format(idx + 1, global_promo_phrase, format_localized_bonus_days(bonus_time), format_localized_datetime(date_of_entry)) + '\n'
+        global_promos_str = loc.auth.msgs['global_promos_str'].format(global_promo_row_str=global_promo_row_str) + '\n\n'
+        has_entered_promos = True
 
     local_promos_str = ''
     if local_promos:
         local_promo_row_str = ''
         for idx, (local_promo_phrase, bonus_time, date_of_entry) in enumerate(local_promos):
-            local_promo_row_str += loc.auth.msgs['local_promo_row_str'].format(idx + 1, local_promo_phrase, format_localized_bonus_days(bonus_time), format_localized_datetime(date_of_entry))
-        local_promos_str = loc.auth.msgs['local_promos_str'].format(local_promo_row_str=local_promo_row_str)
+            local_promo_row_str += loc.auth.msgs['local_promo_row_str'].format(idx + 1, local_promo_phrase, format_localized_bonus_days(bonus_time), format_localized_datetime(date_of_entry)) + '\n'
+        local_promos_str = loc.auth.msgs['local_promos_str'].format(local_promo_row_str=local_promo_row_str) + '\n\n'
+        has_entered_promos = True
 
-    if ref_promo_str + global_promos_str + local_promos_str == '':
-        await message.answer(loc.auth.msgs['no_promo_entered'])
-    else:
+    if has_entered_promos:
         await message.answer(ref_promo_str + global_promos_str + local_promos_str)
+    else:
+        await message.answer(loc.auth.msgs['no_promo_entered'])
 
 
 @router.message(StateFilter(user_authorized_fsm.AccountMenu.promo))
 @user_authorized_mw.authorized_only()
-@user_authorized_mw.nonblank_subscription_only()
 async def account_promo_check(message: Message, state: FSMContext):
     """Check entered promocode is valid, send information about successfuly entered promocode, update subscription period for client.
 
     If specified promocode is local promocode, it can also change subscription type for client.
+    Referral promocodes are accepted within 7 days of registration for clients who haven't used one yet.
     """
+    client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
+
     if await postgres_dbms.is_referral_promo(message.text):
-        await message.answer(loc.auth.msgs['error_promo_entered_ref_code'])
+        # Referral promos are only accepted within 7 days of registration and only once.
+        if not await postgres_dbms.can_enter_ref_promo_as_authorized(client_id):
+            await message.answer(loc.auth.msgs['error_promo_entered_ref_code'])
+            return
+
+        ref_promo_info = await postgres_dbms.get_refferal_promo_info_by_phrase(message.text)
+        if not ref_promo_info:
+            await message.answer(loc.auth.msgs['error_promo_not_exist'])
+            return
+
+        ref_promo_id, client_creator_id, provided_sub_id, bonus_time = ref_promo_info
+
+        if client_creator_id == client_id:
+            await message.answer(loc.auth.msgs['error_promo_own_ref_code'])
+            return
+
+        await postgres_dbms.apply_ref_promo_to_existing_client(client_id, ref_promo_id, provided_sub_id, bonus_time)
+        await internal_functions.notify_client_new_referal(client_creator_id, message.from_user.first_name, message.from_user.username)
+        await internal_functions.notify_admin_promo_entered(client_id, message.text, 'ref')
+        await internal_functions.extend_remnawave_expiry_for_client(client_id)
+
+        creator_name, *_ = await postgres_dbms.get_client_info_by_clientID(client_creator_id)
+        _, title, _, price = await postgres_dbms.get_subscription_info_by_clientID(client_id)
+        await message.answer(
+            loc.auth.msgs['ref_promo_accepted'].format(creator_name, format_localized_bonus_days(bonus_time), title, price),
+            reply_markup=user_authorized_kb.account,
+        )
+        await state.set_state(user_authorized_fsm.AccountMenu.menu)
         return
 
-    client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
     global_promo_info = await postgres_dbms.get_global_promo_info(message.text)
     local_promo_info = await postgres_dbms.get_local_promo_info(message.text)
 
@@ -403,6 +450,7 @@ async def account_promo_check(message: Message, state: FSMContext):
                 if await postgres_dbms.is_global_promo_has_remaining_activations(global_promo_id):
                     await postgres_dbms.insert_client_entered_global_promo(client_id, global_promo_id, bonus_time)
                     await internal_functions.notify_admin_promo_entered(client_id, message.text, 'global')
+                    await internal_functions.extend_remnawave_expiry_for_client(client_id)
                     await message.answer(loc.auth.msgs['global_promo_accepted'].format(format_localized_bonus_days(bonus_time)), reply_markup=user_authorized_kb.account)
                     await state.set_state(user_authorized_fsm.AccountMenu.menu)
                 else:
@@ -420,6 +468,7 @@ async def account_promo_check(message: Message, state: FSMContext):
                 if await postgres_dbms.is_local_promo_valid(local_promo_id):
                     await postgres_dbms.insert_client_entered_local_promo(client_id, local_promo_id, bonus_time)
                     await internal_functions.notify_admin_promo_entered(client_id, message.text, 'local')
+                    await internal_functions.extend_remnawave_expiry_for_client(client_id)
 
                     new_sub_str = ''
                     if provided_sub_id:
@@ -437,128 +486,6 @@ async def account_promo_check(message: Message, state: FSMContext):
             await message.answer(loc.auth.msgs['error_promo_inaccessible'])
     else:
         await message.answer(loc.auth.msgs['error_promo_not_exist'])
-
-
-@router.message(
-    F.text == loc.auth.btns['current_configs'],
-    StateFilter(user_authorized_fsm.AccountMenu.configs),
-)
-@user_authorized_mw.authorized_only()
-@user_authorized_mw.nonblank_subscription_only()
-async def account_configurations_info(message: Message):
-    """Send messages with all client's available configurations."""
-    configurations_info = await postgres_dbms.get_configurations_info(await postgres_dbms.get_clientID_by_telegramID(message.from_user.id))
-    await message.answer(loc.auth.msgs['configs_info'].format(len(configurations_info)))
-
-    for file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name in configurations_info:
-        await internal_functions.send_configuration(message.from_user.id, file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name)
-
-    await message.answer(loc.auth.msgs['configs_rules'])
-
-
-@router.message(
-    F.text == loc.auth.btns['return_to_configs_menu'],
-    StateFilter(
-        None,
-        user_authorized_fsm.ConfigMenu.platform,
-        user_authorized_fsm.ConfigMenu.os,
-        user_authorized_fsm.ConfigMenu.chatgpt,
-    ),
-)
-@user_authorized_mw.authorized_only()
-async def account_configurations_submenu_fsm_cancel(message: Message, state: FSMContext):
-    """Cancel FSM state for account configurations submenu and return to account configurations menu keyboard."""
-    await state.set_state(user_authorized_fsm.AccountMenu.configs)
-    await message.answer(loc.auth.msgs['return_to_configs_menu'], reply_markup=user_authorized_kb.config)
-
-
-@router.message(
-    F.text == loc.auth.btns['request_config'],
-    StateFilter(user_authorized_fsm.AccountMenu.configs),
-)
-@user_authorized_mw.authorized_only()
-@user_authorized_mw.nonblank_subscription_only()
-async def account_configurations_request_fsm_start(message: Message, state: FSMContext):
-    """Start FSM for account configurations request menu, show account configurations request keyboard and request client's platform."""
-    if not await postgres_dbms.is_subscription_active(message.from_user.id) \
-            and not await postgres_dbms.is_subscription_free(message.from_user.id):
-        await message.answer(loc.auth.msgs['cant_request_config'])
-        return
-
-    client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
-    configs_number = await postgres_dbms.get_configurations_number(client_id)
-    max_configs = await postgres_dbms.get_max_configurations_by_telegramID(message.from_user.id)
-
-    if configs_number >= max_configs:
-        await message.answer(loc.auth.msgs['configs_limit_reached'].format(configs_number, max_configs))
-        return
-
-    await message.answer(loc.auth.msgs['ask_three_questions'].format(configs_number, max_configs))
-
-    await state.set_state(user_authorized_fsm.ConfigMenu.platform)
-    await message.answer(loc.unauth.msgs['choose_your_platform'], reply_markup=user_authorized_kb.config_platform)
-
-
-@router.message(
-    F.text.in_({loc.unauth.btns[key] for key in ('smartphone', 'pc')}),
-    StateFilter(user_authorized_fsm.ConfigMenu.platform),
-)
-@user_authorized_mw.authorized_only()
-async def account_configurations_request_platform(message: Message, state: FSMContext):
-    """Change account configurations request FSM state, save client's platform and request user's OS."""
-    await state.update_data(platform=message.text)
-
-    if message.text == loc.unauth.btns['smartphone']:
-        await message.answer(loc.unauth.msgs['choose_your_os'], reply_markup=user_authorized_kb.config_mobile_os)
-    else:
-        await message.answer(loc.unauth.msgs['choose_your_os'], reply_markup=user_authorized_kb.config_desktop_os)
-
-    await state.set_state(user_authorized_fsm.ConfigMenu.os)
-
-
-@router.message(
-    F.text.in_({loc.unauth.btns[key] for key in ('android', 'ios', 'windows', 'macos', 'linux')}),
-    StateFilter(user_authorized_fsm.ConfigMenu.os),
-)
-@user_authorized_mw.authorized_only()
-async def account_configurations_request_os(message: Message, state: FSMContext):
-    """Change account configurations request FSM state, save client's OS and request client's ChatGPT option."""
-    await state.update_data(os_name=message.text)
-
-    await state.set_state(user_authorized_fsm.ConfigMenu.chatgpt)
-    await message.answer(loc.unauth.msgs['choose_chatgpt_option'], reply_markup=user_authorized_kb.config_chatgpt)
-
-
-@router.message(
-    F.text.lower() == loc.unauth.btns['what_is_chatgpt'].lower(),
-    StateFilter(user_authorized_fsm.ConfigMenu.chatgpt),
-)
-@user_authorized_mw.authorized_only()
-async def account_configurations_request_chatgpt_info(message: Message):
-    """Send message with information about ChatGPT."""
-    await message.answer(loc.unauth.msgs['chatgpt_info'])
-
-
-@router.message(
-    F.text.in_({loc.unauth.btns[key] for key in ('use_chatgpt', 'dont_use_chatgpt')}),
-    StateFilter(user_authorized_fsm.ConfigMenu.chatgpt),
-)
-@user_authorized_mw.authorized_only()
-async def account_configurations_request_chatgpt(message: Message, state: FSMContext):
-    """Change FSM state to account configurations menu, save client's ChatGPT option and send information about client's new configuration request to admin."""
-    await state.update_data(chatgpt=message.text)
-    data = await state.get_data()
-
-    # send information about client's new configuration request to admin
-    await internal_functions.send_configuration_request_to_admin(
-        {'fullname': message.from_user.full_name, 'username': message.from_user.username, 'id': message.from_user.id},
-        data,
-        is_new_client=False,
-    )
-
-    await message.answer(loc.auth.msgs['wait_for_admin'], reply_markup=user_authorized_kb.config)
-    await message.answer(loc.auth.msgs['i_wanna_sleep'])
-    await state.set_state(user_authorized_fsm.AccountMenu.configs)
 
 
 @router.message(
@@ -669,36 +596,29 @@ async def account_settings_notifications_7d(message: Message):
         await message.answer(loc.auth.msgs['7d_off'], reply_markup=await user_authorized_kb.settings_notifications(client_id))
 
 
-@router.callback_query(F.data.startswith('basic--'))
+# LEGACY: pre-Remnawave config distribution — answer with soft migration message
+@router.callback_query(F.data.startswith('basic--') | F.data.startswith('advanced--'))
 @user_authorized_mw.authorized_only()
 @user_authorized_mw.nonblank_subscription_only()
 async def configuration_instruction(call: CallbackQuery):
-    """Send message with instruction for configuration specified by inline button."""
-    _, configuration_protocol_name, configuration_os = call.data.split('--')
-
-    instruction_text = loc.auth.msgs['basic_instructions'][configuration_protocol_name.lower()][configuration_os.lower()]
-    instruction_images_list = loc.auth.tfids['basic_instructions'][configuration_protocol_name.lower()][configuration_os.lower()]
-
-    await internal_functions.reply_media_group_safely(call.message,
-                                                      telegram_files_ids_list=instruction_images_list,
-                                                      caption=instruction_text)
+    """Send message with Remnawave subscription migration."""
+    await call.message.answer(loc.auth.msgs['advanced_instructions'])
     await call.answer()
 
 
-@router.callback_query(F.data.startswith('advanced--'))
+# LEGACY: pre-Remnawave config distribution — answer with soft migration message
+@router.message(F.text.in_(
+    {
+    'Конфигурации',
+    'Новая конфигурация',
+    'Мои конфигурации',
+    }
+))
 @user_authorized_mw.authorized_only()
 @user_authorized_mw.nonblank_subscription_only()
-async def configuration_advanced_instruction(call: CallbackQuery):
-    """Send message with advanced instruction for configuration specified by inline button."""
-    _, configuration_protocol_name, configuration_os = call.data.split('--')
-
-    instruction_text = loc.auth.msgs['advanced_instructions'][configuration_protocol_name.lower()][configuration_os.lower()]
-    instruction_images_list = loc.auth.tfids['advanced_instructions'][configuration_protocol_name.lower()][configuration_os.lower()]
-
-    await internal_functions.reply_media_group_safely(call.message,
-                                                      telegram_files_ids_list=instruction_images_list,
-                                                      caption=instruction_text)
-    await call.answer()
+async def configuration_advanced_instruction(message: Message):
+    """Send message with Remnawave subscription migration."""
+    await message.answer(loc.auth.msgs['basic_instructions'])
 
 
 @router.message(F.text == loc.auth.btns['rules'])

@@ -48,6 +48,12 @@ class BackupSettings(BaseModel):
     path: str = "/home/ksivpn-tgbot/backups"
 
 
+class RemnawaveSettings(BaseModel):
+    base_url: str
+    token: SecretStr
+    caddy_token: SecretStr | None = None
+
+
 class Settings(BaseModel):
     bot: BotSettings
     proxy: ProxySettings = ProxySettings()
@@ -55,4 +61,5 @@ class Settings(BaseModel):
     payments: PaymentsSettings
     localization: LocalizationSettings = LocalizationSettings()
     backup: BackupSettings = BackupSettings()
+    remnawave: RemnawaveSettings
     tz: str = "UTC"
