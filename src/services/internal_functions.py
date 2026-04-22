@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import html
 from datetime import datetime
 from enum import Enum
 from typing import Awaitable, Callable
@@ -579,7 +580,7 @@ async def authorization_complete(from_user: User, state: FSMContext) -> None:
     except RemnawaveError as exc:
         logger.error("Failed to create Remnawave user for client_id=%s tg_id=%s: %s", client_id, from_user.id, exc)
         await safe_deliver(
-            lambda: bot.send_message(settings.bot.admin_id, loc.internal.msgs['new_client_remnawave_error'].format(client_id, exc)),
+            lambda: bot.send_message(settings.bot.admin_id, loc.internal.msgs['new_client_remnawave_error'].format(client_id, html.escape(str(exc)))),
             telegram_id=settings.bot.admin_id,
         )
 
@@ -618,7 +619,7 @@ async def extend_remnawave_expiry_for_client(client_id: int) -> None:
     except RemnawaveError as exc:
         logger.error("Failed to sync expiry for client_id=%s remnawave_uuid=%s: %s", client_id, remnawave_uuid, exc)
         await safe_deliver(
-            lambda: bot.send_message(settings.bot.admin_id, loc.internal.msgs['remnawave_expiry_sync_error'].format(client_id, exc)),
+            lambda: bot.send_message(settings.bot.admin_id, loc.internal.msgs['remnawave_expiry_sync_error'].format(client_id, html.escape(str(exc)))),
             telegram_id=settings.bot.admin_id,
         )
 

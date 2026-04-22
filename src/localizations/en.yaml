@@ -157,6 +157,7 @@ user_authorized:
 
       Connected <b>{2}</b> with a cost of <b>{3:g}</b>₽ per month.
     error_promo_entered_ref_code: Unfortunately, a referral promo code can only be entered within 7 days of registration and only once 😪
+    error_promo_own_ref_code: You cannot use your own referral promo code 😅
     error_promo_limit_activations: Unfortunately, the number of possible activations of this promo code exhausted 🤧
     error_promo_expired: Unfortunately, the promo code has expired 🤧
     error_promo_already_entered: You have already entered this promo code earlier!
