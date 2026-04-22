@@ -420,10 +420,10 @@ other:
 
       💬 <b>What do Fast, Breach and Access+ mean?</b>
       These are the types of VPN connections and locations:
-      1. <b>Fast</b> is the fastest VPN connection, but it can be unstable with strong blockages.
-      2. <b>Breach</b> is an "armor-piercing" VPN connection that always works with the exception of active whitelists.
-      3. <b>Breach for iOS</b> — an "armor-piercing" VPN connection for iOS — if the usual "Breach" turns off by itself.
-      4. <b>Access+</b> is a VPN location with access to services that are usually closed when using a VPN. For example, registration for Gemini, access to Reddit without logging in, and so on.
+      1. Fast is the fastest VPN connection, but it can be unstable with strong blockages.
+      2. Breach is an "armor-piercing" VPN connection that always works with the exception of active whitelists.
+      3. Breach for iOS — an "armor-piercing" VPN connection for iOS — if the usual "Breach" turns off by itself.
+      4. Access+ is a VPN location with access to services that are usually closed when using a VPN. For example, registration for Gemini, access to Reddit without logging in, and so on.
     chatgpt_error: Sorry, an error with ChatGPT mode occurred
     chatgpt_only_for_active_sub: ChatGPT mode is available only to clients with an active subscription!
     unrecognized_message: |-
