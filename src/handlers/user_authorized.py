@@ -417,6 +417,10 @@ async def account_promo_check(message: Message, state: FSMContext):
 
         ref_promo_id, client_creator_id, provided_sub_id, bonus_time = ref_promo_info
 
+        if client_creator_id == client_id:
+            await message.answer(loc.auth.msgs['error_promo_own_ref_code'])
+            return
+
         await postgres_dbms.apply_ref_promo_to_existing_client(client_id, ref_promo_id, provided_sub_id, bonus_time)
         await internal_functions.notify_client_new_referal(client_creator_id, message.from_user.first_name, message.from_user.username)
         await internal_functions.notify_admin_promo_entered(client_id, message.text, 'ref')
