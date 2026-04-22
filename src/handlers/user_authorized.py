@@ -328,7 +328,7 @@ async def account_ref_program_info(message: Message):
         invited_str = ''
         for idx, (name, username) in enumerate(who_was_invited_by_client):
             username_str = await internal_functions.format_none_string(username)
-            invited_str += loc.auth.msgs['who_was_invited_str'].format(idx + 1, name, username_str)
+            invited_str += loc.auth.msgs['who_was_invited_str'].format(idx + 1, name, username_str) + '\n'
 
         await message.answer(loc.auth.msgs['who_was_invited'].format(invited_str=invited_str))
     else:
@@ -369,29 +369,33 @@ async def account_promo_info(message: Message):
     """Send message with information about entered by client promocodes."""
     ref_promos, global_promos, local_promos = await postgres_dbms.get_client_entered_promos(await postgres_dbms.get_clientID_by_telegramID(message.from_user.id))
 
+    has_entered_promos = False
     ref_promo_str = ''
     if ref_promos:
         ref_promo_phrase, client_creator_name = ref_promos
-        ref_promo_str = loc.auth.msgs['ref_promo_str'].format(ref_promo_phrase, client_creator_name)
+        ref_promo_str = loc.auth.msgs['ref_promo_str'].format(ref_promo_phrase, client_creator_name) + '\n\n'
+        has_entered_promos = True
 
     global_promos_str = ''
     if global_promos:
         global_promo_row_str = ''
         for idx, (global_promo_phrase, bonus_time, date_of_entry) in enumerate(global_promos):
-            global_promo_row_str += loc.auth.msgs['global_promo_row_str'].format(idx + 1, global_promo_phrase, format_localized_bonus_days(bonus_time), format_localized_datetime(date_of_entry))
-        global_promos_str = loc.auth.msgs['global_promos_str'].format(global_promo_row_str=global_promo_row_str)
+            global_promo_row_str += loc.auth.msgs['global_promo_row_str'].format(idx + 1, global_promo_phrase, format_localized_bonus_days(bonus_time), format_localized_datetime(date_of_entry)) + '\n'
+        global_promos_str = loc.auth.msgs['global_promos_str'].format(global_promo_row_str=global_promo_row_str) + '\n\n'
+        has_entered_promos = True
 
     local_promos_str = ''
     if local_promos:
         local_promo_row_str = ''
         for idx, (local_promo_phrase, bonus_time, date_of_entry) in enumerate(local_promos):
-            local_promo_row_str += loc.auth.msgs['local_promo_row_str'].format(idx + 1, local_promo_phrase, format_localized_bonus_days(bonus_time), format_localized_datetime(date_of_entry))
-        local_promos_str = loc.auth.msgs['local_promos_str'].format(local_promo_row_str=local_promo_row_str)
+            local_promo_row_str += loc.auth.msgs['local_promo_row_str'].format(idx + 1, local_promo_phrase, format_localized_bonus_days(bonus_time), format_localized_datetime(date_of_entry)) + '\n'
+        local_promos_str = loc.auth.msgs['local_promos_str'].format(local_promo_row_str=local_promo_row_str) + '\n\n'
+        has_entered_promos = True
 
-    if ref_promo_str + global_promos_str + local_promos_str == '':
-        await message.answer(loc.auth.msgs['no_promo_entered'])
-    else:
+    if has_entered_promos:
         await message.answer(ref_promo_str + global_promos_str + local_promos_str)
+    else:
+        await message.answer(loc.auth.msgs['no_promo_entered'])
 
 
 @router.message(StateFilter(user_authorized_fsm.AccountMenu.promo))
