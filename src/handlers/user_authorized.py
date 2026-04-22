@@ -213,6 +213,7 @@ async def sub_renewal_verification(message: Message, state: FSMContext):
             await _safe_delete_message(message.chat.id, message_id)
 
             await internal_functions.notify_admin_payment_success(client_id, months_number)
+            await internal_functions.extend_remnawave_expiry_for_client(client_id)
             await internal_functions.check_referral_reward(client_id)
             is_payment_found = True
 
