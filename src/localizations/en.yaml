@@ -420,7 +420,6 @@ other:
 
       💬 <b>What do Fast, Breach and Access+ mean?</b>
       These are the types of VPN connections and locations:
-
       1. <b>Fast</b> is the fastest VPN connection, but it can be unstable with strong blockages.
       2. <b>Breach</b> is an "armor-piercing" VPN connection that always works with the exception of active whitelists.
       3. <b>Breach for iOS</b> — an "armor-piercing" VPN connection for iOS — if the usual "Breach" turns off by itself.
