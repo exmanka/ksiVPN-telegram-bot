@@ -207,6 +207,7 @@ async def send_message_by_telegram_id(telegram_id: int, message: Message):
         raise Exception('unrecognized message type')
 
 
+# LEGACY: pre-Remnawave config distribution
 async def send_configuration(telegram_id: int,
                              configuration_file_type: str,
                              configuration_date_of_receipt: datetime,
@@ -377,6 +378,7 @@ async def notify_client_if_subscription_must_be_renewed_to_receive_configuration
         )
 
 
+# LEGACY: pre-Remnawave config distribution
 async def create_configuration_description(configuration_date_of_receipt: datetime,
                                            configuration_os: str,
                                            configuration_protocol_name: str,
@@ -412,6 +414,7 @@ async def create_configuration_description(configuration_date_of_receipt: dateti
                                                configuration_id)
 
 
+# LEGACY: pre-Remnawave config distribution
 async def create_configuration(client_id: int,
                                file_type: str,
                                flag_protocol: str,
@@ -446,6 +449,7 @@ async def create_configuration(client_id: int,
         raise Exception(loc.internal.msgs['error_bad_file_type'])
 
 
+# LEGACY: pre-Remnawave config distribution
 async def get_configuration_sql_data(protocol: str, location: str, os: str, link: str | None = None) -> tuple[int, str, str]:
     """Return data suitable for SQL-query for configuration creation.
 

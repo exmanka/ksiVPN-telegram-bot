@@ -8,7 +8,7 @@ CREATE TABLE clients (
 	used_ref_promo_id INT
 );
 INSERT INTO clients (name, surname, username, telegram_id, register_date)
-VALUES('Михаил','Ким', '@exmanka', 467321357, 'EPOCH');
+VALUES('Michael', NULL, NULL, 467321357, 'EPOCH');
 
 
 CREATE INDEX clients_idx
@@ -42,7 +42,7 @@ CREATE TABLE clients_subscriptions (
 	expiration_date TIMESTAMP NOT NULL
 );
 INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date)
-VALUES(1, 2, 10, TIMESTAMP '2030-01-01 00:00');
+VALUES(1, 1, 10, TIMESTAMP '2030-01-01 00:00');
 
 
 CREATE OR REPLACE FUNCTION create_ref_promocode() RETURNS text
@@ -97,8 +97,8 @@ CREATE TABLE promocodes_local (
 	provided_sub_id SMALLINT REFERENCES subscriptions(id) ON DELETE CASCADE,
 	bonus_time INTERVAL NOT NULL
 );
-INSERT INTO promocodes_local(phrase, expiration_date, bonus_time)
-VALUES('LOCAL_PROMO_EXAMPLE', TIMESTAMP '2030-01-01', INTERVAL '1 month');
+INSERT INTO promocodes_local(phrase, expiration_date, provided_sub_id, bonus_time)
+VALUES('LOCAL_PROMO_EXAMPLE', TIMESTAMP '2030-01-01', 2, INTERVAL '1 month');
 
 
 CREATE TABLE clients_promo_local (
