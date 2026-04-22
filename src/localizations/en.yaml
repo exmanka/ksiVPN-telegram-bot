@@ -390,30 +390,41 @@ other:
     project_info: Unlimited, fast and completely secure service that allows you to establish a VPN connection in various countries of the world through your own VPS for 200₽ per month.
     service_info: Unlimited, fast and completely secure service that allows you to establish a VPN connection in various countries of the world through your own VPS for 200₽ per month.
     faq_info: |-
-      💬 <b>How much does the subscription cost?</b>
-      The cost of a basic subscription is 200rubles per month.
+      💬 <b>How much does a subscription cost?</b>
+      The cost of a standard subscription is 200₽ per month. However, within the framework of promotions and the internal referral system, the subscription price can be 75₽ per month!
 
       💬 <b>What do I get for this cost?</b>
-      VPN connection at maximum speed with no traffic limit on all project servers. The number of VPN connections is also unlimited within reason! And additional bot functions will be available.
+      VPN connection at maximum speed without traffic limit on all project servers!
 
-      💬 <b>How does the connection work?</b>
+      💬 <b>Why is it so cheap?</b>
+      The project is developed and maintained by one engineer. Also, the project does not create its own VPN protocol and application for it — everything is based on time-tested and community-supported open source software. Both factors make it possible to save a lot on operating and capital costs, which ultimately affects the price of the product.
+
+      💬 <b>How is the connection going?</b>
       Registration is done in one click — the bot will only ask for a referral promo code, which is not necessary to enter. Next, the bot will send a link to the subscription with detailed instructions. You will need to download the app from the official store (PlayMarket or App Store) and add a subscription by simply clicking on the link from the instructions.
 
       💬 <b>Is the subscription price fixed?</b>
-      No, the cost of a subscription depends on its type, there are several of them. For example, a discounted subscription is available to testers and some others. The final subscription price will be displayed after entering the referral promo code.
+      No, the subscription price depends on its type, there are several of them. For example, a discounted subscription is available to testers and some others. The final subscription price will be displayed after entering the referral promo code.
 
       💬 <b>Are ChatGPT-type services available with this VPN?</b>
-      Of course they are available! Moreover, some locations allow you to bypass even extremely strict site restrictions — from such servers you can access Gemini registration, view Reddit without logging into your account, and so on.
+      Of course available! Moreover, some locations allow you to bypass even extremely strict site restrictions — from such servers you can access Gemini registration, view Reddit without logging into your account, and so on.
 
-      💬 <b>Which operating systems are supported?</b>
-      The service is available on all possible operating systems, including Android, iOS, Windows, macOS, Linux.
+      💬 <b>Which OS are supported?</b>
+      The service is available on all possible operating systems, including Android, iOS, Windows, macOS and Linux.
 
-      💬 <b>Which servers are provided?</b>
-      There are currently four servers available:
-      1. Netherlands, Amsterdam — speed up to 1 Gb/s, ping 30 ms.
-      2. Latvia, Riga — speed up to 1 Gb/s, ping 20 ms.
-      3. Germany, Nuremberg — speed up to 500 Mb/s, ping 40 ms.
-      4. USA, Silicon Valley — speed up to 50 Mb/s, ping 150 ms.
+      💬 <b>Is whitelisting available?</b>
+      Not at the moment, but this area is actively being worked out in the service. Expect an update soon!
+
+      💬 <b>What locations are provided?</b>
+      The following locations are currently available:
+      🇳🇱 Netherlands, 🇱🇻 Latvia, 🇩🇪 Germany, 🇺🇸 USA, 🇪🇸 Spain, 🇵🇱 Poland.
+
+      💬 <b>What do Fast, Breach and Access+ mean?</b>
+      These are the types of VPN connections and locations:
+
+      1. <b>Fast</b> is the fastest VPN connection, but it can be unstable with strong blockages.
+      2. <b>Breach</b> is an "armor-piercing" VPN connection that always works with the exception of active whitelists.
+      3. <b>Breach for iOS</b> — an "armor-piercing" VPN connection for iOS — if the usual "Breach" turns off by itself.
+      4. <b>Access+</b> is a VPN location with access to services that are usually closed when using a VPN. For example, registration for Gemini, access to Reddit without logging in, and so on.
     chatgpt_error: Sorry, an error with ChatGPT mode occurred
     chatgpt_only_for_active_sub: ChatGPT mode is available only to clients with an active subscription!
     unrecognized_message: |-
