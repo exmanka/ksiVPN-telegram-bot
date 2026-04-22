@@ -513,6 +513,7 @@ async def check_referral_reward(ref_client_id: int):
         # add subscription bonus time (30 days) for old client
         _, client_creator_id, *_ = await postgres_dbms.get_refferal_promo_info_by_promoID(used_ref_promo_id)
         await postgres_dbms.add_subscription_period(client_creator_id, days=30)
+        await extend_remnawave_expiry_for_client(client_creator_id)
 
         # notify old client about new bonus
         # if client's username exists (add whitespace for good string formatting)
