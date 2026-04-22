@@ -154,6 +154,7 @@ INSERT INTO configurations(client_id, protocol_id, server_id, os, file_type, lin
 VALUES(1, 1, 'ksivpn-netherlands-1p', 'Android', 'link', 'vless://link_or_telegram_file_id_here', 'EPOCH');
 
 
+-- # LEGACY: pre-Remnawave config distribution
 CREATE TABLE server_inbounds (
 	id SMALLSERIAL PRIMARY KEY,
 	server_id VARCHAR(64) NOT NULL REFERENCES servers(id) ON UPDATE CASCADE ON DELETE CASCADE,
