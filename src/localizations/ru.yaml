@@ -87,10 +87,8 @@ user_authorized:
     client_info: |-
       👾 Вот что мне известно:
 
-      {username_str}
-      <b>Имя</b>: {0}
-      {surname_str}
-      <b>Телеграм ID</b>: {1}
+      {username_str}<b>Имя</b>: {0}
+      {surname_str}<b>Телеграм ID</b>: {1}
       <b>Дата регистрации</b>: {2}
     ref_program_info: |-
       <b>Приглашайте друзей вступить в проект и получайте подписку бесплатно!</b>
@@ -100,10 +98,12 @@ user_authorized:
     enter_promo: <b>🎟 Отправьте мне промокод сообщением!</b>
     go_settings: <i>Перехожу в меню настроек</i>
     return_to_personal_account: <i>Возвращаю в личный кабинет</i>
+    # LEGACY: pre-Remnawave config distribution
     configs_info: |-
       Информация о всех ваших конфигурациях, теперь не нужно искать их по диалогу с ботом!
 
       Всего конфигураций <b>{0}</b>.
+    # LEGACY: pre-Remnawave config distribution
     configs_rules: |-
       <b>Напоминаю основные правила /rules:
 
@@ -159,7 +159,7 @@ user_authorized:
       Здравствуй! Хочу поделиться своим открытием – отличным VPN-сервисом. Регистрируйся по ссылке https://t.me/ksiVPN_bot и указывай мой реферальный промокод <code>{0}</code>. Обещаю, не пожалеешь! 🌍🔐
 
       <tg-spoiler><i>Данный текст сгенерирован нейросетью ChatGPT, доступ к которой легко осуществим через вышеуказанный VPN-сервис 😉</i></tg-spoiler>
-    your_ref_code: "\U0001F54A Ваш реферальный промокод: <b><code>{0}</code></b>"
+    your_ref_code: "🕊️ Ваш реферальный промокод: <b><code>{0}</code></b>"
     ref_promo_accepted: |-
       ✨ <b>Ух ты! Принят реферальный промокод от пользователя {0}, дающий {1} бесплатной подписки!</b>
 
@@ -172,11 +172,11 @@ user_authorized:
     error_promo_inaccessible: К сожалению, вы не можете использовать данный специальный промокод 😪
     error_promo_not_exist: Такого промокода нет! Попробуйте ввести его еще раз
     global_promo_accepted: ✨ Ура! Промокод на <b>{0}</b> бесплатной подписки принят!
-    new_sub_str: |2-
-
-
-      «<b>{0}</b>» — ваш новый тип подписки со стоимостью {1:g}₽ в месяц
-    loсal_promo_accepted: ✨ Ура! Специальный промокод на <b>{0}</b> бесплатной подписки принят!{new_sub_str}
+    new_sub_str: «<b>{0}</b>» — ваш новый тип подписки со стоимостью {1:g}₽ в месяц
+    loсal_promo_accepted: |-
+      ✨ Ура! Специальный промокод на <b>{0}</b> бесплатной подписки принят!
+      
+      {new_sub_str}
     ref_promo_str: |-
       <b>🕊 Использованный реферальный промокод</b>:
       <code>{0}</code> от пользователя {1}.
@@ -278,7 +278,7 @@ admin:
 
       /fileid
       /clients
-      /configs <i>telegram_id</i> | <i>username</i>"
+      /configs <i>telegram_id</i> | <i>username</i>" — LEGACY
     go_send_message_menu: <i>Перехожу в меню отправки сообщений пользователям</i>
     message_everyone_info: |-
       Введите необходимую информацию следующим сообщением, а также приложите файлы при необходимости!
@@ -296,7 +296,7 @@ admin:
     message_selected_somebody_received: |-
       <b>Сообщение будет отправленно пользователям</b>:
 
-       {selected_clients_str}
+      {selected_clients_str}
     message_selected_nobody_received: Вы ошиблись при вводе пользователей! Сообщение ни до кого не дойдет!
     message_selected_enter_message_info: |-
       Теперь введите необходимую информацию следующим сообщением, а также приложите файлы при необходимости!
@@ -312,14 +312,15 @@ admin:
       Используйте команду <code>/logs [число]</code> для показа произвольного числа последних строк лога.
     show_earnings: 💎 Так-так! Заработок за текущий месяц составляет <b>{0:g}</b>₽!
     file_id_photo: |-
-      <b>file_id фото:</b>
+      <b>file_id отправленного фото:</b>
 
       <code>{0}</code>
     file_id_document: |-
-      <b>file_id документа:</b>
+      <b>file_id отправленного документа:</b>
       
       <code>{0}</code>
     error_no_file_for_file_id: Файл не был прикреплен вместе с вызовом команды /fileid!
+    # LEGACY: pre-Remnawave config distribution
     send_configuration_info: |-
       Пришлите мне сообщение в формате (вместо переноса строк используйте пробелы):
 
@@ -328,10 +329,13 @@ admin:
       <b>link</b> - если вместо файла нужна ссылка вида <code>vless://</code> или <code>ss://</code>
 
       <b>Не забываем прикрепить файл, если требуется!</b>
+    # LEGACY: pre-Remnawave config distribution
     config_was_sent: Отлично, конфигурация типа <b>{0}</b> отправлена!
+    # LEGACY: pre-Remnawave config distribution
     error_bad_flags_number: |-
       Ошибка: {0}
       Скорее всего, вы указали неверное число флагов!
+    # LEGACY: pre-Remnawave config distribution
     error_unrecognized: "Ошибка: {0}"
     sub_expired: |-
       👾 <b>Срок действия подписки пользователя истёк.</b>
@@ -403,6 +407,8 @@ other:
       🗣 <b>И, конечно, у проекта есть поддержка! Обязательно обращайтесь к ней при возникновении каких-либо проблем</b>
       Telegram — <a href="https://t.me/ksivpn">ссылка</a>
       Яндекс Мессенджер — <a href="https://yandex.ru/chat/p/b3b65d09-78f3-939a-4832-501ce7ee12a6">ссылка</a>
+      
+      <i>👇 Ознакомиться с остальными часто задаваемыми вопросами можно по кнопке <b>«FAQ»</b> ниже.</i>
     project_info: |-
       <b>ksiVPN</b> — независимый проект с открытым исходным кодом, созданный одним человеком, уставшим постоянно менять VPN-сервисы и смотреть рекламу ради скорости в 512 Кб/с.
 
@@ -520,9 +526,9 @@ internal_functions:
       Ваша подписка скоро будет доступна по кнопке <b>«Моя подписка»</b> в меню под строкой написания сообщения. Там же вы найдете инструкции по подключению!
 
       Если вам нужна помощь по взаимодействую с ботом — напишите в чат команду /help. Эта же команда покажет контакты поддержки — обязательно обращайтесь при каких-либо проблемах!
-    remnawave_expiry_sync_no_record: ⚠️ Клиент с ID <code>{0}</code> не имеет записи в Remnawave — срок действия не синхронизирован с панелью. Требуется ручная миграция!
+    remnawave_expiry_sync_no_record: ⚠️ Клиент с ID <code>{0}</code> не имеет записи в Remnawave — срок действия подписки не синхронизирован с панелью. Требуется ручная миграция!
     remnawave_expiry_sync_error: |-
-      ⚠️ Не удалось синхронизировать срок действия Remnawave для клиента с ID <code>{0}</code>. Ошибка:
+      ⚠️ Не удалось синхронизировать срок действия подписки Remnawave для клиента с ID <code>{0}</code>. Ошибка:
 
       <code>{1}</code>
     new_client_no_ref_promo_str: без промокода
@@ -549,11 +555,17 @@ internal_functions:
       🕊 Ух ты! Пользователь {0}{1} использовал ваш реферальный промокод при регистрации!
 
       <b>После того, как он (она) впервые оплатит подписку, вы получите {2} подписки бесплатно!</b>
+    # LEGACY: pre-Remnawave config distribution
     error_no_telegram_file_id: при попытке создания конфигурации не был указан telegram_file_id!
+    # LEGACY: pre-Remnawave config distribution
     error_bad_file_type: при попытке создания конфигурации был указан неверный file_type!
+    # LEGACY: pre-Remnawave config distribution
     error_bad_protocol: неверное значение параметра <b>protocol</b>
+    # LEGACY: pre-Remnawave config distribution
     error_bad_country: неверное значение параметра <b>server</b>
+    # LEGACY: pre-Remnawave config distribution
     error_bad_os: неверное значение параметра <b>os</b>
+    # LEGACY: pre-Remnawave config distribution
     error_bad_link: неверное значение параметра <b>link</b>
     ref_client_paid_for_sub: |-
       🕊 Вау! Пользователь {0}{1}, присоединившийся к проекту по вашему реферальному промокоду, впервые оплатил(а) подписку!

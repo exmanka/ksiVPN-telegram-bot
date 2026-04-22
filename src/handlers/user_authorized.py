@@ -240,11 +240,11 @@ async def account_client_info(message: Message):
 
     surname_str = ''
     if surname is not None:
-        surname_str = loc.auth.msgs['client_info_surname_str'].format(surname)
+        surname_str = loc.auth.msgs['client_info_surname_str'].format(surname) + '\n'
 
     username_str = ''
     if username is not None:
-        username_str = loc.auth.msgs['client_info_username_str'].format(username)
+        username_str = loc.auth.msgs['client_info_username_str'].format(username) + '\n'
 
     await message.answer(loc.auth.msgs['client_info'].format(name, message.from_user.id, format_localized_datetime(register_date), surname_str=surname_str, username_str=username_str))
 

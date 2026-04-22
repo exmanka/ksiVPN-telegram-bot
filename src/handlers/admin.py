@@ -329,6 +329,7 @@ async def send_configuration_fsm_start(call: CallbackQuery, state: FSMContext):
     await call.answer()
 
 
+# LEGACY: pre-Remnawave config distribution — send config to client after inline button press
 @router.message(
     StateFilter(admin_fsm.SendConfig.ready),
     F.content_type.in_({'text', 'document'}),

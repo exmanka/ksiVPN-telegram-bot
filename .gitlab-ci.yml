@@ -101,7 +101,7 @@ include:
   - component: ${CI_SERVER_FQDN}/${CICD_CATALOG_PATH}/docker-cd/compose-ssh@1.1.1
     inputs:
       docker-compose-flags: --env-file .env --env-file .env.gitlab
-      docker-compose-down-flags: ${GITLAB_DCD_FLAGS}
+      docker-compose-down-flags: ""
       ssh-host: ${GITLAB_SSH_IP}
       ssh-port: ${GITLAB_SSH_PORT}
       ssh-username: ${GITLAB_SSH_USER}
