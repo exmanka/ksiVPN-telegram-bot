@@ -9,7 +9,7 @@ menu = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text=loc.auth.btns['sub_renewal'])],
         [
-            KeyboardButton(text=loc.auth.btns['sub_status']),
+            KeyboardButton(text=loc.auth.btns['my_subscription']),
             KeyboardButton(text=loc.auth.btns['personal_account']),
         ],
         [
@@ -51,76 +51,25 @@ async def sub_renewal_link_inline(link_for_customer: str) -> InlineKeyboardMarku
 account = ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[
-        [KeyboardButton(text=loc.auth.btns['ref_program'])],
         [
-            KeyboardButton(text=loc.auth.btns['configs']),
-            KeyboardButton(text=loc.auth.btns['promo']),
+            KeyboardButton(text=loc.auth.btns['ref_program']),
+        ],
+        [
+            KeyboardButton(text=loc.auth.btns['promo'])
         ],
         [
             KeyboardButton(text=loc.auth.btns['about_client']),
-            KeyboardButton(text=loc.auth.btns['about_sub']),
             KeyboardButton(text=loc.auth.btns['settings']),
         ],
         [KeyboardButton(text=loc.auth.btns['return_main_menu'])],
     ],
 )
 
-config = ReplyKeyboardMarkup(
-    resize_keyboard=True,
-    keyboard=[
-        [
-            KeyboardButton(text=loc.auth.btns['current_configs']),
-            KeyboardButton(text=loc.auth.btns['request_config']),
-        ],
-        [KeyboardButton(text=loc.auth.btns['return_to_account_menu_1'])],
-    ],
-)
-
-config_platform = ReplyKeyboardMarkup(
-    resize_keyboard=True,
-    keyboard=[
-        [
-            KeyboardButton(text=loc.unauth.btns['smartphone']),
-            KeyboardButton(text=loc.unauth.btns['pc']),
-        ],
-        [KeyboardButton(text=loc.auth.btns['return_to_configs_menu'])],
-    ],
-)
-
-config_mobile_os = ReplyKeyboardMarkup(
-    resize_keyboard=True,
-    keyboard=[
-        [
-            KeyboardButton(text=loc.unauth.btns['android']),
-            KeyboardButton(text=loc.unauth.btns['ios']),
-        ],
-        [KeyboardButton(text=loc.auth.btns['return_to_configs_menu'])],
-    ],
-)
-
-config_desktop_os = ReplyKeyboardMarkup(
-    resize_keyboard=True,
-    keyboard=[
-        [
-            KeyboardButton(text=loc.unauth.btns['windows']),
-            KeyboardButton(text=loc.unauth.btns['macos']),
-            KeyboardButton(text=loc.unauth.btns['linux']),
-        ],
-        [KeyboardButton(text=loc.auth.btns['return_to_configs_menu'])],
-    ],
-)
-
-config_chatgpt = ReplyKeyboardMarkup(
-    resize_keyboard=True,
-    keyboard=[
-        [
-            KeyboardButton(text=loc.unauth.btns['use_chatgpt']),
-            KeyboardButton(text=loc.unauth.btns['dont_use_chatgpt']),
-            KeyboardButton(text=loc.unauth.btns['what_is_chatgpt']),
-        ],
-        [KeyboardButton(text=loc.auth.btns['return_to_configs_menu'])],
-    ],
-)
+my_subscription_inline = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text=loc.auth.btns['how_to_connect'], callback_data='subscription_how_to_connect')],
+    [InlineKeyboardButton(text=loc.auth.btns['how_to_renew'], callback_data='subscription_how_to_renew')],
+    [InlineKeyboardButton(text=loc.auth.btns['location_types'], callback_data='subscription_location_types')],
+])
 
 promo = ReplyKeyboardMarkup(
     resize_keyboard=True,

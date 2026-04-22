@@ -190,6 +190,7 @@ async def notifications_send_message_selected(message: Message, state: FSMContex
     await state.update_data(message_chat_id=message.chat.id, message_id=message.message_id)
 
 
+# LEGACY: pre-Remnawave config distribution — kept for edge cases (existing users, manual fixes)
 @router.message(Command(commands=['configs']))
 @admin_mw.admin_only()
 async def check_user_configs(message: Message):
@@ -314,6 +315,7 @@ async def get_file_id(message: Message):
         await message.answer(loc.admn.msgs['error_no_file_for_file_id'])
 
 
+# LEGACY: pre-Remnawave config distribution — send config to client after inline button press
 @router.callback_query(F.data.func(lambda d: d is not None and ':' in d and d.split(':', 1)[0].isdigit()))
 @admin_mw.admin_only()
 async def send_configuration_fsm_start(call: CallbackQuery, state: FSMContext):
@@ -327,6 +329,7 @@ async def send_configuration_fsm_start(call: CallbackQuery, state: FSMContext):
     await call.answer()
 
 
+# LEGACY: pre-Remnawave config distribution — send config to client after inline button press
 @router.message(
     StateFilter(admin_fsm.SendConfig.ready),
     F.content_type.in_({'text', 'document'}),

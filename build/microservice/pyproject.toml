@@ -15,11 +15,12 @@ dependencies = [
     "asyncpg (==0.31.0)",
     "dynaconf (>=3.2.6,<4.0)",
     "g4f (>=0.3.0)",
-    "pydantic (==2.12.5)",
+    "pydantic (==2.11.7)",
     "pyyaml (>=6.0,<7.0)",
     "redis (>=7.4.0,<8.0.0)",
     "aiohttp-socks (>=0.11.0,<0.12)",
     "babel (>=2.16,<3.0)",
+    "remnawave (>=2.7.0,<3.0)",
 ]
 
 [tool.poetry]

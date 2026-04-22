@@ -6,7 +6,6 @@ class AccountMenu(StatesGroup):
     menu = State()
     promo = State()
     ref_program = State()
-    configs = State()
     settings = State()
 
 
@@ -17,13 +16,6 @@ class PaymentMenu(StatesGroup):
     months_3 = State()
     months_12 = State()
     verification = State()
-
-
-class ConfigMenu(StatesGroup):
-    """FSM states for configuration request menu."""
-    platform = State()
-    os = State()
-    chatgpt = State()
 
 
 class SettingsMenu(StatesGroup):

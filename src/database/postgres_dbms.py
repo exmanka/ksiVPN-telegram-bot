@@ -1,6 +1,7 @@
 import asyncpg
 import datetime
 import logging
+import uuid
 from decimal import Decimal
 from src.config import settings
 
@@ -374,6 +375,20 @@ async def get_subscription_info_by_subID(subscription_id: int) -> asyncpg.Record
             WHERE id = $1;
             ''',
             subscription_id)
+
+
+async def get_ref_provided_sub_id(sub_id: int) -> int:
+    """Return the subscription type that invitees receive when a user with sub_id uses their ref promo.
+
+    Reads subscriptions.ref_provided_sub_id — the value is defined per-row in the DB,
+    so adding new subscription types never requires code changes.
+    Falls back to 1 (Standard) if the row is missing (should not happen under FK constraints).
+    """
+    async with pool.acquire() as conn:
+        result = await conn.fetchval(
+            'SELECT ref_provided_sub_id FROM subscriptions WHERE id = $1;',
+            sub_id)
+    return result if result is not None else 1
 
 
 async def get_subscription_expiration_date(telegram_id: int) -> datetime.datetime | None:
@@ -860,20 +875,20 @@ async def insert_client(name: str,
                         used_ref_promo_id: int | None = None,
                         provided_sub_id: int | None = None,
                         bonus_time: datetime.timedelta | None = None,
-                        ) -> None:
-    """Add new client to DB."""
+                        ) -> int:
+    """Add new client to DB. Returns the new client_id."""
     if username:
         username = '@' + username
 
     if provided_sub_id is None:
-        provided_sub_id = 1  # добавить глобальную константу
+        provided_sub_id = 1  # default: Standard subscription
 
     if bonus_time is None:
         bonus_time = datetime.timedelta()    # zero days
 
-    provided_ref_sub_id = provided_sub_id
-    if provided_sub_id in [3, 4]:  # добавить глобальную константу
-        provided_ref_sub_id = 1  # добавить глобальную константу
+    # Determine what subscription type the new client's OWN referral promo will offer.
+    # Defined per-subscription in subscriptions.ref_provided_sub_id — no magic numbers.
+    provided_ref_sub_id = await get_ref_provided_sub_id(provided_sub_id)
 
     async with pool.acquire() as conn:
         async with conn.transaction():
@@ -905,6 +920,95 @@ async def insert_client(name: str,
                 VALUES ($1);
                 ''',
                 client_id)
+
+    return client_id
+
+
+async def activate_client_bonus_time(client_id: int) -> None:
+    """Convert EPOCH-based pending bonus to NOW()-based active expiry.
+
+    insert_client stores expiration_date as EPOCH + bonus_time when a referral promo
+    is used. This function activates the bonus by rewriting it as NOW() + bonus_time.
+    Safe to call only when bonus_time > 0; the 10-year guard prevents touching
+    subscriptions that have already been activated or paid.
+    """
+    async with pool.acquire() as conn:
+        await conn.execute(
+            '''
+            UPDATE clients_subscriptions
+            SET expiration_date = NOW() + (expiration_date - TIMESTAMP 'EPOCH')
+            WHERE client_id = $1
+              AND expiration_date < TIMESTAMP 'EPOCH' + INTERVAL '10 years';
+            ''',
+            client_id)
+
+
+async def can_enter_ref_promo_as_authorized(client_id: int) -> bool:
+    """Return True if the authorized client is eligible to enter a referral promo code.
+
+    Conditions:
+    - registered within the last 7 days (registration window for referral codes)
+    - has not yet used any referral promo (used_ref_promo_id IS NULL)
+    """
+    async with pool.acquire() as conn:
+        return bool(await conn.fetchval(
+            '''
+            SELECT TRUE
+            FROM clients
+            WHERE id = $1
+              AND register_date > NOW() - INTERVAL '7 days'
+              AND used_ref_promo_id IS NULL;
+            ''',
+            client_id))
+
+
+async def apply_ref_promo_to_existing_client(
+    client_id: int,
+    ref_promo_id: int,
+    provided_sub_id: int | None,
+    bonus_time: datetime.timedelta,
+) -> None:
+    """Apply a referral promo code to an already-registered authorized client.
+
+    In one transaction:
+    - sets clients.used_ref_promo_id
+    - updates clients_subscriptions.sub_id when provided_sub_id is given
+    - updates the client's own promocodes_ref.provided_sub_id to propagate inheritance
+    - extends expiration_date (for blank/EPOCH subscriptions counts from NOW())
+    """
+    # Resolve what subscription type the client's OWN invitees will receive.
+    # Uses subscriptions.ref_provided_sub_id — no magic numbers.
+    new_ref_sub_id: int | None = None
+    if provided_sub_id is not None:
+        new_ref_sub_id = await get_ref_provided_sub_id(provided_sub_id)
+
+    async with pool.acquire() as conn:
+        async with conn.transaction():
+            await conn.execute(
+                'UPDATE clients SET used_ref_promo_id = $1 WHERE id = $2;',
+                ref_promo_id, client_id)
+
+            if provided_sub_id is not None:
+                await conn.execute(
+                    'UPDATE clients_subscriptions SET sub_id = $1 WHERE client_id = $2;',
+                    provided_sub_id, client_id)
+                # Propagate inheritance: update the client's own referral promo so
+                # that people they invite in turn receive the correct subscription type.
+                await conn.execute(
+                    'UPDATE promocodes_ref SET provided_sub_id = $1 WHERE client_creator_id = $2;',
+                    new_ref_sub_id, client_id)
+
+            await conn.execute(
+                '''
+                UPDATE clients_subscriptions
+                SET expiration_date = CASE
+                    WHEN expiration_date <= CURRENT_TIMESTAMP
+                    THEN CURRENT_TIMESTAMP + $1
+                    ELSE expiration_date + $1
+                END
+                WHERE client_id = $2;
+                ''',
+                bonus_time, client_id)
 
 
 async def insert_configuration(client_id: int,
@@ -962,7 +1066,11 @@ async def insert_client_entered_local_promo(client_id: int, local_promo_id: int,
             await conn.execute(
                 '''
                 UPDATE clients_subscriptions
-                SET expiration_date = expiration_date + $1
+                SET expiration_date = CASE
+                    WHEN expiration_date <= CURRENT_TIMESTAMP
+                    THEN CURRENT_TIMESTAMP + $1
+                    ELSE expiration_date + $1
+                END
                 WHERE client_id = $2;
                 ''',
                 local_promo_bonus_time, client_id)
@@ -990,7 +1098,11 @@ async def insert_client_entered_global_promo(client_id: int, global_promo_id: in
             await conn.execute(
                 '''
                 UPDATE clients_subscriptions
-                SET expiration_date = expiration_date + $1
+                SET expiration_date = CASE
+                    WHEN expiration_date <= CURRENT_TIMESTAMP
+                    THEN CURRENT_TIMESTAMP + $1
+                    ELSE expiration_date + $1
+                END
                 WHERE client_id = $2;
                 ''',
                 global_promo_bonus_time, client_id)
@@ -1014,15 +1126,11 @@ async def update_payment_successful(payment_id: int, client_id: int, paid_months
                 SET paid_months_counter = paid_months_counter + $1,
                 expiration_date =
                 CASE
-                    -- If client renews blank subscription
-                    WHEN expiration_date < TIMESTAMP 'EPOCH' + INTERVAL '10 years'
-                    THEN expiration_date + make_interval(months => $1)
-
-                    -- If client renews expired subscription
+                    -- Blank (EPOCH) or expired: count from now
                     WHEN expiration_date <= CURRENT_TIMESTAMP
                     THEN CURRENT_TIMESTAMP + make_interval(months => $1)
 
-                    -- If client renews active subscription
+                    -- Active: extend from current expiry
                     ELSE expiration_date + make_interval(months => $1)
                 END
                 WHERE client_id = $2;
@@ -1106,3 +1214,138 @@ async def add_subscription_period(client_id: int, days: int) -> None:
             WHERE client_id = $2;
             ''',
             days, client_id)
+
+
+async def get_subscription_expiration_date_by_clientID(client_id: int) -> datetime.datetime | None:
+    """Return subscription's expiration date by client_id."""
+    async with pool.acquire() as conn:
+        return await conn.fetchval(
+            '''
+            SELECT expiration_date
+            FROM clients_subscriptions
+            WHERE client_id = $1;
+            ''',
+            client_id)
+
+
+# ---------------------------------------------------------------------------
+# Remnawave — clients_remnawave helpers
+# ---------------------------------------------------------------------------
+
+async def insert_client_remnawave(client_id: int,
+                                  remnawave_uuid: uuid.UUID,
+                                  subscription_url: str) -> None:
+    """Insert Remnawave panel record for a newly registered client."""
+    async with pool.acquire() as conn:
+        await conn.execute(
+            '''
+            INSERT INTO clients_remnawave (client_id, remnawave_uuid, remnawave_subscription_url)
+            VALUES ($1, $2, $3);
+            ''',
+            client_id, remnawave_uuid, subscription_url)
+
+
+async def update_client_remnawave(client_id: int,
+                                  subscription_url: str | None = None) -> None:
+    """Update Remnawave panel record (e.g. after subscription revoke)."""
+    async with pool.acquire() as conn:
+        if subscription_url is not None:
+            await conn.execute(
+                '''
+                UPDATE clients_remnawave
+                SET remnawave_subscription_url = $2, updated_at = NOW()
+                WHERE client_id = $1;
+                ''',
+                client_id, subscription_url)
+        else:
+            await conn.execute(
+                '''
+                UPDATE clients_remnawave
+                SET updated_at = NOW()
+                WHERE client_id = $1;
+                ''',
+                client_id)
+
+
+async def has_remnawave_record(client_id: int) -> bool:
+    """Return True if client already has a Remnawave panel record."""
+    async with pool.acquire() as conn:
+        return bool(await conn.fetchval(
+            '''
+            SELECT EXISTS(
+                SELECT 1 FROM clients_remnawave WHERE client_id = $1
+            );
+            ''',
+            client_id))
+
+
+async def get_client_remnawave_uuid_by_clientID(client_id: int) -> uuid.UUID | None:
+    """Return remnawave_uuid for client_id, or None if not provisioned."""
+    async with pool.acquire() as conn:
+        return await conn.fetchval(
+            '''
+            SELECT remnawave_uuid FROM clients_remnawave WHERE client_id = $1;
+            ''',
+            client_id)
+
+
+async def get_client_remnawave_uuid_by_telegramID(telegram_id: int) -> uuid.UUID | None:
+    """Return remnawave_uuid for telegram_id, or None if not provisioned."""
+    async with pool.acquire() as conn:
+        return await conn.fetchval(
+            '''
+            SELECT cr.remnawave_uuid
+            FROM clients_remnawave AS cr
+            JOIN clients AS c ON cr.client_id = c.id
+            WHERE c.telegram_id = $1;
+            ''',
+            telegram_id)
+
+
+async def get_client_remnawave_subscription_url_by_telegramID(telegram_id: int) -> str | None:
+    """Return remnawave_subscription_url for telegram_id, or None if not provisioned."""
+    async with pool.acquire() as conn:
+        return await conn.fetchval(
+            '''
+            SELECT cr.remnawave_subscription_url
+            FROM clients_remnawave AS cr
+            JOIN clients AS c ON cr.client_id = c.id
+            WHERE c.telegram_id = $1;
+            ''',
+            telegram_id)
+
+
+async def get_clients_without_remnawave_record() -> list[asyncpg.Record]:
+    """Return all clients that have no Remnawave panel record yet (for migration script)."""
+    async with pool.acquire() as conn:
+        return await conn.fetch(
+            '''
+            SELECT c.id, c.telegram_id, c.username, cs.expiration_date
+            FROM clients AS c
+            JOIN clients_subscriptions AS cs ON cs.client_id = c.id
+            LEFT JOIN clients_remnawave AS cr ON cr.client_id = c.id
+            WHERE cr.client_id IS NULL;
+            ''')
+
+
+# ---------------------------------------------------------------------------
+# Remnawave — remnawave_internal_squads helpers
+# ---------------------------------------------------------------------------
+
+async def get_random_active_remnawave_squad_uuid() -> uuid.UUID | None:
+    """Return a random squad UUID eligible for assignment to a new user.
+
+    Filters by both is_active (squad exists in panel) and is_assignable
+    (squad is not a test/admin-only squad).
+    """
+    async with pool.acquire() as conn:
+        return await conn.fetchval(
+            '''
+            SELECT squad_uuid
+            FROM remnawave_internal_squads
+            WHERE is_active = TRUE
+              AND is_assignable = TRUE
+            ORDER BY RANDOM()
+            LIMIT 1;
+            ''')
+
