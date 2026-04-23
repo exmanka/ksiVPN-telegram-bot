@@ -49,6 +49,7 @@ import os
 import re
 import uuid
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 import asyncpg
 from remnawave import RemnawaveSDK
@@ -78,6 +79,10 @@ REMNAWAVE_BASE_URL = os.getenv('REMNAWAVE_BASE_URL', '')
 REMNAWAVE_TOKEN = os.getenv('REMNAWAVE_TOKEN', '')
 REMNAWAVE_CADDY_TOKEN = os.getenv('REMNAWAVE_CADDY_TOKEN')
 
+# Timezone in which the bot DB stores naive datetimes.
+# Must match TGBOT_TZ / TZ set in docker-compose / .env.
+BOT_TZ = ZoneInfo(os.getenv('BOT_TZ', 'Europe/Moscow'))
+
 _USERNAME_RE = re.compile(r'^[a-zA-Z0-9_-]{3,36}$')
 
 
@@ -99,8 +104,9 @@ def _sanitize_username(telegram_id: int, tg_username: str | None) -> str:
 
 
 def _to_utc(dt: datetime) -> datetime:
+    """Convert naive datetime (stored in BOT_TZ) to UTC-aware datetime."""
     if dt.tzinfo is None:
-        return dt.replace(tzinfo=timezone.utc)
+        return dt.replace(tzinfo=BOT_TZ).astimezone(timezone.utc)
     return dt.astimezone(timezone.utc)
 
 
