@@ -9,12 +9,14 @@ import re
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Awaitable, Callable
+from zoneinfo import ZoneInfo
 
 import httpx
 from remnawave.exceptions import NetworkError as RemnawaveNetworkError
 from remnawave.exceptions import ServerError as RemnawaveServerError
 from remnawave.models import CreateUserRequestDto, UpdateUserRequestDto
 
+from src.config import settings
 from src.database import postgres_dbms
 from src.services.remnawave_client import remnawave_sdk
 
@@ -81,9 +83,14 @@ def _sanitize_username(telegram_id: int, tg_username: str | None) -> str:
 
 
 def _to_utc(dt: datetime) -> datetime:
-    """Attach UTC tzinfo to a naive datetime (asyncpg returns naive TZ-less stamps)."""
+    """Convert naive datetime from the bot DB to UTC-aware.
+
+    asyncpg returns TIMESTAMP WITHOUT TIME ZONE as naive datetime.
+    The bot stores all datetimes in the application timezone (settings.tz),
+    so we must attach that zone before converting to UTC — not blindly attach UTC.
+    """
     if dt.tzinfo is None:
-        return dt.replace(tzinfo=timezone.utc)
+        return dt.replace(tzinfo=ZoneInfo(settings.tz)).astimezone(timezone.utc)
     return dt.astimezone(timezone.utc)
 
 
