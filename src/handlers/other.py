@@ -96,7 +96,7 @@ async def answer_unrecognized_messages(message: Message):
                 or await postgres_dbms.is_subscription_free(message.from_user.id):
 
             await bot.send_chat_action(message.from_user.id, ChatAction.TYPING)
-            await message.reply(await gpt4free.chatgpt_answer(message.text))
+            await message.reply(await gpt4free.chatgpt_answer(message.text), parse_mode=None)
 
         else:
             await message.reply(loc.other.msgs['chatgpt_only_for_active_sub'])
