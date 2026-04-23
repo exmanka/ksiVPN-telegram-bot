@@ -37,6 +37,7 @@ user_authorized:
 
       <b>Статус</b>: {status}{expiry}
       <b>Стоимость</b>: {price:g}₽ в месяц
+      <b>Максимум устройств</b>: {max_devices}
       <b>Ссылка на подписку</b>: {url}
 
       <b>Тип подписки</b>: {title}
@@ -48,6 +49,7 @@ user_authorized:
     my_subscription_expiry_line_active: "\n<b>Истекает</b>: {0}"
     my_subscription_expiry_line_inactive: "\n<b>Истекла</b>: {0}"
     my_subscription_url_pending: в процессе создания
+    my_subscription_url_blank: доступна после продления подписки
     how_to_connect_subscription: 💫 Чтобы подключить подписку, достаточно перейти по ссылке и выполнить указанную там инструкцию!
     how_to_renew_subscription: Чтобы оплатить подписку, воспользуйтесь кнопкой «<b>{0}</b>» в меню под строкой ввода сообщений боту
     location_types_info: |-
