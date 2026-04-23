@@ -40,6 +40,7 @@ user_authorized:
 
       <b>Status</b>: {status}{expiry}
       <b>Cost</b>: {price:g}₽ per month
+      <b>Maximum devices</b>: {max_devices}
       <b>Subscription link</b>: {url}
 
       <b>Subscription type</b>: {title}
@@ -51,6 +52,7 @@ user_authorized:
     my_subscription_expiry_line_active: "\n<b>Expires</b>: {0}"
     my_subscription_expiry_line_inactive: "\n<b>Expired</b>: {0}"
     my_subscription_url_pending: being set up
+    my_subscription_url_blank: available after subscription renewal
     how_to_connect_subscription: To activate a subscription, just click on the link and follow the instructions provided there!
     how_to_renew_subscription: To pay for the subscription, use the «<b>{0}</b>» button in the menu below the bot message input line
     location_types_info: |-

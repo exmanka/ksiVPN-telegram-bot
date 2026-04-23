@@ -34,12 +34,16 @@ async def my_subscription(message: Message):
     telegram_id = message.from_user.id
     client_id = await postgres_dbms.get_clientID_by_telegramID(telegram_id)
 
+    subscription_url = await postgres_dbms.get_client_remnawave_subscription_url_by_telegramID(telegram_id)
+    url = subscription_url or loc.auth.msgs['my_subscription_url_pending']
+
     # Determine status and expiry line.
     # Priority: blank (EPOCH) → free → active → inactive/expired.
     # blank and free subscriptions carry no expiry line.
     if await postgres_dbms.is_subscription_blank(telegram_id):
         status = loc.auth.msgs['my_subscription_status_blank']
         expiry = ''
+        url = loc.auth.msgs['my_subscription_url_blank']
         await message.answer(loc.unauth.msgs['need_renew_sub'])
     elif await postgres_dbms.is_subscription_free(telegram_id):
         status = loc.auth.msgs['my_subscription_status_free']
@@ -56,14 +60,13 @@ async def my_subscription(message: Message):
             format_localized_datetime(expiration_date)) if expiration_date else ''
 
     _, title, description, price = await postgres_dbms.get_subscription_info_by_clientID(client_id)
-
-    subscription_url = await postgres_dbms.get_client_remnawave_subscription_url_by_telegramID(telegram_id)
-    url = subscription_url or loc.auth.msgs['my_subscription_url_pending']
+    max_devices = await postgres_dbms.get_max_configurations_by_telegramID(telegram_id)
 
     await message.answer(
         loc.auth.msgs['my_subscription'].format(
             status=status, expiry=expiry, url=url,
-            title=title, description=description, price=price,
+            title=title, description=description,
+            price=price, max_devices=max_devices,
         ),
         reply_markup=user_authorized_kb.my_subscription_inline,
     )
