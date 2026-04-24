@@ -61,7 +61,7 @@ user_authorized:
       1. <b>Fast</b> — the fastest VPN connection, but may be unstable under heavy blocks.
       2. <b>Breach</b> — a «bulletproof» VPN connection that always works except under active whitelists.
       3. <b>Breach for iOS</b> — a «bulletproof» VPN connection for iOS — if the regular «Breach» disconnects on its own.
-      4. <b>Access+</b> — a VPN location with access to services that are normally blocked when using a VPN. For example, signing up for Gemini, accessing Reddit without an account, and so on.
+      4. <b>Pure</b> — a VPN location with access to services that are normally blocked when using a VPN. For example, signing up for Gemini, accessing Reddit without an account, and so on.
     return_to_main_menu: <i>Returning to the main menu</i>
     go_sub_renewal_menu: <i>Going to the subscription renewal menu</i>
     sub_renewal_free: <pre><code class="language-matrix">You are the One, Neo! There is no need to pay for a subscription 🐇</code></pre>
@@ -223,7 +223,7 @@ user_authorized:
     my_subscription: My subscription
     how_to_connect: How to connect?
     how_to_renew: How to renew subscription?
-    location_types: What are Fast, Breach and Access+?
+    location_types: What are Fast, Breach and Pure?
     personal_account: Personal account
     rules: Rules
     payment_1mnth: 1 month
@@ -420,12 +420,12 @@ other:
       The following locations are currently available:
       🇳🇱 Netherlands, 🇱🇻 Latvia, 🇩🇪 Germany, 🇺🇸 USA, 🇪🇸 Spain, 🇵🇱 Poland.
 
-      💬 <b>What do Fast, Breach and Access+ mean?</b>
+      💬 <b>What do Fast, Breach and Pure mean?</b>
       These are the types of VPN connections and locations:
       1. Fast is the fastest VPN connection, but it can be unstable with strong blockages.
       2. Breach is an "armor-piercing" VPN connection that always works with the exception of active whitelists.
       3. Breach for iOS — an "armor-piercing" VPN connection for iOS — if the usual "Breach" turns off by itself.
-      4. Access+ is a VPN location with access to services that are usually closed when using a VPN. For example, registration for Gemini, access to Reddit without logging in, and so on.
+      4. Pure is a VPN location with access to services that are usually closed when using a VPN. For example, registration for Gemini, access to Reddit without logging in, and so on.
     chatgpt_error: Sorry, an error with ChatGPT mode occurred
     chatgpt_only_for_active_sub: ChatGPT mode is available only to clients with an active subscription!
     unrecognized_message: |-
