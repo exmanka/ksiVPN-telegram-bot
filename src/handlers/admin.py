@@ -5,14 +5,16 @@ from decimal import Decimal
 from aiogram import F, Router
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
+from aiogram.fsm.storage.base import StorageKey
 from aiogram.types import Message, CallbackQuery
 from src.middlewares import admin_mw
-from src.keyboards import admin_kb
+from src.keyboards import admin_kb, user_authorized_kb, user_unauthorized_kb
 from src.states import admin_fsm
 from src.database import postgres_dbms
 from src.services import internal_functions, localization as loc
 from src.services.date_formatting import format_localized_datetime
-from src.runtime import bot
+from src.config import settings
+from src.runtime import bot, dp
 
 
 logger = logging.getLogger(__name__)
@@ -113,6 +115,76 @@ async def notifications_send_message_everyone(message: Message, state: FSMContex
     await message.answer(loc.admn.msgs['how_message_looks'])
 
     # echo message showing how will be displayed admin's message for clients
+    await bot.copy_message(message.from_user.id, message.chat.id, message.message_id)
+
+    # save last message to send it if admin write /perfect
+    await state.update_data(message_chat_id=message.chat.id, message_id=message.message_id)
+
+
+# ---------------------------------------------------------------------------
+# ONE-OFF: announcement broadcast that resets FSM and re-applies the main reply
+# keyboard for authorized recipients. Mirrors the regular `send_message_everyone`
+# flow but additionally:
+#   * picks reply_markup per recipient (authorized -> user_authorized_kb.menu,
+#     unauthorized -> user_unauthorized_kb.welcome) and passes it to copy_message;
+#   * clears FSM state for authorized recipients via dp.fsm.storage + StorageKey;
+#   * skips the admin themselves (they're mid-flow typing /perfect).
+# Delete this block, the matching FSM state and the keyboard button after the
+# announcement has been sent.
+# ---------------------------------------------------------------------------
+@router.message(F.text == loc.admn.btns['send_message_everyone_with_reset'])
+@admin_mw.admin_only()
+async def notifications_send_message_everyone_with_reset_fsm_start(message: Message, state: FSMContext):
+    """Start FSM for the one-off announcement (broadcast + reset FSM + main keyboard)."""
+    await state.set_state(admin_fsm.SendMessage.everyone_reset_decision)
+    await message.answer(loc.admn.msgs['fsm_start'])
+    await message.answer(loc.admn.msgs['message_everyone_with_reset_info'])
+
+
+@router.message(StateFilter(admin_fsm.SendMessage.everyone_reset_decision))
+@admin_mw.admin_only()
+async def notifications_send_message_everyone_with_reset(message: Message, state: FSMContext):
+    """Catch message; on /perfect broadcast it to every client + reset FSM / set kb for authorized."""
+    if message.text and message.text == '/perfect':
+        ignored_clients_str = ''
+        data = await state.get_data()
+        admin_id = settings.bot.admin_id
+
+        for idx, [telegram_id] in enumerate(await postgres_dbms.get_clients_telegram_ids()):
+            if telegram_id == admin_id:
+                # Don't reset the admin's own FSM — they're literally in the middle of running /perfect.
+                continue
+
+            is_authorized = await postgres_dbms.is_user_registered(telegram_id)
+            keyboard = user_authorized_kb.menu if is_authorized else user_unauthorized_kb.welcome
+
+            if is_authorized:
+                key = StorageKey(bot_id=bot.id, chat_id=telegram_id, user_id=telegram_id)
+                await FSMContext(storage=dp.fsm.storage, key=key).clear()
+
+            status, err = await internal_functions.safe_deliver(
+                lambda tid=telegram_id, kb=keyboard: bot.copy_message(
+                    tid, data['message_chat_id'], data['message_id'], reply_markup=kb,
+                ),
+                telegram_id=telegram_id,
+            )
+            if status is internal_functions.DeliveryStatus.OK:
+                continue
+            ignored_clients_str += await _format_failed_delivery_row(idx, telegram_id, status, err)
+
+        if ignored_clients_str:
+            answer_message = loc.admn.msgs['message_everyone_was_sent'] + '\n\n' + loc.admn.msgs['message_everyone_somebody_didnt_recieve']\
+                .format(ignored_clients_str=ignored_clients_str)
+            await internal_functions.send_long_message(message, answer_message)
+        else:
+            await message.answer(loc.admn.msgs['message_everyone_was_sent'] + '\n\n' + loc.admn.msgs['message_everyone_everybody_received'])
+
+        await fsm_reset(message, state)
+        return
+
+    await message.answer(loc.admn.msgs['how_message_looks'])
+
+    # echo message showing how the announcement will be displayed for clients
     await bot.copy_message(message.from_user.id, message.chat.id, message.message_id)
 
     # save last message to send it if admin write /perfect

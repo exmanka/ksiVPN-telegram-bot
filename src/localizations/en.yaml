@@ -276,6 +276,16 @@ admin:
       Enter the necessary information with the following message, and attach files if necessary!
 
       Enter /perfect to confirm the selection of the last sent message!
+    message_everyone_with_reset_info: |-
+      <b>One-off announcement mode.</b>
+      The message will be sent to <b>all</b> users. Additionally:
+      • authorized users will have their FSM state reset and the main menu re-applied;
+      • unauthorized users will get the welcome keyboard;
+      • you (admin) will be skipped.
+
+      Enter the necessary information with the following message, and attach files if necessary!
+
+      Enter /perfect to confirm the selection of the last sent message!
     clients_row_str: |-
       {0}. {1} {2} {3} <code>{4}</code>
     message_everyone_was_sent: <b>Okay, the message has been sent!</b>
@@ -371,6 +381,8 @@ admin:
     send_message_selected: |-
       Send to favorites
       👾
+    send_message_everyone_with_reset: |-
+      📣 Announce to all (reset FSM + menu)
     reset_fsm_2: |-
       Return
       👾

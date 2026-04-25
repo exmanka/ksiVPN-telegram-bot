@@ -11,3 +11,7 @@ class SendMessage(StatesGroup):
     everyone_decision = State()
     selected_list = State()
     selected_decision = State()
+    # One-off announcement variant: broadcast to all + reset FSM / re-apply main
+    # keyboard for authorized recipients. Remove together with the matching
+    # admin.py handlers after the announcement is sent.
+    everyone_reset_decision = State()
