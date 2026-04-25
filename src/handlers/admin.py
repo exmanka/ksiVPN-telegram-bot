@@ -158,9 +158,12 @@ async def notifications_send_message_everyone_with_reset(message: Message, state
             is_authorized = await postgres_dbms.is_user_registered(telegram_id)
             keyboard = user_authorized_kb.menu if is_authorized else user_unauthorized_kb.welcome
 
-            if is_authorized:
-                key = StorageKey(bot_id=bot.id, chat_id=telegram_id, user_id=telegram_id)
-                await FSMContext(storage=dp.fsm.storage, key=key).clear()
+            # Reset FSM unconditionally: unauthorized users may be sitting in
+            # RegistrationMenu.promo (their next text would otherwise be parsed as
+            # a referral promo code). RedisStorage clear is a no-op when no state
+            # is set, so it's safe for users with empty FSM too.
+            key = StorageKey(bot_id=bot.id, chat_id=telegram_id, user_id=telegram_id)
+            await FSMContext(storage=dp.fsm.storage, key=key).clear()
 
             status, err = await internal_functions.safe_deliver(
                 lambda tid=telegram_id, kb=keyboard: bot.copy_message(

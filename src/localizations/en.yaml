@@ -279,7 +279,8 @@ admin:
     message_everyone_with_reset_info: |-
       <b>One-off announcement mode.</b>
       The message will be sent to <b>all</b> users. Additionally:
-      • authorized users will have their FSM state reset and the main menu re-applied;
+      • FSM state will be cleared for every recipient (including users stuck mid-registration);
+      • authorized users will get the main menu keyboard re-applied;
       • unauthorized users will get the welcome keyboard;
       • you (admin) will be skipped.
 
