@@ -41,7 +41,7 @@ user_authorized:
       <b>Ссылка на подписку</b>: {url}
 
       <b>Тип подписки</b>: {title}
-      <b>Описание подписки</b>: {description}
+      <b>Описание подписки</b>: {description}{locations_status_page}
     my_subscription_status_blank: неактивна 😔
     my_subscription_status_free: активна вечно 🔥
     my_subscription_status_active: активна 🔥
@@ -50,6 +50,7 @@ user_authorized:
     my_subscription_expiry_line_inactive: "\n<b>Истекла</b>: {0}"
     my_subscription_url_pending: в процессе создания
     my_subscription_url_blank: доступна после продления подписки
+    my_subscription_locations_status_page: "\n<b>Статус работы локаций</b>: https://ksivpn.com/status"
     how_to_connect_subscription: |-
       ☝️ <b>Инструкция доступна по ссылке на подписку выше</b>
       
