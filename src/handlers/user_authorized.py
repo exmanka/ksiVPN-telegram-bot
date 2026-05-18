@@ -2,7 +2,6 @@ import random
 from decimal import Decimal
 from aiogram import F, Router
 from aiogram.enums import ChatAction
-from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
@@ -17,14 +16,6 @@ from src.runtime import bot
 
 
 router = Router(name="user_authorized")
-
-
-async def _safe_delete_message(chat_id: int, message_id: int) -> None:
-    """Delete a message ignoring 'message to delete not found' errors."""
-    try:
-        await bot.delete_message(chat_id, message_id)
-    except TelegramBadRequest:
-        pass
 
 
 @router.message(F.text == loc.auth.btns['my_subscription'])
@@ -185,7 +176,7 @@ async def sub_renewal_submenu_fsm_cancel(message: Message, state: FSMContext):
     """Cancel FSM state for subscription renewal, try to delete payment message and return to subscription renewal keyboard."""
     last_payment_message_id = await postgres_dbms.get_payment_last_message_id(await postgres_dbms.get_clientID_by_telegramID(message.from_user.id))
 
-    await _safe_delete_message(message.chat.id, last_payment_message_id)
+    await internal_functions.safe_delete_message(message.chat.id, last_payment_message_id)
 
     await state.set_state(user_authorized_fsm.PaymentMenu.menu)
     await message.answer(loc.auth.msgs['cancel_payment'], reply_markup=user_authorized_kb.sub_renewal)
@@ -210,17 +201,13 @@ async def sub_renewal_verification(message: Message, state: FSMContext):
     for [payment_id] in client_payments_ids:
         if await postgres_dbms.get_payment_status(payment_id) == False and await wallet.check_payment_on_successful(payment_id):
             months_number = await postgres_dbms.get_payment_months_number(payment_id)
-            await postgres_dbms.update_payment_successful(payment_id, client_id, months_number)
+            await internal_functions.finalize_successful_payment(payment_id, client_id, months_number)
 
             await state.set_state(user_authorized_fsm.PaymentMenu.menu)
             await message.answer(loc.auth.msgs['payment_found'].format(payment_id), reply_markup=user_authorized_kb.sub_renewal)
 
             message_id = await postgres_dbms.get_payment_telegram_message_id(payment_id)
-            await _safe_delete_message(message.chat.id, message_id)
-
-            await internal_functions.notify_admin_payment_success(client_id, months_number)
-            await internal_functions.extend_remnawave_expiry_for_client(client_id)
-            await internal_functions.check_referral_reward(client_id)
+            await internal_functions.safe_delete_message(message.chat.id, message_id)
             is_payment_found = True
 
     if not is_payment_found:
@@ -652,15 +639,12 @@ async def restore_payments(message: Message):
     for [payment_id] in client_payments_ids:
         if await postgres_dbms.get_payment_status(payment_id) == False and await wallet.check_payment_on_successful(payment_id):
             months_number = await postgres_dbms.get_payment_months_number(payment_id)
-            await postgres_dbms.update_payment_successful(payment_id, client_id, months_number)
+            await internal_functions.finalize_successful_payment(payment_id, client_id, months_number)
 
             await message.answer(loc.auth.msgs['payment_found'].format(payment_id))
 
             message_id = await postgres_dbms.get_payment_telegram_message_id(payment_id)
-            await _safe_delete_message(message.chat.id, message_id)
-
-            await internal_functions.notify_admin_payment_success(client_id, months_number)
-            await internal_functions.check_referral_reward(client_id)
+            await internal_functions.safe_delete_message(message.chat.id, message_id)
             is_payment_found = True
 
     if not is_payment_found:
