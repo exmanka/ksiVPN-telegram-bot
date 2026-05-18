@@ -629,6 +629,39 @@ async def extend_remnawave_expiry_for_client(client_id: int) -> None:
         )
 
 
+async def safe_delete_message(chat_id: int, message_id: int) -> None:
+    """Delete a message ignoring 'message to delete not found' errors."""
+    try:
+        await bot.delete_message(chat_id, message_id)
+    except TelegramBadRequest:
+        pass
+
+
+async def finalize_successful_payment(payment_id: int, client_id: int, months_number: int) -> None:
+    """Finalize a successful YooMoney payment in the correct, fault-tolerant order.
+
+    Order: DB write -> Remnawave sync -> referral bonus -> admin notification.
+    Step 1 (DB update) is intentionally not wrapped — a DB failure must abort the chain.
+    Steps 2-4 are individually wrapped so a failure in one does not skip the others.
+    """
+    await postgres_dbms.update_payment_successful(payment_id, client_id, months_number)
+
+    try:
+        await extend_remnawave_expiry_for_client(client_id)
+    except Exception:
+        logger.exception("extend_remnawave_expiry_for_client failed for client_id=%s after payment_id=%s", client_id, payment_id)
+
+    try:
+        await check_referral_reward(client_id)
+    except Exception:
+        logger.exception("check_referral_reward failed for client_id=%s after payment_id=%s", client_id, payment_id)
+
+    try:
+        await notify_admin_payment_success(client_id, months_number)
+    except Exception:
+        logger.exception("notify_admin_payment_success failed for client_id=%s after payment_id=%s", client_id, payment_id)
+
+
 async def sub_renewal(message: Message, state: FSMContext, months_number: int, discount: float):
     """Create message with subscription renewal payment link, run autochecker for payment and notify about successful payment.
 
@@ -677,19 +710,8 @@ async def sub_renewal(message: Message, state: FSMContext, months_number: int, d
 
     # if autochecker returns successful payment info
     if client_last_payment_status == 'success':
-        await postgres_dbms.update_payment_successful(payment_id, client_id, months_number)
-        await notify_admin_payment_success(client_id, months_number)
-        await extend_remnawave_expiry_for_client(client_id)
-        await check_referral_reward(client_id)
+        await finalize_successful_payment(payment_id, client_id, months_number)
         await state.set_state(user_authorized_fsm.PaymentMenu.menu)
 
-        # try to delete payment message
-        try:
-            await bot.delete_message(message.chat.id, message_info.message_id)
-
-        # if already deleted
-        except TelegramBadRequest:
-            pass
-
-        finally:
-            await message.answer(loc.internal.msgs['payment_successful'].format(payment_id), reply_markup=user_authorized_kb.sub_renewal)
+        await safe_delete_message(message.chat.id, message_info.message_id)
+        await message.answer(loc.internal.msgs['payment_successful'].format(payment_id), reply_markup=user_authorized_kb.sub_renewal)
