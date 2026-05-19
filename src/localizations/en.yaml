@@ -67,11 +67,10 @@ user_authorized:
     go_sub_renewal_menu: <i>Going to the subscription renewal menu</i>
     sub_renewal_free: <pre><code class="language-matrix">You are the One, Neo! There is no need to pay for a subscription 🐇</code></pre>
     payment_history_message: |-
-      🌟 <b>{0}</b> was extended for {1} months for {2:g}₽.
+      🌟 <b>{0}</b> was extended for {1} days for {2:g}₽.
 
       <b>Payment date</b>: {3}
-
-      Payment identifier: #{4}
+      <b>Payment identifier</b>: #{4}
     cant_find_payments: Alas! I could not find information about successful payments
     restore_payments: "To restore long-standing payments, use the \n/restore_payments command"
     cant_find_payments_restore: |-
@@ -227,9 +226,9 @@ user_authorized:
     location_types: What are Fast, Breach and Pure?
     personal_account: Personal account
     rules: Rules
-    payment_1mnth: 1 month
-    payment_3mnth: 3 months (-10%)
-    payment_12mnth: 12 months (-15%)
+    payment_30d: 30 days
+    payment_90d: 90 days (-10%)
+    payment_365d: 365 days (-15%)
     payment_history: Payment history
     return_main_menu: Return to main menu
     payment_check: Check payment
@@ -472,9 +471,12 @@ internal_functions:
 
       <b>Subscription type</b>: {0}
       <b>Amount to be paid</b>: {2:g}₽ {discount_str}
-      <b>Extension for the period</b>: {1} months.
+      <b>Extension for the period</b>: {1} days.
 
       Payment identifier: #{3}
+      
+      {test_note}
+    test_price_note: 💻 <i>Test mode — minimum price for debugging</i>
     config_info: |-
       <b>Server</b>: {0}
       <b>Locaqtion</b>: {1}, {2}
@@ -539,10 +541,13 @@ internal_functions:
       <b>Telegram INFO</b>:{1} <code>{2}{3}</code> <code>{4}</code>
       <b>About the promo code</b>: {5} with id {6} for {7} subscription{new_sub_str} ending {8}
     admin_successful_payment: |-
-      👾 <b>Successful subscription renewal for {0} months!</b>
+      👾 <b>Successful subscription renewal for {0} days!</b>
 
       <b>Client ID</b>: <code>{1}</code>
       <b>Telegram INFO</b>:{2} <code>{3}{4}</code> <code>{5}</code>
+
+      {test_prefix}
+    admin_payment_test_prefix: 💻 <i>Test mode payment — minimum price for debugging</i>
     ref_promo_was_entered: |-
       Wow! User {0}{1} used your referral promo code when registering!
 
@@ -559,7 +564,7 @@ internal_functions:
       <b>You get a month of subscription for free!</b>
     discount_str: (discount {0:g}₽)
     payment_successful: |-
-      The payment was made successfully!
+      ❤️‍🔥 <b>The payment was made successfully!</b>
 
       Payment identifier: #{0}
   keyboard_buttons: {}

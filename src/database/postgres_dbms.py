@@ -347,13 +347,13 @@ async def get_clients_subscriptions_info_by_clientID(client_id: int) -> asyncpg.
     """Return information about subscription's expiration date of client specified by client_id.
 
     :param client_id:
-    :return: asyncgp.Record object having (sub_id, paid_months_counter, expiration_date)
+    :return: asyncgp.Record object having (sub_id, paid_days_counter, expiration_date)
     :rtype: asyncpg.Record | None
     """
     async with pool.acquire() as conn:
         return await conn.fetchrow(
             '''
-            SELECT sub_id, paid_months_counter, expiration_date
+            SELECT sub_id, paid_days_counter, expiration_date
             FROM clients_subscriptions
             WHERE client_id = $1;
             ''',
@@ -513,13 +513,13 @@ async def get_payments_successful_info(client_id: int) -> list[asyncpg.Record]:
     """Return information about successful payments by client.
 
     :param client_id:
-    :return: list of asyncgp.Record objects having (p.id, s.title, p.price, p.months_number, p.date_of_initiation)
+    :return: list of asyncgp.Record objects having (p.id, s.title, p.price, p.days_number, p.date_of_initiation)
     :rtype: list[asyncpg.Record]
     """
     async with pool.acquire() as conn:
         return await conn.fetch(
             '''
-            SELECT p.id, s.title, p.price, p.months_number, p.date_of_initiation
+            SELECT p.id, s.title, p.price, p.days_number, p.date_of_initiation
             FROM payments AS p
             JOIN subscriptions AS s
             ON p.sub_id = s.id
@@ -583,12 +583,12 @@ async def get_payment_telegram_message_id(payment_id: int) -> int | None:
             payment_id)
 
 
-async def get_payment_months_number(payment_id: int) -> int | None:
-    """Return paid number of months for specified payment_id."""
+async def get_payment_days_number(payment_id: int) -> int | None:
+    """Return paid number of days for specified payment_id."""
     async with pool.acquire() as conn:
         return await conn.fetchval(
             '''
-            SELECT months_number
+            SELECT days_number
             FROM payments
             WHERE id = $1;
             ''',
@@ -1038,16 +1038,16 @@ async def insert_configuration(client_id: int,
                 client_id)
 
 
-async def insert_payment(client_id: int, sub_id: int, price: float, months_number: int) -> int | None:
+async def insert_payment(client_id: int, sub_id: int, price: float, days_number: int) -> int | None:
     """Add new payment for client in DB."""
     async with pool.acquire() as conn:
         return await conn.fetchval(
             '''
-            INSERT INTO payments (client_id, sub_id, price, months_number)
+            INSERT INTO payments (client_id, sub_id, price, days_number)
             VALUES($1, $2, $3, $4)
             RETURNING id;
             ''',
-            client_id, sub_id, price, months_number)
+            client_id, sub_id, price, days_number)
 
 
 async def insert_client_entered_local_promo(client_id: int, local_promo_id: int, local_promo_bonus_time) -> None:
@@ -1108,7 +1108,7 @@ async def insert_client_entered_global_promo(client_id: int, global_promo_id: in
                 global_promo_bonus_time, client_id)
 
 
-async def update_payment_successful(payment_id: int, client_id: int, paid_months: int) -> None:
+async def update_payment_successful(payment_id: int, client_id: int, paid_days: int) -> None:
     """Change status of payment specified by payment_id to successful and change subscription data."""
     async with pool.acquire() as conn:
         async with conn.transaction():
@@ -1123,19 +1123,19 @@ async def update_payment_successful(payment_id: int, client_id: int, paid_months
             await conn.execute(
                 '''
                 UPDATE clients_subscriptions
-                SET paid_months_counter = paid_months_counter + $1,
+                SET paid_days_counter = paid_days_counter + $1,
                 expiration_date =
                 CASE
                     -- Blank (EPOCH) or expired: count from now
                     WHEN expiration_date <= CURRENT_TIMESTAMP
-                    THEN CURRENT_TIMESTAMP + make_interval(months => $1)
+                    THEN CURRENT_TIMESTAMP + make_interval(days => $1)
 
                     -- Active: extend from current expiry
-                    ELSE expiration_date + make_interval(months => $1)
+                    ELSE expiration_date + make_interval(days => $1)
                 END
                 WHERE client_id = $2;
                 ''',
-                paid_months, client_id)
+                paid_days, client_id)
 
 
 async def update_payment_telegram_message_id(payment_id: int, telegram_message_id: int) -> None:
