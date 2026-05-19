@@ -70,8 +70,7 @@ user_authorized:
       🌟 <b>{0}</b> was extended for {1} days for {2:g}₽.
 
       <b>Payment date</b>: {3}
-
-      Payment identifier: #{4}
+      <b>Payment identifier</b>: #{4}
     cant_find_payments: Alas! I could not find information about successful payments
     restore_payments: "To restore long-standing payments, use the \n/restore_payments command"
     cant_find_payments_restore: |-
