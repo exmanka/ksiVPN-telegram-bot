@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from pydantic import BaseModel, Field, SecretStr
 
 
@@ -38,6 +40,15 @@ class YooMoneySettings(BaseModel):
 
 class PaymentsSettings(BaseModel):
     yoomoney: YooMoneySettings
+    # Whitelist of telegram_ids whose subscription renewals use test_price as
+    # the per-30-day reference, minimizing YooMoney commission during
+    # integration testing on staging/production. The admin is NOT added
+    # automatically — list explicitly to opt-in.
+    test_user_ids: list[int] = Field(default_factory=list)
+    # Per-30-day reference price (in ₽) substituted for sub_price when the
+    # paying telegram_id is listed in test_user_ids. Default = 2
+    # (YooMoney lower bound).
+    test_price: Decimal = Field(default=Decimal("2"), ge=Decimal("2"))
 
 
 class LocalizationSettings(BaseModel):
