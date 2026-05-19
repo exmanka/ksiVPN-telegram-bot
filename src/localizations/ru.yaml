@@ -67,7 +67,7 @@ user_authorized:
     go_sub_renewal_menu: <i>Перехожу в меню продления подписки</i>
     sub_renewal_free: <pre><code class="language-matrix">Ты избранный, Нео! Оплачивать подписку нет необходимости 🐇</code></pre>
     payment_history_message: |-
-      🌟 <b>{0}</b> была продлена на {1} мес. за {2:g}₽.
+      🌟 <b>{0}</b> была продлена на {1} дней за {2:g}₽.
 
       <b>Дата оплаты</b>: {3}
 
@@ -240,9 +240,9 @@ user_authorized:
     location_types: Что значат Fast, Breach и Pure?
     personal_account: Личный кабинет
     rules: Правила
-    payment_1mnth: 1 месяц
-    payment_3mnth: 3 мес. (-10%)
-    payment_12mnth: 12 мес. (-15%)
+    payment_30d: 30 дней
+    payment_90d: 90 дней (-10%)
+    payment_365d: 365 дней (-15%)
     payment_history: История оплаты
     return_main_menu: Возврат в главное меню
     payment_check: Проверить оплату
@@ -505,7 +505,7 @@ internal_functions:
 
       <b>Тип подписки</b>: {0}
       <b>Сумма к оплате</b>: {2:g}₽ {discount_str}
-      <b>Продление на срок</b>: {1} мес.
+      <b>Продление на срок</b>: {1} дней
       <b>Идентификатор платежа</b>: #{3}
 
       💫 Используйте кнопку «Проверить оплату» для проверки совершенного платежа
@@ -566,7 +566,7 @@ internal_functions:
       <b>Telegram INFO</b>:{1} <code>{2}{3}</code> <code>{4}</code>
       <b>О промокоде</b>: {5} с id {6} на {7} подписки{new_sub_str}, заканчивающийся {8}
     admin_successful_payment: |-
-      👾 <b>Успешное продление подписки на {0} мес!</b>
+      👾 <b>Успешное продление подписки на {0} дней!</b>
 
       <b>Client ID</b>: <code>{1}</code>
       <b>Telegram INFO</b>:{2} <code>{3}{4}</code> <code>{5}</code>

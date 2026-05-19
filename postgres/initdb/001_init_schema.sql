@@ -38,11 +38,11 @@ ALTER TABLE subscriptions
 CREATE TABLE clients_subscriptions (
 	client_id INT UNIQUE NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
 	sub_id SMALLINT NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
-	paid_months_counter INT NOT NULL DEFAULT 0,
+	paid_days_counter INT NOT NULL DEFAULT 0,
 	expiration_date TIMESTAMP NOT NULL
 );
-INSERT INTO clients_subscriptions(client_id, sub_id, paid_months_counter, expiration_date)
-VALUES(1, 1, 10, TIMESTAMP '2030-01-01 00:00');
+INSERT INTO clients_subscriptions(client_id, sub_id, paid_days_counter, expiration_date)
+VALUES(1, 1, 300, TIMESTAMP '2030-01-01 00:00');
 
 
 CREATE OR REPLACE FUNCTION create_ref_promocode() RETURNS text
@@ -66,7 +66,7 @@ CREATE TABLE promocodes_ref (
 	phrase VARCHAR(10) UNIQUE NOT NULL DEFAULT create_ref_promocode(),
 	client_creator_id INT UNIQUE NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
 	provided_sub_id SMALLINT NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
-	bonus_time INTERVAL NOT NULL DEFAULT '1 month'
+	bonus_time INTERVAL NOT NULL DEFAULT INTERVAL '30 days'
 );
 INSERT INTO promocodes_ref(client_creator_id, provided_sub_id)
 VALUES(1, 2);
@@ -80,7 +80,7 @@ CREATE TABLE promocodes_global (
 	bonus_time INTERVAL NOT NULL
 );
 INSERT INTO promocodes_global(phrase, expiration_date, remaining_activations, bonus_time)
-VALUES('GLOBAL_PROMO_EXAMPLE', TIMESTAMP '2030-01-01', 3, INTERVAL '1 month');
+VALUES('GLOBAL_PROMO_EXAMPLE', TIMESTAMP '2030-01-01', 3, INTERVAL '30 days');
 
 
 CREATE TABLE clients_promo_global (
@@ -98,7 +98,7 @@ CREATE TABLE promocodes_local (
 	bonus_time INTERVAL NOT NULL
 );
 INSERT INTO promocodes_local(phrase, expiration_date, provided_sub_id, bonus_time)
-VALUES('LOCAL_PROMO_EXAMPLE', TIMESTAMP '2030-01-01', 2, INTERVAL '1 month');
+VALUES('LOCAL_PROMO_EXAMPLE', TIMESTAMP '2030-01-01', 2, INTERVAL '30 days');
 
 
 CREATE TABLE clients_promo_local (
@@ -169,7 +169,7 @@ CREATE TABLE payments (
 	client_id INT NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
 	sub_id SMALLINT NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
 	price DECIMAL(6, 2) NOT NULL,
-	months_number SMALLINT NOT NULL,
+	days_number SMALLINT NOT NULL,
 	is_successful BOOLEAN NOT NULL DEFAULT FALSE,
 	telegram_message_id INT,
 	date_of_initiation TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
