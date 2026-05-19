@@ -116,36 +116,36 @@ async def sub_renewal_fsm_start(message: Message, state: FSMContext):
 
 
 @router.message(
-    F.text == loc.auth.btns['payment_1mnth'],
+    F.text == loc.auth.btns['payment_30d'],
     StateFilter(user_authorized_fsm.PaymentMenu.menu),
 )
 @user_authorized_mw.authorized_only()
 @throttling_mw.antiflood(rate_limit=4)
-async def sub_renewal_months_1(message: Message, state: FSMContext):
-    """Create subscription renewal payment for 1 month."""
-    await internal_functions.sub_renewal(message, state, months_number=1, discount=0.)
+async def sub_renewal_days_30(message: Message, state: FSMContext):
+    """Create subscription renewal payment for 30 days."""
+    await internal_functions.sub_renewal(message, state, days_number=30, discount=0.)
 
 
 @router.message(
-    F.text == loc.auth.btns['payment_3mnth'],
+    F.text == loc.auth.btns['payment_90d'],
     StateFilter(user_authorized_fsm.PaymentMenu.menu),
 )
 @user_authorized_mw.authorized_only()
 @throttling_mw.antiflood(rate_limit=4)
-async def sub_renewal_months_3(message: Message, state: FSMContext):
-    """Create subscription renewal payment for 3 months."""
-    await internal_functions.sub_renewal(message, state, months_number=3, discount=.1)
+async def sub_renewal_days_90(message: Message, state: FSMContext):
+    """Create subscription renewal payment for 90 days."""
+    await internal_functions.sub_renewal(message, state, days_number=90, discount=.1)
 
 
 @router.message(
-    F.text == loc.auth.btns['payment_12mnth'],
+    F.text == loc.auth.btns['payment_365d'],
     StateFilter(user_authorized_fsm.PaymentMenu.menu),
 )
 @user_authorized_mw.authorized_only()
 @throttling_mw.antiflood(rate_limit=4)
-async def sub_renewal_months_12(message: Message, state: FSMContext):
-    """Create subscription renewal payment for 12 months."""
-    await internal_functions.sub_renewal(message, state, months_number=12, discount=.15)
+async def sub_renewal_days_365(message: Message, state: FSMContext):
+    """Create subscription renewal payment for 365 days."""
+    await internal_functions.sub_renewal(message, state, days_number=365, discount=.15)
 
 
 @router.message(
@@ -159,8 +159,8 @@ async def sub_renewal_payment_history(message: Message):
     is_payment_found = False
 
     payment_price: Decimal
-    for payment_id, sub_title, payment_price, payment_months_number, payment_date in payment_history:
-        await message.answer(loc.auth.msgs['payment_history_message'].format(sub_title, payment_months_number, float(payment_price), format_localized_datetime(payment_date), payment_id))
+    for payment_id, sub_title, payment_price, payment_days_number, payment_date in payment_history:
+        await message.answer(loc.auth.msgs['payment_history_message'].format(sub_title, payment_days_number, float(payment_price), format_localized_datetime(payment_date), payment_id))
         is_payment_found = True
 
     if not is_payment_found:
@@ -200,8 +200,8 @@ async def sub_renewal_verification(message: Message, state: FSMContext):
     is_payment_found = False
     for [payment_id] in client_payments_ids:
         if await postgres_dbms.get_payment_status(payment_id) == False and await wallet.check_payment_on_successful(payment_id):
-            months_number = await postgres_dbms.get_payment_months_number(payment_id)
-            await internal_functions.finalize_successful_payment(payment_id, client_id, months_number)
+            days_number = await postgres_dbms.get_payment_days_number(payment_id)
+            await internal_functions.finalize_successful_payment(payment_id, client_id, days_number)
 
             await state.set_state(user_authorized_fsm.PaymentMenu.menu)
             await message.answer(loc.auth.msgs['payment_found'].format(payment_id), reply_markup=user_authorized_kb.sub_renewal)

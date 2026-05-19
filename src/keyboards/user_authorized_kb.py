@@ -24,9 +24,9 @@ sub_renewal = ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[
         [
-            KeyboardButton(text=loc.auth.btns['payment_1mnth']),
-            KeyboardButton(text=loc.auth.btns['payment_3mnth']),
-            KeyboardButton(text=loc.auth.btns['payment_12mnth']),
+            KeyboardButton(text=loc.auth.btns['payment_30d']),
+            KeyboardButton(text=loc.auth.btns['payment_90d']),
+            KeyboardButton(text=loc.auth.btns['payment_365d']),
         ],
         [KeyboardButton(text=loc.auth.btns['payment_history'])],
         [KeyboardButton(text=loc.auth.btns['return_main_menu'])],
