@@ -564,7 +564,7 @@ internal_functions:
       <b>You get a month of subscription for free!</b>
     discount_str: (discount {0:g}₽)
     payment_successful: |-
-      The payment was made successfully!
+      ❤️‍🔥 <b>The payment was made successfully!</b>
 
       Payment identifier: #{0}
   keyboard_buttons: {}
