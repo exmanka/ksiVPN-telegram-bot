@@ -36,6 +36,14 @@ dynaconf_settings = Dynaconf(
 
         Validator("payments.yoomoney.token", must_exist=True, is_type_of=str),
         Validator("payments.yoomoney.account", must_exist=True, is_type_of=int),
+        Validator("payments.test_user_ids", default=[], is_type_of=list),
+        Validator(
+            "payments.test_price",
+            default=2,
+            is_type_of=(int, float),
+            gte=2,
+            messages={"operations": "payments.test_price must be ≥ 2 (YooMoney lower bound)"},
+        ),
 
         Validator("localization.language", must_exist=True, is_type_of=str),
         Validator("backup.path", default="/home/ksivpn-tgbot/backups", is_type_of=str),

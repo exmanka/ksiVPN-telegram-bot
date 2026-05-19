@@ -475,6 +475,9 @@ internal_functions:
       <b>Extension for the period</b>: {1} days.
 
       Payment identifier: #{3}
+      
+      {test_note}
+    test_price_note: 💻 <i>Test mode — minimum price for debugging</i>
     config_info: |-
       <b>Server</b>: {0}
       <b>Locaqtion</b>: {1}, {2}
@@ -543,6 +546,9 @@ internal_functions:
 
       <b>Client ID</b>: <code>{1}</code>
       <b>Telegram INFO</b>:{2} <code>{3}{4}</code> <code>{5}</code>
+
+      {test_prefix}
+    admin_payment_test_prefix: 💻 <i>Test mode payment — minimum price for debugging</i>
     ref_promo_was_entered: |-
       Wow! User {0}{1} used your referral promo code when registering!
 

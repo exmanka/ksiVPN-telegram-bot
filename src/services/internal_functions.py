@@ -333,6 +333,10 @@ async def notify_admin_promo_entered(client_id: int, promo_phrase: str, promo_ty
 async def notify_admin_payment_success(client_id: int, days_number: int):
     """Send message for admin with information about new successful client's payment.
 
+    Adds a prefix to the admin notification when the paying client's
+    telegram_id is in settings.payments.test_user_ids — so test transactions are
+    visually distinct from real ones in the admin feed.
+
     :param client_id:
     :param days_number: number of days client paid for
     """
@@ -341,7 +345,17 @@ async def notify_admin_payment_success(client_id: int, days_number: int):
     # convert surname and username for beautiful formatting
     surname_str = await format_none_string(surname)
     username_str = await format_none_string(username)
-    await bot.send_message(settings.bot.admin_id, loc.internal.msgs['admin_successful_payment'].format(days_number, client_id, username_str, name, surname_str, telegram_id))
+
+    is_test_payment = telegram_id in settings.payments.test_user_ids
+    test_prefix = loc.internal.msgs['admin_payment_test_prefix'] if is_test_payment else ''
+
+    await bot.send_message(
+        settings.bot.admin_id,
+        loc.internal.msgs['admin_successful_payment'].format(
+            days_number, client_id, username_str, name, surname_str, telegram_id,
+            test_prefix=test_prefix,
+        )
+    )
 
 
 async def notify_client_new_referal(client_creator_id: int, referral_client_name: str, referral_client_username: str | None = None):
@@ -665,6 +679,14 @@ async def finalize_successful_payment(payment_id: int, client_id: int, days_numb
 async def sub_renewal(message: Message, state: FSMContext, days_number: int, discount: float):
     """Create message with subscription renewal payment link, run autochecker for payment and notify about successful payment.
 
+    Test-account override: if message.from_user.id ∈ settings.payments.test_user_ids,
+    the per-30-day reference price `sub_price` is replaced with
+    settings.payments.test_price (default 2₽, YooMoney lower bound). The normal
+    formula `sub_price / 30 * days_number * (1 - discount)` then runs as usual,
+    so the discount logic is exercised end-to-end during testing — only the
+    base price is scaled down. The admin is NOT added to the test list
+    automatically; list explicitly.
+
     :param message:
     :param state:
     :param days_number: number of days subscription must be renewed for
@@ -676,8 +698,15 @@ async def sub_renewal(message: Message, state: FSMContext, days_number: int, dis
     # get client's sub info
     sub_id, sub_title, _, sub_price = await postgres_dbms.get_subscription_info_by_clientID(client_id)
 
+    # Test-account override: substitute sub_price so the discount/scale formula
+    # below still runs (validates discount path with minimal real money).
+    is_test_payment = message.from_user.id in settings.payments.test_user_ids
+    if is_test_payment:
+        sub_price = float(settings.payments.test_price)
+
     # count payment sum (sub_price is the per-30-day reference price; scale to actual days)
     payment_price = max(sub_price / 30 * days_number * (1 - discount), 2)
+
     # create entity in db table payments and getting payment_id
     payment_id = await postgres_dbms.insert_payment(client_id, sub_id, payment_price, days_number)
 
@@ -694,13 +723,21 @@ async def sub_renewal(message: Message, state: FSMContext, days_number: int, dis
     await message.answer(loc.internal.msgs['wait_payment'], reply_markup=user_authorized_kb.sub_renewal_verification)
     await state.set_state(user_authorized_fsm.PaymentMenu.verification)
 
-    # answer with InlineKeyboardMarkup with link to payment
+    # answer with InlineKeyboardMarkup with link to payment.
+    # discount_str is rendered for both modes (exercises discount path in test
+    # mode too); test_note is appended only in test mode to flag the override.
     discount_str = ''
     if discount:
         discount_str = loc.internal.msgs['discount_str'].format(sub_price / 30 * days_number * discount)
+    test_note = loc.internal.msgs['test_price_note'] if is_test_payment else ''
 
-    message_info = await message.answer(loc.internal.msgs['payment_form'].format(sub_title, days_number, payment_price, payment_id, discount_str=discount_str),
-                                        reply_markup=await user_authorized_kb.sub_renewal_link_inline(payment_form.link_for_customer))
+    message_info = await message.answer(
+        loc.internal.msgs['payment_form'].format(
+            sub_title, days_number, payment_price, payment_id,
+            discount_str=discount_str, test_note=test_note,
+        ),
+        reply_markup=await user_authorized_kb.sub_renewal_link_inline(payment_form.link_for_customer),
+    )
 
     # add telegram_id for created payment
     await postgres_dbms.update_payment_telegram_message_id(payment_id, message_info.message_id)
