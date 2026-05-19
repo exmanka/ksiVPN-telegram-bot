@@ -12,9 +12,6 @@ class AccountMenu(StatesGroup):
 class PaymentMenu(StatesGroup):
     """FSM states for payment menu."""
     menu = State()
-    months_1 = State()
-    months_3 = State()
-    months_12 = State()
     verification = State()
 
 

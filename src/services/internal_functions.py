@@ -330,18 +330,18 @@ async def notify_admin_promo_entered(client_id: int, promo_phrase: str, promo_ty
                                    new_sub_str=new_sub_str))
 
 
-async def notify_admin_payment_success(client_id: int, months_number: int):
+async def notify_admin_payment_success(client_id: int, days_number: int):
     """Send message for admin with information about new successful client's payment.
 
     :param client_id:
-    :param months_number: number of month client paid for
+    :param days_number: number of days client paid for
     """
     name, surname, username, telegram_id, *_ = await postgres_dbms.get_client_info_by_clientID(client_id)
 
     # convert surname and username for beautiful formatting
     surname_str = await format_none_string(surname)
     username_str = await format_none_string(username)
-    await bot.send_message(settings.bot.admin_id, loc.internal.msgs['admin_successful_payment'].format(months_number, client_id, username_str, name, surname_str, telegram_id))
+    await bot.send_message(settings.bot.admin_id, loc.internal.msgs['admin_successful_payment'].format(days_number, client_id, username_str, name, surname_str, telegram_id))
 
 
 async def notify_client_new_referal(client_creator_id: int, referral_client_name: str, referral_client_username: str | None = None):
@@ -637,14 +637,14 @@ async def safe_delete_message(chat_id: int, message_id: int) -> None:
         pass
 
 
-async def finalize_successful_payment(payment_id: int, client_id: int, months_number: int) -> None:
+async def finalize_successful_payment(payment_id: int, client_id: int, days_number: int) -> None:
     """Finalize a successful YooMoney payment in the correct, fault-tolerant order.
 
     Order: DB write -> Remnawave sync -> referral bonus -> admin notification.
     Step 1 (DB update) is intentionally not wrapped — a DB failure must abort the chain.
     Steps 2-4 are individually wrapped so a failure in one does not skip the others.
     """
-    await postgres_dbms.update_payment_successful(payment_id, client_id, months_number)
+    await postgres_dbms.update_payment_successful(payment_id, client_id, days_number)
 
     try:
         await extend_remnawave_expiry_for_client(client_id)
@@ -657,17 +657,17 @@ async def finalize_successful_payment(payment_id: int, client_id: int, months_nu
         logger.exception("check_referral_reward failed for client_id=%s after payment_id=%s", client_id, payment_id)
 
     try:
-        await notify_admin_payment_success(client_id, months_number)
+        await notify_admin_payment_success(client_id, days_number)
     except Exception:
         logger.exception("notify_admin_payment_success failed for client_id=%s after payment_id=%s", client_id, payment_id)
 
 
-async def sub_renewal(message: Message, state: FSMContext, months_number: int, discount: float):
+async def sub_renewal(message: Message, state: FSMContext, days_number: int, discount: float):
     """Create message with subscription renewal payment link, run autochecker for payment and notify about successful payment.
 
     :param message:
     :param state:
-    :param months_number: number of months subscription must be renewed
+    :param days_number: number of days subscription must be renewed for
     :param discount: price discount in range [0, 1)
     """
     # get client_id by telegramID
@@ -676,10 +676,10 @@ async def sub_renewal(message: Message, state: FSMContext, months_number: int, d
     # get client's sub info
     sub_id, sub_title, _, sub_price = await postgres_dbms.get_subscription_info_by_clientID(client_id)
 
-    # count payment sum
-    payment_price = max(sub_price * months_number * (1 - discount), 2)
+    # count payment sum (sub_price is the per-30-day reference price; scale to actual days)
+    payment_price = max(sub_price / 30 * days_number * (1 - discount), 2)
     # create entity in db table payments and getting payment_id
-    payment_id = await postgres_dbms.insert_payment(client_id, sub_id, payment_price, months_number)
+    payment_id = await postgres_dbms.insert_payment(client_id, sub_id, payment_price, days_number)
 
     # use aiomoney for payment link creation
     wallet = aiomoney.YooMoneyWallet(settings.payments.yoomoney.token.get_secret_value())
@@ -697,9 +697,9 @@ async def sub_renewal(message: Message, state: FSMContext, months_number: int, d
     # answer with InlineKeyboardMarkup with link to payment
     discount_str = ''
     if discount:
-        discount_str = loc.internal.msgs['discount_str'].format(sub_price * months_number * discount)
+        discount_str = loc.internal.msgs['discount_str'].format(sub_price / 30 * days_number * discount)
 
-    message_info = await message.answer(loc.internal.msgs['payment_form'].format(sub_title, months_number, payment_price, payment_id, discount_str=discount_str),
+    message_info = await message.answer(loc.internal.msgs['payment_form'].format(sub_title, days_number, payment_price, payment_id, discount_str=discount_str),
                                         reply_markup=await user_authorized_kb.sub_renewal_link_inline(payment_form.link_for_customer))
 
     # add telegram_id for created payment
@@ -710,7 +710,7 @@ async def sub_renewal(message: Message, state: FSMContext, months_number: int, d
 
     # if autochecker returns successful payment info
     if client_last_payment_status == 'success':
-        await finalize_successful_payment(payment_id, client_id, months_number)
+        await finalize_successful_payment(payment_id, client_id, days_number)
         await state.set_state(user_authorized_fsm.PaymentMenu.menu)
 
         await safe_delete_message(message.chat.id, message_info.message_id)
