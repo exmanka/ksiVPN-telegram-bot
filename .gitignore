@@ -17,6 +17,7 @@ venv*
 .idea/
 
 *.local*
+docs/
 
 # Claude tests
 .claude/

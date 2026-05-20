@@ -170,10 +170,24 @@ CREATE TABLE payments (
 	sub_id SMALLINT NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
 	price DECIMAL(6, 2) NOT NULL,
 	days_number SMALLINT NOT NULL,
-	is_successful BOOLEAN NOT NULL DEFAULT FALSE,
+	is_successful BOOLEAN NOT NULL DEFAULT FALSE,        -- legacy mirror of status='succeeded'; kept for compat
 	telegram_message_id INT,
-	date_of_initiation TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+	date_of_initiation TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	provider VARCHAR(32) NOT NULL,                       -- 'yoomoney' | 'yookassa' | ...
+	external_id VARCHAR(128),                            -- provider-side payment id (NULL until create_invoice succeeds)
+	status VARCHAR(16) NOT NULL DEFAULT 'pending',       -- pending | succeeded | failed | expired
+	paid_at TIMESTAMP,
+	updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	raw_payload JSONB                                    -- webhook body or last get_status response
 );
+
+CREATE UNIQUE INDEX payments_provider_external_id_uniq
+	ON payments(provider, external_id)
+	WHERE external_id IS NOT NULL;
+
+CREATE INDEX payments_pending_reconciler_idx
+	ON payments(provider, date_of_initiation)
+	WHERE status = 'pending';
 
 
 CREATE TABLE settings (
