@@ -1116,11 +1116,96 @@ async def insert_client_entered_global_promo(client_id: int, global_promo_id: in
                 global_promo_bonus_time, client_id)
 
 
+async def claim_payment_finalize(payment_id: int, client_id: int, paid_days: int) -> bool:
+    """Atomic idempotent finalize: mark payment succeeded AND extend subscription, exactly once.
+
+    The ``payments`` UPDATE is guarded by ``WHERE status != 'succeeded'`` and RETURNING.
+    If no row was updated, another concurrent caller (webhook, reconciler, manual recheck)
+    already finalized this payment — we return ``False`` and the caller skips the
+    post-finalize chain (Remnawave sync, referral, admin notify) to avoid double-effects.
+
+    Both UPDATEs run in one transaction so partial-finalize is impossible.
+
+    :returns: ``True`` if this call performed the finalization; ``False`` if already done.
+    """
+    async with pool.acquire() as conn:
+        async with conn.transaction():
+            updated_id = await conn.fetchval(
+                '''
+                UPDATE payments
+                SET is_successful = TRUE,
+                    status        = 'succeeded',
+                    paid_at       = CURRENT_TIMESTAMP,
+                    updated_at    = CURRENT_TIMESTAMP
+                WHERE id = $1 AND status != 'succeeded'
+                RETURNING id;
+                ''',
+                payment_id)
+            if updated_id is None:
+                return False
+
+            await conn.execute(
+                '''
+                UPDATE clients_subscriptions
+                SET paid_days_counter = paid_days_counter + $1,
+                expiration_date =
+                CASE
+                    -- Blank (EPOCH) or expired: count from now
+                    WHEN expiration_date <= CURRENT_TIMESTAMP
+                    THEN CURRENT_TIMESTAMP + make_interval(days => $1)
+
+                    -- Active: extend from current expiry
+                    ELSE expiration_date + make_interval(days => $1)
+                END
+                WHERE client_id = $2;
+                ''',
+                paid_days, client_id)
+            return True
+
+
+async def get_payment_provider_info(payment_id: int) -> asyncpg.Record | None:
+    """Return ``(provider, external_id, status)`` for ``payment_id``, or ``None``.
+
+    Small lookup used by user-initiated re-check flows that need the provider
+    routing info but don't want to pull the entire finalize context.
+    """
+    async with pool.acquire() as conn:
+        return await conn.fetchrow(
+            '''
+            SELECT provider, external_id, status
+            FROM payments
+            WHERE id = $1;
+            ''',
+            payment_id)
+
+
+async def get_payment_finalize_context(payment_id: int) -> asyncpg.Record | None:
+    """Single-query fetch of everything needed to finalize ``payment_id``.
+
+    Returns a row with: ``id``, ``client_id``, ``days_number``, ``status``,
+    ``telegram_message_id``, ``telegram_id``. ``None`` if no such payment.
+    """
+    async with pool.acquire() as conn:
+        return await conn.fetchrow(
+            '''
+            SELECT p.id, p.client_id, p.days_number, p.status, p.telegram_message_id,
+                   c.telegram_id
+            FROM payments p
+            JOIN clients c ON c.id = p.client_id
+            WHERE p.id = $1;
+            ''',
+            payment_id)
+
+
 async def update_payment_successful(payment_id: int, client_id: int, paid_days: int) -> None:
     """Change status of payment specified by payment_id to successful and change subscription data.
 
     Writes both legacy ``is_successful`` flag and the new ``status``/``paid_at``/``updated_at``
     columns so legacy and new read paths stay consistent until the legacy column is dropped.
+
+    .. note::
+        This function is non-idempotent — calling twice doubles the subscription extension.
+        New code paths should use :func:`claim_payment_finalize` instead.
     """
     async with pool.acquire() as conn:
         async with conn.transaction():

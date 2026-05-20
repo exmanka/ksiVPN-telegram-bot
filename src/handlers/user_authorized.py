@@ -9,10 +9,13 @@ from src.middlewares import user_authorized_mw, throttling_mw
 from src.keyboards import user_authorized_kb
 from src.states import user_authorized_fsm
 from src.database import postgres_dbms
-from src.services import internal_functions, aiomoney, localization as loc
+from src.services import internal_functions, localization as loc
 from src.services.date_formatting import format_localized_bonus_days, format_localized_datetime
 from src.config import settings
 from src.runtime import bot
+from src.payments.enums import PaymentProviderName
+from src.payments.exceptions import ProviderError
+from src.payments.runtime import payment_service
 
 
 router = Router(name="user_authorized")
@@ -115,6 +118,62 @@ async def sub_renewal_fsm_start(message: Message, state: FSMContext):
     await message.answer(loc.auth.msgs['go_sub_renewal_menu'], reply_markup=user_authorized_kb.sub_renewal)
 
 
+async def _initiate_payment(
+    message: Message,
+    state: FSMContext,
+    *,
+    days_number: int,
+    discount: float,
+) -> None:
+    """Initiate a subscription-renewal payment and present the link to the user.
+
+    Non-blocking: the actual payment-status confirmation arrives later via webhook
+    (or via the reconciler / manual «Проверить платёж» button). The FSM is set to
+    ``verification`` so the user sees the verification keyboard until they get a
+    confirmation message.
+    """
+    try:
+        initiated = await payment_service.initiate(
+            telegram_id=message.from_user.id,
+            days_number=days_number,
+            discount=discount,
+            provider_name=PaymentProviderName.YOOMONEY,
+            return_url="https://t.me/ksiVPN_bot",
+        )
+    except ProviderError:
+        await message.answer(loc.internal.msgs.get('payment_provider_error', loc.auth.msgs['cant_find_payments']))
+        return
+
+    # The verification keyboard / FSM state are independent of which provider
+    # was used — same user-facing flow.
+    await message.answer(
+        loc.internal.msgs['wait_payment'],
+        reply_markup=user_authorized_kb.sub_renewal_verification,
+    )
+    await state.set_state(user_authorized_fsm.PaymentMenu.verification)
+
+    # Build the payment-link message with discount/test annotations.
+    discount_str = ''
+    if discount:
+        # Re-derive shown discount amount for the message text. Mirrors the
+        # legacy formula so the user sees consistent numbers.
+        sub_price_proxy = initiated.price / (days_number * (1 - discount) / 30)
+        discount_str = loc.internal.msgs['discount_str'].format(
+            sub_price_proxy / 30 * days_number * discount
+        )
+    test_note = loc.internal.msgs['test_price_note'] if initiated.is_test_payment else ''
+
+    message_info = await message.answer(
+        loc.internal.msgs['payment_form'].format(
+            initiated.sub_title, initiated.days_number, initiated.price, initiated.payment_id,
+            discount_str=discount_str, test_note=test_note,
+        ),
+        reply_markup=await user_authorized_kb.sub_renewal_link_inline(initiated.payment_url),
+    )
+
+    await postgres_dbms.update_payment_telegram_message_id(initiated.payment_id, message_info.message_id)
+
+
 @router.message(
     F.text == loc.auth.btns['payment_30d'],
     StateFilter(user_authorized_fsm.PaymentMenu.menu),
@@ -123,7 +182,7 @@ async def sub_renewal_fsm_start(message: Message, state: FSMContext):
 @throttling_mw.antiflood(rate_limit=4)
 async def sub_renewal_days_30(message: Message, state: FSMContext):
     """Create subscription renewal payment for 30 days."""
-    await internal_functions.sub_renewal(message, state, days_number=30, discount=0.)
+    await _initiate_payment(message, state, days_number=30, discount=0.)
 
 
 @router.message(
@@ -134,7 +193,7 @@ async def sub_renewal_days_30(message: Message, state: FSMContext):
 @throttling_mw.antiflood(rate_limit=4)
 async def sub_renewal_days_90(message: Message, state: FSMContext):
     """Create subscription renewal payment for 90 days."""
-    await internal_functions.sub_renewal(message, state, days_number=90, discount=.1)
+    await _initiate_payment(message, state, days_number=90, discount=.1)
 
 
 @router.message(
@@ -145,7 +204,7 @@ async def sub_renewal_days_90(message: Message, state: FSMContext):
 @throttling_mw.antiflood(rate_limit=4)
 async def sub_renewal_days_365(message: Message, state: FSMContext):
     """Create subscription renewal payment for 365 days."""
-    await internal_functions.sub_renewal(message, state, days_number=365, discount=.15)
+    await _initiate_payment(message, state, days_number=365, discount=.15)
 
 
 @router.message(
@@ -189,28 +248,25 @@ async def sub_renewal_submenu_fsm_cancel(message: Message, state: FSMContext):
 @user_authorized_mw.authorized_only()
 @throttling_mw.antiflood(rate_limit=4)
 async def sub_renewal_verification(message: Message, state: FSMContext):
-    """Verify client's payments (per last hour) are successful according to YooMoney information."""
-    wallet = aiomoney.YooMoneyWallet(settings.payments.yoomoney.token.get_secret_value())
+    """Manual user-triggered re-check of pending payments for the last hour.
 
-    client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
-    client_payments_ids = await postgres_dbms.get_paymentIDs_last(client_id, minutes=60)
+    Webhooks are the primary success-confirmation channel; this handler exists
+    as a user-initiated fallback for cases where the webhook hasn't arrived yet
+    (network blip, provider delay) and the user wants immediate feedback.
+
+    ``PaymentService.recheck_user_pending`` handles the entire finalize chain
+    on hit (deletes payment message, resets FSM, sends "payment successful"
+    with the renewal keyboard). The handler only needs to emit the "nothing
+    found" path itself.
+    """
     await message.answer(loc.auth.msgs['check_payment_hour'])
     await bot.send_chat_action(message.from_user.id, ChatAction.TYPING)
 
-    is_payment_found = False
-    for [payment_id] in client_payments_ids:
-        if await postgres_dbms.get_payment_status(payment_id) == False and await wallet.check_payment_on_successful(payment_id):
-            days_number = await postgres_dbms.get_payment_days_number(payment_id)
-            await internal_functions.finalize_successful_payment(payment_id, client_id, days_number)
+    finalized = await payment_service.recheck_user_pending(
+        message.from_user.id, minutes=60,
+    )
 
-            await state.set_state(user_authorized_fsm.PaymentMenu.menu)
-            await message.answer(loc.auth.msgs['payment_found'].format(payment_id), reply_markup=user_authorized_kb.sub_renewal)
-
-            message_id = await postgres_dbms.get_payment_telegram_message_id(payment_id)
-            await internal_functions.safe_delete_message(message.chat.id, message_id)
-            is_payment_found = True
-
-    if not is_payment_found:
+    if not finalized:
         await message.answer(loc.auth.msgs['cant_find_payments'])
         await message.answer(loc.auth.msgs['restore_payments'])
 
@@ -629,25 +685,19 @@ async def show_project_rules(message: Message):
 @user_authorized_mw.authorized_only()
 @throttling_mw.antiflood(rate_limit=4)
 async def restore_payments(message: Message):
-    """Try to verify client's payments (per whole time) are successful according to YooMoney information."""
-    wallet = aiomoney.YooMoneyWallet(settings.payments.yoomoney.token.get_secret_value())
-    client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
-    client_payments_ids = await postgres_dbms.get_paymentIDs(client_id)
+    """Re-check the full payment history for this user.
 
-    is_payment_found = False
+    Same shape as :func:`sub_renewal_verification` but without the 60-minute
+    cutoff — used when a payment has been pending for longer than the standard
+    flow accommodates (extended provider outage, user closed the bot for days).
+    """
     await bot.send_chat_action(message.from_user.id, ChatAction.TYPING)
-    for [payment_id] in client_payments_ids:
-        if await postgres_dbms.get_payment_status(payment_id) == False and await wallet.check_payment_on_successful(payment_id):
-            months_number = await postgres_dbms.get_payment_months_number(payment_id)
-            await internal_functions.finalize_successful_payment(payment_id, client_id, months_number)
 
-            await message.answer(loc.auth.msgs['payment_found'].format(payment_id))
+    finalized = await payment_service.recheck_user_pending(
+        message.from_user.id, minutes=None,
+    )
 
-            message_id = await postgres_dbms.get_payment_telegram_message_id(payment_id)
-            await internal_functions.safe_delete_message(message.chat.id, message_id)
-            is_payment_found = True
-
-    if not is_payment_found:
+    if not finalized:
         await message.answer(loc.auth.msgs['cant_find_payments_restore'])
 
 

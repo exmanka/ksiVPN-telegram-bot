@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import html
 from datetime import datetime
@@ -12,7 +11,7 @@ from aiogram.types import User
 from src.keyboards import user_authorized_kb, admin_kb
 from src.states import user_authorized_fsm
 from src.database import postgres_dbms
-from src.services import aiomoney, localization as loc
+from src.services import localization as loc
 from src.services.date_formatting import format_localized_bonus_days, format_localized_datetime
 from src.services.remnawave_service import RemnawaveError, create_panel_user, extend_panel_user_expiry
 from src.config import settings
@@ -542,37 +541,6 @@ async def check_referral_reward(ref_client_id: int):
         )
 
 
-async def autocheck_payment_status(payment_id: int) -> str:
-    """Automatically check payment is successful according to YooMoney for 300 seconds.
-
-    :param payment_id:
-    :return: autochecker status, 'success' - payment was successfully finished, 'failure' - payment wasn't successfully finished in 300 seconds,
-    'already_checked' - payment was already checked and added to db as successful by other functions
-    """
-    wallet = aiomoney.YooMoneyWallet(settings.payments.yoomoney.token.get_secret_value())
-
-    # wait for user to redirect to Yoomoney site first 5 seconds
-    await asyncio.sleep(5)
-
-    # After that check Yoomoney payment status using quadratic equation
-    a = 0.01
-    b = 10
-    max_waiting_time = 60   # seconds
-    for x in range(100):
-
-        # if user has already checked successful payment and it was added to account subscription
-        if await postgres_dbms.get_payment_status(payment_id):
-            return 'already_checked'
-
-        # if payment was successful according to YooMoney info
-        if await wallet.check_payment_on_successful(payment_id):
-            return 'success'
-
-        await asyncio.sleep(min(a * x * x + b, max_waiting_time))
-
-    return 'failure'
-
-
 async def authorization_complete(from_user: User, state: FSMContext) -> None:
     """Complete authorization of new client: insert into DB, provision in Remnawave, notify admin.
 
@@ -652,104 +620,107 @@ async def safe_delete_message(chat_id: int, message_id: int) -> None:
 
 
 async def finalize_successful_payment(payment_id: int, client_id: int, days_number: int) -> None:
-    """Finalize a successful YooMoney payment in the correct, fault-tolerant order.
+    """Post-finalize business chain after a payment is marked SUCCEEDED in DB.
 
-    Order: DB write -> Remnawave sync -> referral bonus -> admin notification.
-    Step 1 (DB update) is intentionally not wrapped — a DB failure must abort the chain.
-    Steps 2-4 are individually wrapped so a failure in one does not skip the others.
+    The atomic ``payments``/``clients_subscriptions`` update has already been
+    performed by ``PaymentService`` via ``repository.claim_finalize`` before
+    this is invoked. This function owns everything that happens AFTER the DB
+    is consistent:
+
+    1. Sync new expiry to Remnawave Panel.
+    2. Pay out the referral bonus if this is the user's first successful payment.
+    3. Notify the admin.
+    4. Notify the user: delete the payment-link message, reset FSM if they're
+       still in the verification flow, send the "payment successful" message
+       (with the renewal keyboard when the user was actively waiting).
+
+    Each step is independently wrapped so a failure in one (e.g. Remnawave
+    panel temporarily unreachable) does not skip the others. Errors are logged
+    but never propagated — the payment is already valid in DB and that's the
+    source of truth.
+
+    Wired as the ``on_payment_succeeded`` callback in
+    :mod:`src.payments.runtime`. Webhook deliveries, the APScheduler reconciler,
+    and manual user re-checks all end up here through the same path.
     """
-    await postgres_dbms.update_payment_successful(payment_id, client_id, days_number)
-
     try:
         await extend_remnawave_expiry_for_client(client_id)
     except Exception:
-        logger.exception("extend_remnawave_expiry_for_client failed for client_id=%s after payment_id=%s", client_id, payment_id)
+        logger.exception(
+            "extend_remnawave_expiry_for_client failed for client_id=%s after payment_id=%s",
+            client_id, payment_id,
+        )
 
     try:
         await check_referral_reward(client_id)
     except Exception:
-        logger.exception("check_referral_reward failed for client_id=%s after payment_id=%s", client_id, payment_id)
+        logger.exception(
+            "check_referral_reward failed for client_id=%s after payment_id=%s",
+            client_id, payment_id,
+        )
 
     try:
         await notify_admin_payment_success(client_id, days_number)
     except Exception:
-        logger.exception("notify_admin_payment_success failed for client_id=%s after payment_id=%s", client_id, payment_id)
+        logger.exception(
+            "notify_admin_payment_success failed for client_id=%s after payment_id=%s",
+            client_id, payment_id,
+        )
+
+    try:
+        await _notify_user_payment_succeeded(payment_id, client_id)
+    except Exception:
+        logger.exception(
+            "_notify_user_payment_succeeded failed for client_id=%s after payment_id=%s",
+            client_id, payment_id,
+        )
 
 
-async def sub_renewal(message: Message, state: FSMContext, days_number: int, discount: float):
-    """Create message with subscription renewal payment link, run autochecker for payment and notify about successful payment.
+async def _notify_user_payment_succeeded(payment_id: int, client_id: int) -> None:
+    """Delete payment-link message, reset FSM if in verification, send success message.
 
-    Test-account override: if message.from_user.id ∈ settings.payments.test_user_ids,
-    the per-30-day reference price `sub_price` is replaced with
-    settings.payments.test_price (default 2₽, YooMoney lower bound). The normal
-    formula `sub_price / 30 * days_number * (1 - discount)` then runs as usual,
-    so the discount logic is exercised end-to-end during testing — only the
-    base price is scaled down. The admin is NOT added to the test list
-    automatically; list explicitly.
+    Keyboard policy: if the user is currently in the verification state, we
+    were the active conversation — reset FSM to ``menu`` and attach the
+    renewal keyboard so the flow continues coherently. Otherwise (paid hours
+    ago, currently doing something else), send the success message without a
+    keyboard — interrupting their current screen would be jarring.
 
-    :param message:
-    :param state:
-    :param days_number: number of days subscription must be renewed for
-    :param discount: price discount in range [0, 1)
+    Best-effort: all errors are caught at the caller (``finalize_successful_payment``).
     """
-    # get client_id by telegramID
-    client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
+    from src.runtime import dp  # imported here to avoid moving the import to module top
+    from aiogram.fsm.storage.base import StorageKey
 
-    # get client's sub info
-    sub_id, sub_title, _, sub_price = await postgres_dbms.get_subscription_info_by_clientID(client_id)
+    telegram_id = await postgres_dbms.get_telegramID_by_clientID(client_id)
+    if telegram_id is None:
+        logger.warning("Cannot notify user payment_id=%s — telegram_id not found for client_id=%s", payment_id, client_id)
+        return
 
-    # Test-account override: substitute sub_price so the discount/scale formula
-    # below still runs (validates discount path with minimal real money).
-    is_test_payment = message.from_user.id in settings.payments.test_user_ids
-    if is_test_payment:
-        sub_price = float(settings.payments.test_price)
+    telegram_message_id = await postgres_dbms.get_payment_telegram_message_id(payment_id)
+    if telegram_message_id is not None:
+        await safe_delete_message(telegram_id, telegram_message_id)
 
-    # count payment sum (sub_price is the per-30-day reference price; scale to actual days)
-    payment_price = max(sub_price / 30 * days_number * (1 - discount), 2)
+    # FSM reset is only meaningful when the user is still in the verification
+    # flow. Otherwise we leave their state alone — they may be doing something
+    # unrelated, and unexpectedly clearing their state would be confusing.
+    storage = dp.storage
+    key = StorageKey(bot_id=bot.id, chat_id=telegram_id, user_id=telegram_id)
+    was_in_payment_flow = False
+    try:
+        current_state = await storage.get_state(key)
+        if current_state == user_authorized_fsm.PaymentMenu.verification.state:
+            was_in_payment_flow = True
+            await storage.set_state(key, user_authorized_fsm.PaymentMenu.menu.state)
+    except Exception:
+        logger.warning("Failed to read/reset FSM state for tg_id=%s", telegram_id, exc_info=True)
 
-    # create entity in db table payments and getting payment_id
-    # (current flow is YooMoney; new code paths will pass the selected provider explicitly)
-    payment_id = await postgres_dbms.insert_payment(client_id, sub_id, payment_price, days_number, provider='yoomoney')
+    reply_markup = user_authorized_kb.sub_renewal if was_in_payment_flow else None
 
-    # use aiomoney for payment link creation
-    wallet = aiomoney.YooMoneyWallet(settings.payments.yoomoney.token.get_secret_value())
-    payment_form = await wallet.create_payment_form(
-        amount_rub=payment_price,
-        unique_label=payment_id,
-        payment_source=aiomoney.PaymentSource.YOOMONEY_WALLET,
-        success_redirect_url="https://t.me/ksiVPN_bot"
-    )
-
-    # answer with ReplyKeyboardMarkup
-    await message.answer(loc.internal.msgs['wait_payment'], reply_markup=user_authorized_kb.sub_renewal_verification)
-    await state.set_state(user_authorized_fsm.PaymentMenu.verification)
-
-    # answer with InlineKeyboardMarkup with link to payment.
-    # discount_str is rendered for both modes (exercises discount path in test
-    # mode too); test_note is appended only in test mode to flag the override.
-    discount_str = ''
-    if discount:
-        discount_str = loc.internal.msgs['discount_str'].format(sub_price / 30 * days_number * discount)
-    test_note = loc.internal.msgs['test_price_note'] if is_test_payment else ''
-
-    message_info = await message.answer(
-        loc.internal.msgs['payment_form'].format(
-            sub_title, days_number, payment_price, payment_id,
-            discount_str=discount_str, test_note=test_note,
+    await safe_deliver(
+        lambda: bot.send_message(
+            telegram_id,
+            loc.internal.msgs['payment_successful'].format(payment_id),
+            reply_markup=reply_markup,
         ),
-        reply_markup=await user_authorized_kb.sub_renewal_link_inline(payment_form.link_for_customer),
+        telegram_id=telegram_id,
     )
 
-    # add telegram_id for created payment
-    await postgres_dbms.update_payment_telegram_message_id(payment_id, message_info.message_id)
-
-    # run payment autochecker for 310 seconds
-    client_last_payment_status = await autocheck_payment_status(payment_id)
-
-    # if autochecker returns successful payment info
-    if client_last_payment_status == 'success':
-        await finalize_successful_payment(payment_id, client_id, days_number)
-        await state.set_state(user_authorized_fsm.PaymentMenu.menu)
-
-        await safe_delete_message(message.chat.id, message_info.message_id)
-        await message.answer(loc.internal.msgs['payment_successful'].format(payment_id), reply_markup=user_authorized_kb.sub_renewal)
