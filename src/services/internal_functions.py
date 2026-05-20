@@ -708,7 +708,8 @@ async def sub_renewal(message: Message, state: FSMContext, days_number: int, dis
     payment_price = max(sub_price / 30 * days_number * (1 - discount), 2)
 
     # create entity in db table payments and getting payment_id
-    payment_id = await postgres_dbms.insert_payment(client_id, sub_id, payment_price, days_number)
+    # (current flow is YooMoney; new code paths will pass the selected provider explicitly)
+    payment_id = await postgres_dbms.insert_payment(client_id, sub_id, payment_price, days_number, provider='yoomoney')
 
     # use aiomoney for payment link creation
     wallet = aiomoney.YooMoneyWallet(settings.payments.yoomoney.token.get_secret_value())

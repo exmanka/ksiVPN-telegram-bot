@@ -1,5 +1,6 @@
 import asyncpg
 import datetime
+import json
 import logging
 import uuid
 from decimal import Decimal
@@ -1038,16 +1039,23 @@ async def insert_configuration(client_id: int,
                 client_id)
 
 
-async def insert_payment(client_id: int, sub_id: int, price: float, days_number: int) -> int | None:
-    """Add new payment for client in DB."""
+async def insert_payment(
+    client_id: int, sub_id: int, price: float, days_number: int, provider: str,
+) -> int | None:
+    """Add new payment for client in DB.
+
+    ``provider`` is the payment-gateway identifier (e.g. 'yoomoney', 'yookassa').
+    ``external_id`` is left NULL — set later via ``update_payment_provider_external``
+    once the provider has issued its own payment id.
+    """
     async with pool.acquire() as conn:
         return await conn.fetchval(
             '''
-            INSERT INTO payments (client_id, sub_id, price, days_number)
-            VALUES($1, $2, $3, $4)
+            INSERT INTO payments (client_id, sub_id, price, days_number, provider)
+            VALUES($1, $2, $3, $4, $5)
             RETURNING id;
             ''',
-            client_id, sub_id, price, days_number)
+            client_id, sub_id, price, days_number, provider)
 
 
 async def insert_client_entered_local_promo(client_id: int, local_promo_id: int, local_promo_bonus_time) -> None:
@@ -1109,13 +1117,20 @@ async def insert_client_entered_global_promo(client_id: int, global_promo_id: in
 
 
 async def update_payment_successful(payment_id: int, client_id: int, paid_days: int) -> None:
-    """Change status of payment specified by payment_id to successful and change subscription data."""
+    """Change status of payment specified by payment_id to successful and change subscription data.
+
+    Writes both legacy ``is_successful`` flag and the new ``status``/``paid_at``/``updated_at``
+    columns so legacy and new read paths stay consistent until the legacy column is dropped.
+    """
     async with pool.acquire() as conn:
         async with conn.transaction():
             await conn.execute(
                 '''
                 UPDATE payments
-                SET is_successful = TRUE
+                SET is_successful = TRUE,
+                    status        = 'succeeded',
+                    paid_at       = CURRENT_TIMESTAMP,
+                    updated_at    = CURRENT_TIMESTAMP
                 WHERE id = $1;
                 ''',
                 payment_id)
@@ -1148,6 +1163,74 @@ async def update_payment_telegram_message_id(payment_id: int, telegram_message_i
             WHERE id = $2;
             ''',
             telegram_message_id, payment_id)
+
+
+async def update_payment_provider_external(
+    payment_id: int, provider: str, external_id: str,
+) -> None:
+    """Record provider-side external id once the gateway has issued one.
+
+    Called by ``PaymentService.initiate`` after ``provider.create_invoice`` returns.
+    ``provider`` is also stored at INSERT time but is harmless to overwrite here.
+    """
+    async with pool.acquire() as conn:
+        await conn.execute(
+            '''
+            UPDATE payments
+            SET provider    = $1,
+                external_id = $2,
+                updated_at  = CURRENT_TIMESTAMP
+            WHERE id = $3;
+            ''',
+            provider, external_id, payment_id)
+
+
+async def update_payment_status(
+    payment_id: int,
+    status: str,
+    paid_at: datetime.datetime | None = None,
+    raw_payload: dict | list | None = None,
+) -> None:
+    """Lower-level status update for webhook/reconciler paths.
+
+    Mirrors ``status='succeeded'`` to legacy ``is_successful`` to keep read paths
+    consistent. ``paid_at`` and ``raw_payload`` are merged via COALESCE — passing
+    ``None`` does not overwrite an existing value.
+    """
+    raw_payload_json = json.dumps(raw_payload) if raw_payload is not None else None
+    async with pool.acquire() as conn:
+        await conn.execute(
+            '''
+            UPDATE payments
+            SET status        = $1,
+                is_successful = ($1 = 'succeeded'),
+                paid_at       = COALESCE($2, paid_at),
+                raw_payload   = COALESCE($3::jsonb, raw_payload),
+                updated_at    = CURRENT_TIMESTAMP
+            WHERE id = $4;
+            ''',
+            status, paid_at, raw_payload_json, payment_id)
+
+
+async def list_pending_payments_recent(minutes: int = 30) -> list[asyncpg.Record]:
+    """Pending payments initiated within the last ``minutes`` — for reconciler.
+
+    Returns rows where ``status='pending'`` AND ``external_id IS NOT NULL`` —
+    only payments that have actually been registered with the provider. Newly-
+    INSERTed payments without an external_id yet are skipped (they're still in
+    flight inside ``PaymentService.initiate``).
+    """
+    async with pool.acquire() as conn:
+        return await conn.fetch(
+            '''
+            SELECT id, client_id, sub_id, provider, external_id, days_number, price
+            FROM payments
+            WHERE status = 'pending'
+              AND external_id IS NOT NULL
+              AND date_of_initiation > NOW() - make_interval(mins => $1)
+            ORDER BY date_of_initiation;
+            ''',
+            minutes)
 
 
 async def update_client_subscription(client_id: int, new_sub_id: int) -> None:
