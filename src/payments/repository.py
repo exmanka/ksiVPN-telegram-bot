@@ -67,32 +67,40 @@ async def update_status(
     )
 
 
-async def mark_succeeded(
-    *,
-    payment_id: int,
-    client_id: int,
-    days_number: int,
-    raw_payload: dict[str, Any] | list[Any] | None = None,
-) -> None:
-    """Critical transaction: mark payment succeeded AND extend subscription.
+async def claim_finalize(
+    *, payment_id: int, client_id: int, days_number: int,
+) -> bool:
+    """Atomic idempotent finalize. See :func:`postgres_dbms.claim_payment_finalize`.
 
-    Wraps ``update_payment_successful`` (atomic ``payments`` + ``clients_subscriptions``
-    update). When ``raw_payload`` is provided, a second non-transactional UPDATE
-    persists it for diagnostics — this is acceptable because raw_payload has no
-    business meaning, only forensic.
+    Returns ``True`` when this call did the finalization, ``False`` when another
+    caller had already done it (webhook+reconciler race, double-delivered webhook,
+    manual re-check after webhook).
     """
-    await postgres_dbms.update_payment_successful(payment_id, client_id, days_number)
-    if raw_payload is not None:
-        await postgres_dbms.update_payment_status(
-            payment_id, str(PaymentStatus.SUCCEEDED), None, raw_payload,
-        )
+    return await postgres_dbms.claim_payment_finalize(payment_id, client_id, days_number)
 
 
-async def get_status(payment_id: int) -> bool | None:
+async def get_finalize_context(payment_id: int) -> asyncpg.Record | None:
+    """Fetch everything needed to finalize a payment in one round-trip."""
+    return await postgres_dbms.get_payment_finalize_context(payment_id)
+
+
+async def record_raw_payload(
+    *, payment_id: int, status: PaymentStatus, raw_payload: dict[str, Any] | list[Any],
+) -> None:
+    """Persist webhook body / get_status response for forensics.
+
+    Non-transactional with the main finalize step — diagnostics only.
+    """
+    await postgres_dbms.update_payment_status(
+        payment_id, str(status), None, raw_payload,
+    )
+
+
+async def get_legacy_status(payment_id: int) -> bool | None:
     """Return legacy ``is_successful`` flag for ``payment_id``.
 
-    Used by the manual user re-check flow to avoid double-finalizing payments
-    that have already been processed by webhook or reconciler.
+    Used by handlers that already grew around the legacy column. New code
+    should rely on :func:`claim_finalize` returning ``False`` instead.
     """
     return await postgres_dbms.get_payment_status(payment_id)
 
