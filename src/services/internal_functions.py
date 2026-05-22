@@ -611,8 +611,18 @@ async def extend_remnawave_expiry_for_client(client_id: int) -> None:
         )
 
 
-async def safe_delete_message(chat_id: int, message_id: int) -> None:
-    """Delete a message ignoring 'message to delete not found' errors."""
+async def safe_delete_message(chat_id: int, message_id: int | None) -> None:
+    """Delete a message ignoring 'message to delete not found' errors.
+
+    No-op when ``message_id`` is ``None``. Callers commonly source the id from
+    DB helpers like ``get_payment_last_message_id`` that legitimately return
+    ``None`` when there's nothing to delete (e.g. user cancelled in
+    ``PaymentMenu.provider_selection`` before any payment was created, or no
+    payments exist for the client at all). Without this guard aiogram's
+    Pydantic validation crashes the handler.
+    """
+    if message_id is None:
+        return
     try:
         await bot.delete_message(chat_id, message_id)
     except TelegramBadRequest:

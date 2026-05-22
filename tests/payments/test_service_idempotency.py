@@ -19,7 +19,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from src.payments.enums import PaymentStatus
+from src.payments.enums import PaymentProviderName, PaymentStatus
 from src.payments.models import ProviderPaymentEvent
 from src.payments.service import PaymentService
 
@@ -63,8 +63,8 @@ async def test_double_event_calls_callback_exactly_once(monkeypatch):
         raw_payload={"operation_id": "abc"},
     )
 
-    await service.handle_event(event)
-    await service.handle_event(event)  # duplicate delivery
+    await service.handle_event(event, provider_name=PaymentProviderName.YOOMONEY)
+    await service.handle_event(event, provider_name=PaymentProviderName.YOOMONEY)  # duplicate delivery
 
     # claim_finalize attempted twice, only one win; callback fires only on the win.
     assert claim_calls == 2
@@ -94,7 +94,7 @@ async def test_already_finalized_event_skips_callback(monkeypatch):
         raw_payload={"operation_id": "abc"},
     )
 
-    await service.handle_event(event)
+    await service.handle_event(event, provider_name=PaymentProviderName.YOOMONEY)
 
     callback.assert_not_awaited()
     # raw_payload still persisted — useful for diagnostics on duplicate webhooks.
@@ -124,26 +124,69 @@ async def test_callback_failure_is_swallowed(monkeypatch):
     )
 
     # Must not raise.
-    await service.handle_event(event)
+    await service.handle_event(event, provider_name=PaymentProviderName.YOOMONEY)
 
     callback.assert_awaited_once_with(42, 100, 30)
 
 
-async def test_event_without_payment_id_raises(monkeypatch):
-    """Events arriving without a payment_id are a provider contract violation."""
-    monkeypatch.setattr("src.payments.repository.get_finalize_context", AsyncMock())
+async def test_event_without_payment_id_resolved_from_db(monkeypatch):
+    """When event.payment_id is None (e.g. YooMoney UUID label), service resolves it via DB."""
+    resolve_mock = AsyncMock(return_value=42)
+    monkeypatch.setattr("src.payments.repository.resolve_payment_id", resolve_mock)
+    monkeypatch.setattr(
+        "src.payments.repository.get_finalize_context",
+        AsyncMock(return_value={
+            "id": 42, "client_id": 100, "days_number": 30,
+            "status": "pending", "telegram_id": 999, "telegram_message_id": 555,
+        }),
+    )
+    monkeypatch.setattr("src.payments.repository.claim_finalize", AsyncMock(return_value=True))
+    monkeypatch.setattr("src.payments.repository.record_raw_payload", AsyncMock())
 
     callback = AsyncMock()
     service = _make_service(callback)
 
     event = ProviderPaymentEvent(
-        external_id="42", status=PaymentStatus.SUCCEEDED, payment_id=None,
+        external_id="some-uuid-label",
+        status=PaymentStatus.SUCCEEDED,
+        payment_id=None,  # ← provider didn't supply it
     )
 
-    with pytest.raises(Exception, match="payment_id"):
-        await service.handle_event(event)
+    await service.handle_event(event, provider_name=PaymentProviderName.YOOMONEY)
+
+    # Service looked up payment_id via (provider, external_id), then finalized.
+    resolve_mock.assert_awaited_once_with(
+        provider=PaymentProviderName.YOOMONEY, external_id="some-uuid-label",
+    )
+    callback.assert_awaited_once_with(42, 100, 30)
+
+
+async def test_event_with_unresolvable_external_id_is_ignored(monkeypatch):
+    """If (provider, external_id) doesn't match any payment, swallow the event silently.
+
+    Scenario: webhook spoofed with random UUID, or DB state out of sync. We
+    log+ignore rather than crash the webhook handler.
+    """
+    monkeypatch.setattr(
+        "src.payments.repository.resolve_payment_id",
+        AsyncMock(return_value=None),
+    )
+    ctx_mock = AsyncMock()
+    monkeypatch.setattr("src.payments.repository.get_finalize_context", ctx_mock)
+
+    callback = AsyncMock()
+    service = _make_service(callback)
+
+    event = ProviderPaymentEvent(
+        external_id="not-our-uuid",
+        status=PaymentStatus.SUCCEEDED,
+        payment_id=None,
+    )
+
+    await service.handle_event(event, provider_name=PaymentProviderName.YOOMONEY)
 
     callback.assert_not_awaited()
+    ctx_mock.assert_not_awaited()  # never reached the finalize path
 
 
 async def test_raw_payload_persisted_on_winning_claim(monkeypatch):
@@ -169,5 +212,5 @@ async def test_raw_payload_persisted_on_winning_claim(monkeypatch):
         raw_payload={"operation_id": "abc", "amount": "300.00"},
     )
 
-    await service.handle_event(event)
+    await service.handle_event(event, provider_name=PaymentProviderName.YOOMONEY)
     raw_mock.assert_awaited_once()

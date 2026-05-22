@@ -172,18 +172,34 @@ class PaymentService:
 
     # ---- handle_event ------------------------------------------------------------
 
-    async def handle_event(self, event: ProviderPaymentEvent) -> None:
+    async def handle_event(
+        self,
+        event: ProviderPaymentEvent,
+        *,
+        provider_name: PaymentProviderName,
+    ) -> None:
         """Idempotently process a payment event from any source (webhook / poll).
 
         Dispatches by ``event.status``. Safe to call concurrently for the same
         ``payment_id`` — :func:`repository.claim_finalize` enforces single-effect
         via atomic UPDATE...RETURNING.
+
+        ``provider_name`` is required so we can resolve ``payment_id`` via
+        ``(provider, external_id)`` when the event itself doesn't carry it
+        (e.g. YooMoney webhooks ship UUID labels with no encoded payment_id).
         """
         payment_id = event.payment_id
         if payment_id is None:
-            raise ProviderError(
-                f"ProviderPaymentEvent has no payment_id (external_id={event.external_id})",
+            payment_id = await repository.resolve_payment_id(
+                provider=provider_name, external_id=event.external_id,
             )
+            if payment_id is None:
+                logger.error(
+                    "Unresolved payment event: no row for provider=%s external_id=%s "
+                    "(spoofed webhook? DB state inconsistent? ignoring)",
+                    provider_name, event.external_id,
+                )
+                return
 
         if event.status == PaymentStatus.SUCCEEDED:
             await self._finalize_succeeded(payment_id, event)
@@ -265,15 +281,16 @@ class PaymentService:
         pending = await repository.list_pending_recent(minutes)
         finalized = 0
         for row in pending:
-            provider_name = row["provider"]
+            provider_str = row["provider"]
             external_id = row["external_id"]
             payment_id = row["id"]
             try:
-                provider = self.get_provider(PaymentProviderName(provider_name))
+                provider_name = PaymentProviderName(provider_str)
+                provider = self.get_provider(provider_name)
             except (ProviderUnavailable, ValueError):
                 logger.warning(
                     "Reconciler: unknown provider %r for payment_id=%s — skipping",
-                    provider_name, payment_id,
+                    provider_str, payment_id,
                 )
                 continue
 
@@ -292,6 +309,8 @@ class PaymentService:
                 )
                 continue
 
+            # We already know payment_id from the DB row; backfill it into the
+            # event so handle_event skips the lookup round-trip.
             if event.payment_id is None:
                 event = ProviderPaymentEvent(
                     external_id=event.external_id,
@@ -301,10 +320,10 @@ class PaymentService:
                 )
 
             if event.status == PaymentStatus.SUCCEEDED:
-                await self.handle_event(event)
+                await self.handle_event(event, provider_name=provider_name)
                 finalized += 1
             elif event.status in (PaymentStatus.FAILED, PaymentStatus.EXPIRED):
-                await self.handle_event(event)
+                await self.handle_event(event, provider_name=provider_name)
 
         if finalized:
             logger.info("Reconciler: finalized %d payment(s)", finalized)
@@ -336,7 +355,8 @@ class PaymentService:
                 continue
 
             try:
-                provider = self.get_provider(PaymentProviderName(info["provider"]))
+                provider_name = PaymentProviderName(info["provider"])
+                provider = self.get_provider(provider_name)
                 event = await provider.get_status(info["external_id"])
             except (ProviderUnavailable, ProviderError, ValueError):
                 logger.warning(
@@ -355,7 +375,7 @@ class PaymentService:
                     payment_id=payment_id,
                     raw_payload=event.raw_payload,
                 )
-            await self.handle_event(event)
+            await self.handle_event(event, provider_name=provider_name)
             finalized.append(payment_id)
 
         return finalized

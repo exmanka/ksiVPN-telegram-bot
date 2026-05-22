@@ -47,8 +47,6 @@ class YooKassaSettings(BaseModel):
     # YooKassa API key — used both for API auth (Payment.create / Payment.find_one)
     # and as the trust root when re-fetching payment status from a webhook.
     secret_key: SecretStr
-    # Where YooKassa redirects the user after card/SBP payment completion.
-    return_url: str = "https://t.me/ksiVPN_bot"
 
 
 class WebhookSettings(BaseModel):
@@ -66,6 +64,10 @@ class PaymentsSettings(BaseModel):
     yoomoney: YooMoneySettings
     yookassa: YooKassaSettings
     webhook: WebhookSettings = WebhookSettings()
+    # Where the gateway redirects the user after payment (success or cancel).
+    # Single value across all providers — no provider-specific reasons to differ
+    # right now, and a shared setting avoids drift between handler call sites.
+    return_url: str = "https://t.me/ksiVPN_bot"
     # Whitelist of telegram_ids whose subscription renewals use test_price as
     # the per-30-day reference, minimizing YooMoney commission during
     # integration testing on staging/production. The admin is NOT added

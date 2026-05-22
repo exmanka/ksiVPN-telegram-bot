@@ -84,6 +84,18 @@ async def get_finalize_context(payment_id: int) -> asyncpg.Record | None:
     return await postgres_dbms.get_payment_finalize_context(payment_id)
 
 
+async def resolve_payment_id(
+    *, provider: PaymentProviderName, external_id: str,
+) -> int | None:
+    """Look up our ``payments.id`` from a provider-side ``external_id``.
+
+    Used by ``PaymentService.handle_event`` to backfill ``payment_id`` for
+    events where the provider couldn't extract it from its payload (e.g.
+    YooMoney now ships UUID labels, which carry no payment_id).
+    """
+    return await postgres_dbms.get_payment_id_by_external(str(provider), external_id)
+
+
 async def record_raw_payload(
     *, payment_id: int, status: PaymentStatus, raw_payload: dict[str, Any] | list[Any],
 ) -> None:

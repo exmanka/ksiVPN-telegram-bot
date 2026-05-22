@@ -72,14 +72,15 @@ async def test_parse_webhook_accepts_valid_signature(provider):
         "datetime": "2026-05-20T12:00:00Z",
         "sender": "4100987654321",
         "codepro": "false",
-        "label": "42",
+        "label": "7c45a8b3-1f2e-4abc-9def-0123456789ab",  # UUID, as create_invoice produces
     }
     body = _build_signed_body(fields, SECRET)
 
     event = await provider.parse_webhook(body=body, headers={})
 
-    assert event.payment_id == 42
-    assert event.external_id == "42"
+    # UUID labels carry no encoded payment_id — PaymentService resolves it via DB lookup.
+    assert event.payment_id is None
+    assert event.external_id == "7c45a8b3-1f2e-4abc-9def-0123456789ab"
     assert event.status.value == "succeeded"
     assert event.raw_payload == fields  # 'sign' stripped, others preserved
 
@@ -157,11 +158,13 @@ async def test_parse_webhook_includes_sha1_hash_in_signature(provider):
     fields = {
         "notification_type": "p2p-incoming",
         "operation_id": "1234567890",
-        "label": "42",
+        "label": "7c45a8b3-1f2e-4abc-9def-0123456789ab",
         "sha1_hash": "deadbeef" * 5,  # 40-char placeholder
     }
     body = _build_signed_body(fields, SECRET)
 
     event = await provider.parse_webhook(body=body, headers={})
-    assert event.payment_id == 42
+    # payment_id is None — UUID label carries no payment id (resolved by service via DB).
+    assert event.payment_id is None
+    assert event.external_id == "7c45a8b3-1f2e-4abc-9def-0123456789ab"
     assert "sha1_hash" in event.raw_payload

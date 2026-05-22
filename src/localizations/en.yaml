@@ -65,6 +65,7 @@ user_authorized:
       4. <b>Pure</b> — a VPN location with access to services that are normally blocked when using a VPN. For example, signing up for Gemini, accessing Reddit without an account, and so on.
     return_to_main_menu: <i>Returning to the main menu</i>
     go_sub_renewal_menu: <i>Going to the subscription renewal menu</i>
+    choose_payment_provider: <i>Choose a payment method</i>
     sub_renewal_free: <pre><code class="language-matrix">You are the One, Neo! There is no need to pay for a subscription 🐇</code></pre>
     payment_history_message: |-
       🌟 <b>{0}</b> was extended for {1} days for {2:g}₽.
@@ -233,6 +234,8 @@ user_authorized:
     return_main_menu: Return to main menu
     payment_check: Check payment
     payment_cancel: Cancel payment
+    pay_yoomoney: 💸 YooMoney transfer
+    pay_yookassa: 💳 Card and SBP
     pay: Pay
     ref_program: 🕊 Referral program
     about_client: About client

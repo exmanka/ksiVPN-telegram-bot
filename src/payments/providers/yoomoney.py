@@ -19,6 +19,7 @@ import hashlib
 import hmac
 import logging
 import urllib.parse
+import uuid
 from typing import Any, ClassVar, Mapping
 
 import aiohttp
@@ -125,19 +126,33 @@ class YooMoneyTransferProvider:
         description: str,  # noqa: ARG002 — YooMoney quickpay doesn't carry a description
         return_url: str | None = None,
     ) -> CreatedInvoice:
-        """Build a YooMoney quickpay URL — same shape as the legacy ``aiomoney``.
+        """Build a YooMoney quickpay URL with a freshly-generated UUID label.
 
         For P2P-wallet, payment is initiated by the user navigating to the
         returned URL; no API call needed at this stage. We still GET the
         quickpay endpoint to let YooMoney resolve any redirects (matches
         legacy behavior).
+
+        **Why UUID instead of ``payment_id`` as label**: YooMoney's wallet
+        stores every operation's label forever. If we used a sequential
+        ``payment_id``, dev environments (where ``payment_id`` restarts from 1
+        after a DB reset) would collide with historic operations stored in the
+        wallet from previous dev cycles, causing ``get_status`` to falsely
+        report fresh payments as already SUCCEEDED. UUIDs guarantee that every
+        label is unique forever, across all environments sharing a wallet, so
+        server-side ``label`` filtering on the API stays accurate.
+
+        The returned ``external_id`` (== UUID label) is persisted in
+        ``payments.external_id``. ``PaymentService.handle_event`` then resolves
+        ``external_id → payment_id`` via DB lookup when webhooks arrive.
         """
+        label = str(uuid.uuid4())
         params: dict[str, Any] = {
             "receiver": self._receiver_account,
             "quickpay-form": "button",
             "paymentType": "PC",  # YooMoney wallet (matches legacy default in sub_renewal)
             "sum": str(amount.amount),
-            "label": str(payment_id),
+            "label": label,
         }
         if return_url:
             params["successURL"] = return_url
@@ -153,17 +168,28 @@ class YooMoneyTransferProvider:
             payment_url = str(resp.url)
 
         return CreatedInvoice(
-            external_id=str(payment_id),  # label == external_id for YooMoney
+            external_id=label,
             payment_url=payment_url,
         )
 
     async def get_status(self, external_id: str) -> ProviderPaymentEvent:
-        """Reconciler-only path: query ``operation-history`` filtered by label.
+        """Reconciler / manual-recheck path: poll ``operation-history`` by UUID label.
 
-        Returns ``PaymentStatus.SUCCEEDED`` if a successful operation with the
-        given label exists, otherwise ``PaymentStatus.PENDING``. The YooMoney
-        wallet API doesn't expose explicit failed/expired statuses for incoming
-        P2P transfers — absence simply means "not yet paid".
+        Returns ``PaymentStatus.SUCCEEDED`` only if an operation matches the
+        ``external_id`` (UUID) and has ``status == "success"``. Otherwise
+        ``PENDING``. The YooMoney wallet API doesn't expose explicit
+        failed/expired statuses for incoming P2P transfers — absence simply
+        means "not yet paid".
+
+        Server-side ``label`` filter is safe to use because labels are UUIDs
+        (see :meth:`create_invoice`) — no collisions with historic operations
+        in the wallet, even across environments. A defensive client-side
+        filter is kept as belt-and-braces (cheap and protects against the
+        unlikely case of YooMoney returning unrelated operations).
+
+        ``payment_id`` in the returned event is ``None`` — UUID labels carry
+        no encoded payment id. :meth:`PaymentService.handle_event` resolves
+        ``payment_id`` from ``external_id`` via DB lookup.
         """
         headers = {"Authorization": f"Bearer {self._access_token}"}
         resp = await self._request_with_retry(
@@ -177,19 +203,20 @@ class YooMoneyTransferProvider:
             payload = await resp.json(content_type=None)
 
         operations = payload.get("operations") or []
-        # Match the legacy behavior: pick the most-recent operation, check its status.
-        if operations and operations[-1].get("status") == "success":
+        # Client-side filter — defensive (in case the API ignores the param for some account configs).
+        matching = [op for op in operations if op.get("label") == external_id]
+        if matching and matching[-1].get("status") == "success":
             return ProviderPaymentEvent(
                 external_id=external_id,
                 status=PaymentStatus.SUCCEEDED,
-                payment_id=_try_parse_payment_id(external_id),
-                raw_payload=operations[-1],
+                payment_id=None,  # resolved by PaymentService.handle_event via DB lookup
+                raw_payload=matching[-1],
             )
 
         return ProviderPaymentEvent(
             external_id=external_id,
             status=PaymentStatus.PENDING,
-            payment_id=_try_parse_payment_id(external_id),
+            payment_id=None,
         )
 
     async def parse_webhook(
@@ -240,14 +267,13 @@ class YooMoneyTransferProvider:
             )
 
         label = fields.get("label", "")
-        external_id = label  # label == external_id (== our payment_id) by construction
-        payment_id = _try_parse_payment_id(label)
-
-        # Convert all values to JSON-friendly types (everything is already str).
+        # label is a UUID we generated in create_invoice — it carries no
+        # encoded payment_id, so we leave that field None. PaymentService
+        # resolves payment_id via (provider, external_id) DB lookup.
         return ProviderPaymentEvent(
-            external_id=external_id,
+            external_id=label,
             status=PaymentStatus.SUCCEEDED,  # YooMoney only notifies on success
-            payment_id=payment_id,
+            payment_id=None,
             raw_payload=fields,
         )
 
@@ -265,17 +291,3 @@ def _compute_yoomoney_signature(fields: dict[str, str], secret: str) -> str:
         hashlib.sha256,
     ).hexdigest()
     return digest
-
-
-def _try_parse_payment_id(label: str | None) -> int | None:
-    """``label`` is our DB ``payment_id`` rendered as a decimal string.
-
-    Returns ``None`` if the label is missing or malformed — caller falls back
-    to looking up by ``external_id`` in the ``payments`` table.
-    """
-    if not label:
-        return None
-    try:
-        return int(label)
-    except (TypeError, ValueError):
-        return None
