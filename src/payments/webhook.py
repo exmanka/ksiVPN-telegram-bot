@@ -82,11 +82,11 @@ async def _handle_webhook(request: web.Request) -> web.Response:
         return web.Response(status=400)
 
     try:
-        await service.handle_event(event)
+        await service.handle_event(event, provider_name=provider_name)
     except Exception:
         logger.exception(
-            "handle_event failed for %s payment_id=%s — returning 500 so provider retries",
-            provider_name, event.payment_id,
+            "handle_event failed for %s external_id=%s — returning 500 so provider retries",
+            provider_name, event.external_id,
         )
         return web.Response(status=500)
 

@@ -65,6 +65,7 @@ user_authorized:
       4. <b>Pure</b> — VPN-локация с доступом к сервисам, которые обычно закрыты при использовании VPN. К примеру, регистрация для Gemini, доступ к Reddit без входа в аккаунт и так далее.
     return_to_main_menu: <i>Возвращаю в главное меню</i>
     go_sub_renewal_menu: <i>Перехожу в меню продления подписки</i>
+    choose_payment_provider: <i>Выберите способ оплаты</i>
     sub_renewal_free: <pre><code class="language-matrix">Ты избранный, Нео! Оплачивать подписку нет необходимости 🐇</code></pre>
     payment_history_message: |-
       🌟 <b>{0}</b> была продлена на {1} дней за {2:g}₽.
@@ -246,6 +247,8 @@ user_authorized:
     return_main_menu: Возврат в главное меню
     payment_check: Проверить оплату
     payment_cancel: Отмена оплаты
+    pay_yoomoney: 💸 ЮMoney — быстрее
+    pay_yookassa: 💳 ЮKassa — все карты РФ и СБП
     pay: Оплатить
     ref_program: 🕊 Реферальная программа
     about_client: О клиенте

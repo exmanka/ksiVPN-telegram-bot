@@ -118,14 +118,31 @@ async def sub_renewal_fsm_start(message: Message, state: FSMContext):
     await message.answer(loc.auth.msgs['go_sub_renewal_menu'], reply_markup=user_authorized_kb.sub_renewal)
 
 
-async def _initiate_payment(
+async def _go_to_provider_selection(
     message: Message,
     state: FSMContext,
     *,
     days_number: int,
     discount: float,
 ) -> None:
-    """Initiate a subscription-renewal payment and present the link to the user.
+    """Stash chosen days/discount in FSM data and show the provider-choice keyboard."""
+    await state.update_data(payment_days_number=days_number, payment_discount=discount)
+    await state.set_state(user_authorized_fsm.PaymentMenu.provider_selection)
+    await message.answer(
+        loc.auth.msgs['choose_payment_provider'],
+        reply_markup=user_authorized_kb.sub_renewal_provider_choice,
+    )
+
+
+async def _initiate_payment(
+    message: Message,
+    state: FSMContext,
+    *,
+    days_number: int,
+    discount: float,
+    provider_name: PaymentProviderName,
+) -> None:
+    """Initiate a subscription-renewal payment with the selected provider and present the link.
 
     Non-blocking: the actual payment-status confirmation arrives later via webhook
     (or via the reconciler / manual «Проверить платёж» button). The FSM is set to
@@ -137,15 +154,15 @@ async def _initiate_payment(
             telegram_id=message.from_user.id,
             days_number=days_number,
             discount=discount,
-            provider_name=PaymentProviderName.YOOMONEY,
-            return_url="https://t.me/ksiVPN_bot",
+            provider_name=provider_name,
+            return_url=settings.payments.return_url,
         )
     except ProviderError:
         await message.answer(loc.internal.msgs.get('payment_provider_error', loc.auth.msgs['cant_find_payments']))
         return
 
     # The verification keyboard / FSM state are independent of which provider
-    # was used — same user-facing flow.
+    # was used — same user-facing flow regardless of YooKassa vs YooMoney.
     await message.answer(
         loc.internal.msgs['wait_payment'],
         reply_markup=user_authorized_kb.sub_renewal_verification,
@@ -181,8 +198,8 @@ async def _initiate_payment(
 @user_authorized_mw.authorized_only()
 @throttling_mw.antiflood(rate_limit=4)
 async def sub_renewal_days_30(message: Message, state: FSMContext):
-    """Create subscription renewal payment for 30 days."""
-    await _initiate_payment(message, state, days_number=30, discount=0.)
+    """Pick 30-day subscription, then prompt the user to choose a payment provider."""
+    await _go_to_provider_selection(message, state, days_number=30, discount=0.)
 
 
 @router.message(
@@ -192,8 +209,8 @@ async def sub_renewal_days_30(message: Message, state: FSMContext):
 @user_authorized_mw.authorized_only()
 @throttling_mw.antiflood(rate_limit=4)
 async def sub_renewal_days_90(message: Message, state: FSMContext):
-    """Create subscription renewal payment for 90 days."""
-    await _initiate_payment(message, state, days_number=90, discount=.1)
+    """Pick 90-day subscription, then prompt the user to choose a payment provider."""
+    await _go_to_provider_selection(message, state, days_number=90, discount=.1)
 
 
 @router.message(
@@ -203,8 +220,53 @@ async def sub_renewal_days_90(message: Message, state: FSMContext):
 @user_authorized_mw.authorized_only()
 @throttling_mw.antiflood(rate_limit=4)
 async def sub_renewal_days_365(message: Message, state: FSMContext):
-    """Create subscription renewal payment for 365 days."""
-    await _initiate_payment(message, state, days_number=365, discount=.15)
+    """Pick 365-day subscription, then prompt the user to choose a payment provider."""
+    await _go_to_provider_selection(message, state, days_number=365, discount=.15)
+
+
+@router.message(
+    F.text == loc.auth.btns['pay_yookassa'],
+    StateFilter(user_authorized_fsm.PaymentMenu.provider_selection),
+)
+@user_authorized_mw.authorized_only()
+@throttling_mw.antiflood(rate_limit=1)
+async def sub_renewal_pick_yookassa(message: Message, state: FSMContext):
+    """User picked YooKassa (card / SBP) — initiate the payment with that provider."""
+    data = await state.get_data()
+    days_number = data.get('payment_days_number')
+    discount = data.get('payment_discount', 0.)
+    if days_number is None:
+        # FSM data lost (Redis restart, manual nudge) — bounce user back to days picker.
+        await state.set_state(user_authorized_fsm.PaymentMenu.menu)
+        await message.answer(loc.auth.msgs['go_sub_renewal_menu'], reply_markup=user_authorized_kb.sub_renewal)
+        return
+    await _initiate_payment(
+        message, state,
+        days_number=days_number, discount=discount,
+        provider_name=PaymentProviderName.YOOKASSA,
+    )
+
+
+@router.message(
+    F.text == loc.auth.btns['pay_yoomoney'],
+    StateFilter(user_authorized_fsm.PaymentMenu.provider_selection),
+)
+@user_authorized_mw.authorized_only()
+@throttling_mw.antiflood(rate_limit=1)
+async def sub_renewal_pick_yoomoney(message: Message, state: FSMContext):
+    """User picked YooMoney (wallet transfer) — initiate the payment with that provider."""
+    data = await state.get_data()
+    days_number = data.get('payment_days_number')
+    discount = data.get('payment_discount', 0.)
+    if days_number is None:
+        await state.set_state(user_authorized_fsm.PaymentMenu.menu)
+        await message.answer(loc.auth.msgs['go_sub_renewal_menu'], reply_markup=user_authorized_kb.sub_renewal)
+        return
+    await _initiate_payment(
+        message, state,
+        days_number=days_number, discount=discount,
+        provider_name=PaymentProviderName.YOOMONEY,
+    )
 
 
 @router.message(
@@ -228,11 +290,20 @@ async def sub_renewal_payment_history(message: Message):
 
 @router.message(
     F.text == loc.auth.btns['payment_cancel'],
-    StateFilter(None, user_authorized_fsm.PaymentMenu.verification),
+    StateFilter(
+        None,
+        user_authorized_fsm.PaymentMenu.provider_selection,
+        user_authorized_fsm.PaymentMenu.verification,
+    ),
 )
 @user_authorized_mw.authorized_only()
 async def sub_renewal_submenu_fsm_cancel(message: Message, state: FSMContext):
-    """Cancel FSM state for subscription renewal, try to delete payment message and return to subscription renewal keyboard."""
+    """Cancel the payment flow from any sub-state (provider pick / awaiting verification).
+
+    Tries to delete the last payment-link message we sent so the user doesn't
+    accidentally pay an abandoned invoice. Returns the user to the renewal
+    menu (days picker).
+    """
     last_payment_message_id = await postgres_dbms.get_payment_last_message_id(await postgres_dbms.get_clientID_by_telegramID(message.from_user.id))
 
     await internal_functions.safe_delete_message(message.chat.id, last_payment_message_id)

@@ -41,6 +41,18 @@ sub_renewal_verification = ReplyKeyboardMarkup(
     ],
 )
 
+# Provider selection shown between days-amount choice and the payment link itself.
+# YooKassa first (primary, cheaper for the user — card/SBP), YooMoney second
+# (secondary fallback that's still supported for users with a YooMoney wallet).
+sub_renewal_provider_choice = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    keyboard=[
+        [KeyboardButton(text=loc.auth.btns['pay_yoomoney'])],
+        [KeyboardButton(text=loc.auth.btns['pay_yookassa'])],
+        [KeyboardButton(text=loc.auth.btns['payment_cancel'])],
+    ],
+)
+
 
 async def sub_renewal_link_inline(link_for_customer: str) -> InlineKeyboardMarkup:
     """Return dynamic inline keyboard with specified payment link as URL for inline button."""

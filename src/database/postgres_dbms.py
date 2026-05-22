@@ -1163,6 +1163,26 @@ async def claim_payment_finalize(payment_id: int, client_id: int, paid_days: int
             return True
 
 
+async def get_payment_id_by_external(provider: str, external_id: str) -> int | None:
+    """Resolve our ``payments.id`` from ``(provider, external_id)``.
+
+    Used by ``PaymentService.handle_event`` when a webhook arrives carrying
+    an opaque provider-side identifier (e.g. a UUID label for YooMoney) and
+    we need to map it back to the bot's own payment row.
+
+    Returns ``None`` if no matching payment is found — caller logs and ignores
+    the event (it's not ours, or DB state is inconsistent).
+    """
+    async with pool.acquire() as conn:
+        return await conn.fetchval(
+            '''
+            SELECT id
+            FROM payments
+            WHERE provider = $1 AND external_id = $2;
+            ''',
+            provider, external_id)
+
+
 async def get_payment_provider_info(payment_id: int) -> asyncpg.Record | None:
     """Return ``(provider, external_id, status)`` for ``payment_id``, or ``None``.
 
@@ -1281,20 +1301,27 @@ async def update_payment_status(
     Mirrors ``status='succeeded'`` to legacy ``is_successful`` to keep read paths
     consistent. ``paid_at`` and ``raw_payload`` are merged via COALESCE — passing
     ``None`` does not overwrite an existing value.
+
+    ``is_successful`` is bound as a Python bool ($2) instead of being derived in
+    SQL as ``($1 = 'succeeded')`` because asyncpg can't unify the type of $1
+    used as ``VARCHAR`` (column assignment) and as ``text`` (literal comparison)
+    — it raises AmbiguousParameterError. Pre-computing in Python sidesteps the
+    type-inference altogether.
     """
+    is_successful = (status == 'succeeded')
     raw_payload_json = json.dumps(raw_payload) if raw_payload is not None else None
     async with pool.acquire() as conn:
         await conn.execute(
             '''
             UPDATE payments
             SET status        = $1,
-                is_successful = ($1 = 'succeeded'),
-                paid_at       = COALESCE($2, paid_at),
-                raw_payload   = COALESCE($3::jsonb, raw_payload),
+                is_successful = $2,
+                paid_at       = COALESCE($3, paid_at),
+                raw_payload   = COALESCE($4::jsonb, raw_payload),
                 updated_at    = CURRENT_TIMESTAMP
-            WHERE id = $4;
+            WHERE id = $5;
             ''',
-            status, paid_at, raw_payload_json, payment_id)
+            status, is_successful, paid_at, raw_payload_json, payment_id)
 
 
 async def list_pending_payments_recent(minutes: int = 30) -> list[asyncpg.Record]:
