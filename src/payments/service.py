@@ -139,7 +139,7 @@ class PaymentService:
             invoice = await provider.create_invoice(
                 payment_id=payment_id,
                 amount=Money(amount=price, currency="RUB"),
-                description=f"Подписка ksiVPN на {days_number} дн., payment_id={payment_id}",
+                description=f"Подписка на {days_number} дн., payment_id={payment_id}",
                 return_url=return_url,
             )
         except Exception:
