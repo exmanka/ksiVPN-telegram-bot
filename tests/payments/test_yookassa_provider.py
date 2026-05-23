@@ -41,7 +41,7 @@ def _fake_payment(
         created_at="2026-05-20T12:00:00.000Z",
         captured_at="2026-05-20T12:00:05.000Z" if status == "succeeded" else None,
         expires_at=None,
-        description="Подписка ksiVPN",
+        description="Подписка",
         amount=SimpleNamespace(value=value, currency="RUB"),
         confirmation=SimpleNamespace(
             type="redirect",
