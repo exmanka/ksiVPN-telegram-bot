@@ -41,7 +41,11 @@ services:
       TGBOT_REMNAWAVE__TOKEN: ${DOTENV_TGBOT_REMNAWAVE_TOKEN}
       TGBOT_REMNAWAVE__CADDY_TOKEN: ${DOTENV_TGBOT_REMNAWAVE_CADDY_TOKEN}
     ports:
-      - 127.0.0.1:${DOTENV_TGBOT_WEBHOOK_PORT}:${DOTENV_TGBOT_WEBHOOK_PORT}
+      # Host-side bind comes from DOTENV_TGBOT_WEBHOOK_HOST_BIND ("[ip:]port" form).
+      # Dev:  "127.0.0.1:8080"           — localhost only, no LAN/WAN exposure.
+      # Test: "<runner_lan_ip>:8080"     — reachable from the nginx host on the LAN.
+      # Prod: "127.0.0.1:8080"           — Caddy sits in the same compose, no LAN need.
+      - ${DOTENV_TGBOT_WEBHOOK_HOST_BIND}:${DOTENV_TGBOT_WEBHOOK_PORT}
     volumes:
       - ksivpn-tgbot-backups:/home/ksivpn-tgbot/backups
       - ksivpn-tgbot-logs:/home/ksivpn-tgbot/logs
