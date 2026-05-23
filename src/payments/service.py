@@ -142,9 +142,23 @@ class PaymentService:
                 description=f"Подписка ksiVPN на {days_number} дн., payment_id={payment_id}",
                 return_url=return_url,
             )
-        except ProviderError:
+        except Exception:
+            # Mark orphan as FAILED so it doesn't accumulate as forever-pending in audit
+            # queries. The row stays for forensics (we keep raw_payload, can investigate
+            # which provider/why failed), but it's no longer "in-flight".
+            # The cleanup itself is best-effort — if it fails too, we still re-raise the
+            # original error so the user sees the right message.
+            try:
+                await repository.update_status(
+                    payment_id=payment_id, status=PaymentStatus.FAILED,
+                )
+            except Exception:
+                logger.warning(
+                    "Failed to mark orphan payment_id=%s as FAILED after create_invoice error",
+                    payment_id, exc_info=True,
+                )
             logger.exception(
-                "create_invoice failed for payment_id=%s provider=%s — payment row stays PENDING",
+                "create_invoice failed for payment_id=%s provider=%s — payment row marked FAILED",
                 payment_id, provider_name,
             )
             raise

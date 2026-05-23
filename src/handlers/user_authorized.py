@@ -1,3 +1,4 @@
+import logging
 import random
 from decimal import Decimal
 from aiogram import F, Router
@@ -17,6 +18,8 @@ from src.payments.enums import PaymentProviderName
 from src.payments.exceptions import ProviderError
 from src.payments.runtime import payment_service
 
+
+logger = logging.getLogger(__name__)
 
 router = Router(name="user_authorized")
 
@@ -158,7 +161,19 @@ async def _initiate_payment(
             return_url=settings.payments.return_url,
         )
     except ProviderError:
-        await message.answer(loc.internal.msgs.get('payment_provider_error', loc.auth.msgs['cant_find_payments']))
+        # Already logged in service.initiate with stack trace.
+        await message.answer(loc.auth.msgs['payment_provider_error'])
+        return
+    except Exception:
+        # Anything else — config error, network panic, asyncpg blip during the orphan
+        # cleanup, etc. Log here (service might not have, depending on where it failed)
+        # and give the user the same friendly message — the underlying detail isn't
+        # actionable to them either way.
+        logger.exception(
+            "Unexpected error initiating payment via %s for telegram_id=%s",
+            provider_name, message.from_user.id,
+        )
+        await message.answer(loc.auth.msgs['payment_provider_error'])
         return
 
     # The verification keyboard / FSM state are independent of which provider

@@ -69,14 +69,16 @@ class YookassaProvider:
     def __init__(
         self,
         *,
-        shop_id: str,
+        shop_id: int,
         secret_key: str,
         return_url: str,
     ) -> None:
         # YooKassa SDK uses module-level configuration. Setting these here means
         # any subsequent ``Payment.*`` call uses these credentials. Safe as long
         # as we have a single merchant account (which we do).
-        Configuration.account_id = shop_id
+        # The SDK ultimately sends shop_id as the HTTP Basic Auth username (string),
+        # so we stringify defensively even though it's a numeric id in the dashboard.
+        Configuration.account_id = str(shop_id)
         Configuration.secret_key = secret_key
         self._return_url = return_url
 

@@ -54,7 +54,7 @@ def _fake_payment(
 @pytest.fixture
 def provider() -> YookassaProvider:
     return YookassaProvider(
-        shop_id="test-shop-id",
+        shop_id=123456,
         secret_key="test-secret-key",
         return_url="https://t.me/ksiVPN_bot",
     )

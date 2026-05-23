@@ -43,7 +43,7 @@ class YooMoneySettings(BaseModel):
 
 class YooKassaSettings(BaseModel):
     # YooKassa merchant shop_id (account_id) — not a secret.
-    shop_id: str
+    shop_id: int
     # YooKassa API key — used both for API auth (Payment.create / Payment.find_one)
     # and as the trust root when re-fetching payment status from a webhook.
     secret_key: SecretStr
@@ -55,9 +55,6 @@ class WebhookSettings(BaseModel):
     # https://payments.<host>/webhook/<provider> → 127.0.0.1:port.
     host: str = "0.0.0.0"
     port: int = Field(default=8080, ge=1024, le=65535)
-    # Informational: full public base URL (e.g. https://payments.ksivpn.example).
-    # Used in logs and when registering webhook URLs in provider dashboards.
-    public_base_url: str | None = None
 
 
 class PaymentsSettings(BaseModel):
