@@ -224,4 +224,3 @@ CREATE TABLE remnawave_internal_squads (
 );
 INSERT INTO remnawave_internal_squads(squad_uuid, name)
 VALUES('62965f73-f945-4c49-8803-8db86ff69fe8', 'basic');
-
