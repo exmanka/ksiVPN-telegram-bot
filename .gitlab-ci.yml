@@ -85,7 +85,7 @@ include:
         GITLAB_TGBOT_BOT_TOKEN=ksivpn-kv2-test/data/tgbot/bot/credentials,token
         GITLAB_TGBOT_REMNAWAVE_TOKEN=ksivpn-kv2-test/data/tgbot/remnawave/credentials,token
         GITLAB_TGBOT_YOOMONEY_TOKEN=ksivpn-kv2-test/data/tgbot/yoomoney/credentials,token
-        GITLAB_TGBOT_YOOMONEY_ACCOUNT=ksivpn-kv2-test/data/tgbot/yookassa/credentials,account
+        GITLAB_TGBOT_YOOMONEY_ACCOUNT=ksivpn-kv2-test/data/tgbot/yoomoney/credentials,account
         GITLAB_TGBOT_YOOKASSA_SHOP_ID=ksivpn-kv2-test/data/tgbot/yookassa/credentials,shopID
         GITLAB_TGBOT_YOOKASSA_SECRET_KEY=ksivpn-kv2-test/data/tgbot/yookassa/credentials,token
       vault-jwt-role: gitlab.ksivpn.tgbot.test
@@ -144,8 +144,8 @@ include:
         GITLAB_TGBOT_REMNAWAVE_TOKEN=ksivpn-kv2-prod/data/tgbot/remnawave/credentials,token
         GITLAB_TGBOT_YOOMONEY_TOKEN=ksivpn-kv2-prod/data/tgbot/yoomoney/credentials,token
         GITLAB_TGBOT_YOOMONEY_ACCOUNT=ksivpn-kv2-prod/data/tgbot/yoomoney/credentials,account
-        GITLAB_TGBOT_YOOKASSA_SHOP_ID=ksivpn-kv2-test/data/tgbot/yookassa/credentials,shopID
-        GITLAB_TGBOT_YOOKASSA_SECRET_KEY=ksivpn-kv2-test/data/tgbot/yookassa/credentials,token
+        GITLAB_TGBOT_YOOKASSA_SHOP_ID=ksivpn-kv2-prod/data/tgbot/yookassa/credentials,shopID
+        GITLAB_TGBOT_YOOKASSA_SECRET_KEY=ksivpn-kv2-prod/data/tgbot/yookassa/credentials,token
       vault-jwt-role: gitlab.ksivpn.tgbot.prod
       job-name: deploy-prod
       job-stage: deploy:prod
