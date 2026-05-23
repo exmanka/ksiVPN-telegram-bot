@@ -37,11 +37,10 @@ dynaconf_settings = Dynaconf(
         Validator("payments.yoomoney.token", must_exist=True, is_type_of=str),
         Validator("payments.yoomoney.account", must_exist=True, is_type_of=int),
         Validator("payments.yoomoney.notification_secret", must_exist=True, is_type_of=str),
-        Validator("payments.yookassa.shop_id", must_exist=True, is_type_of=str),
+        Validator("payments.yookassa.shop_id", must_exist=True, is_type_of=int),
         Validator("payments.yookassa.secret_key", must_exist=True, is_type_of=str),
         Validator("payments.webhook.host", default="0.0.0.0", is_type_of=str),
         Validator("payments.webhook.port", default=8080, is_type_of=int, gte=1024, lte=65535),
-        Validator("payments.webhook.public_base_url", default=None),
         Validator(
             "payments.return_url",
             default="https://t.me/ksiVPN_bot",
