@@ -33,7 +33,7 @@ services:
       TGBOT_PAYMENTS__YOOKASSA__SHOP_ID: ${DOTENV_TGBOT_YOOKASSA_SHOP_ID}
       TGBOT_PAYMENTS__YOOKASSA__SECRET_KEY: ${DOTENV_TGBOT_YOOKASSA_SECRET_KEY}
       TGBOT_PAYMENTS__RETURN_URL: ${DOTENV_TGBOT_PAYMENTS_RETURN_URL}
-      TGBOT_PAYMENTS__WEBHOOK__PORT: ${DOTENV_TGBOT_WEBHOOK_PORT}
+      TGBOT_PAYMENTS__WEBHOOK__PORT: 8080
       TGBOT_PAYMENTS__TEST_USER_IDS: ${DOTENV_TGBOT_PAYMENTS_TEST_USER_IDS}
       TGBOT_PAYMENTS__TEST_PRICE: ${DOTENV_TGBOT_PAYMENTS_TEST_PRICE}
       TGBOT_LOCALIZATION__LANGUAGE: ${DOTENV_TGBOT_LOCALIZATION_LANGUAGE}
@@ -41,11 +41,7 @@ services:
       TGBOT_REMNAWAVE__TOKEN: ${DOTENV_TGBOT_REMNAWAVE_TOKEN}
       TGBOT_REMNAWAVE__CADDY_TOKEN: ${DOTENV_TGBOT_REMNAWAVE_CADDY_TOKEN}
     ports:
-      # Host-side bind comes from DOTENV_TGBOT_WEBHOOK_HOST_BIND ("[ip:]port" form).
-      # Dev:  "127.0.0.1:8080"           — localhost only, no LAN/WAN exposure.
-      # Test: "<runner_lan_ip>:8080"     — reachable from the nginx host on the LAN.
-      # Prod: "127.0.0.1:8080"           — Caddy sits in the same compose, no LAN need.
-      - ${DOTENV_TGBOT_WEBHOOK_HOST_BIND}:${DOTENV_TGBOT_WEBHOOK_PORT}
+      - ${DOTENV_TGBOT_WEBHOOK_HOST_BIND}:8080
     volumes:
       - ksivpn-tgbot-backups:/home/ksivpn-tgbot/backups
       - ksivpn-tgbot-logs:/home/ksivpn-tgbot/logs
@@ -107,7 +103,7 @@ services:
     environment:
       CADDY_DOMAIN: ${DOTENV_CADDY_DOMAIN}
       CADDY_ACME_EMAIL: ${DOTENV_CADDY_ACME_EMAIL}
-      TGBOT_WEBHOOK_PORT: ${DOTENV_TGBOT_WEBHOOK_PORT}
+      TGBOT_WEBHOOK_PORT: 8080
     ports:
       - 80:80
       - 443:443
