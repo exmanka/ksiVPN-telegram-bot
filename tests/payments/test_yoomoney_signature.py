@@ -35,7 +35,6 @@ SECRET = "test-notification-secret"
 @pytest.fixture
 def provider() -> YooMoneyTransferProvider:
     return YooMoneyTransferProvider(
-        receiver_account=4100123456789,
         access_token="ignored-for-webhook-tests",
         notification_secret=SECRET,
     )

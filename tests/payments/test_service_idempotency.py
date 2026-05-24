@@ -68,7 +68,7 @@ async def test_double_event_calls_callback_exactly_once(monkeypatch):
 
     # claim_finalize attempted twice, only one win; callback fires only on the win.
     assert claim_calls == 2
-    callback.assert_awaited_once_with(42, 100, 30)
+    callback.assert_awaited_once_with(42, 100, 30, PaymentProviderName.YOOMONEY)
 
 
 async def test_already_finalized_event_skips_callback(monkeypatch):
@@ -126,7 +126,7 @@ async def test_callback_failure_is_swallowed(monkeypatch):
     # Must not raise.
     await service.handle_event(event, provider_name=PaymentProviderName.YOOMONEY)
 
-    callback.assert_awaited_once_with(42, 100, 30)
+    callback.assert_awaited_once_with(42, 100, 30, PaymentProviderName.YOOMONEY)
 
 
 async def test_event_without_payment_id_resolved_from_db(monkeypatch):
@@ -158,7 +158,7 @@ async def test_event_without_payment_id_resolved_from_db(monkeypatch):
     resolve_mock.assert_awaited_once_with(
         provider=PaymentProviderName.YOOMONEY, external_id="some-uuid-label",
     )
-    callback.assert_awaited_once_with(42, 100, 30)
+    callback.assert_awaited_once_with(42, 100, 30, PaymentProviderName.YOOMONEY)
 
 
 async def test_event_with_unresolvable_external_id_is_ignored(monkeypatch):

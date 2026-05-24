@@ -77,16 +77,50 @@ async def test_create_invoice_builds_correct_payload(provider, monkeypatch):
         description="test",
     )
 
-    assert captured["idempotence_key"] == "42"
+    # idempotence_key is now a UUID per attempt (no longer payment_id) — see
+    # provider docstring for why. We just check it's valid UUID-shaped, not
+    # any specific value.
+    import uuid as _uuid
+    parsed = _uuid.UUID(captured["idempotence_key"])
+    assert str(parsed) == captured["idempotence_key"]
+
     payload = captured["payload"]
     assert payload["amount"] == {"value": "300.00", "currency": "RUB"}
     assert payload["capture"] is True
+    # metadata.payment_id stays as our DB id (informational, for webhook debugging).
     assert payload["metadata"] == {"payment_id": "42"}
     assert payload["confirmation"]["type"] == "redirect"
     assert payload["confirmation"]["return_url"] == "https://t.me/ksiVPN_bot"
 
     assert invoice.external_id == "yk-123"
     assert invoice.payment_url.startswith("https://")
+
+
+async def test_create_invoice_uses_fresh_idempotence_key_per_call(provider, monkeypatch):
+    """Two calls with the same payment_id must NOT collide on idempotence_key.
+
+    This guards the dev-env scenario: DB resets → payment_id reuses; YooKassa
+    keeps idempotence_keys for 24h. If we sent str(payment_id), the second
+    create after a DB reset would hit "this idempotence_key was used for a
+    different request".
+    """
+    captured_keys: list[str] = []
+
+    def fake_create(payload, idempotence_key):
+        captured_keys.append(idempotence_key)
+        return _fake_payment(id_=f"yk-{len(captured_keys)}", status="pending")
+
+    monkeypatch.setattr("src.payments.providers.yookassa.YooKassaPayment.create", fake_create)
+
+    await provider.create_invoice(
+        payment_id=42, amount=Money(amount=2, currency="RUB"), description="first",  # type: ignore[arg-type]
+    )
+    await provider.create_invoice(
+        payment_id=42, amount=Money(amount=2, currency="RUB"), description="second",  # type: ignore[arg-type]
+    )
+
+    assert len(captured_keys) == 2
+    assert captured_keys[0] != captured_keys[1]
 
 
 async def test_create_invoice_uses_explicit_return_url(provider, monkeypatch):

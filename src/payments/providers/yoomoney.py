@@ -20,12 +20,14 @@ import hmac
 import logging
 import urllib.parse
 import uuid
+from decimal import Decimal
 from typing import Any, ClassVar, Mapping
 
 import aiohttp
 
 from ..enums import PaymentProviderName, PaymentStatus
 from ..exceptions import InvalidWebhookSignature, ProviderError
+from ..fiscalization import FiscalReceipt, MoyNalogClient
 from ..models import CreatedInvoice, Money, ProviderPaymentEvent
 
 
@@ -34,6 +36,7 @@ logger = logging.getLogger(__name__)
 
 _QUICKPAY_URL = "https://yoomoney.ru/quickpay/confirm.xml"
 _OPERATION_HISTORY_URL = "https://yoomoney.ru/api/operation-history"
+_ACCOUNT_INFO_URL = "https://yoomoney.ru/api/account-info"
 
 # How many times to retry a transient network failure (ClientOSError,
 # ServerDisconnectedError, asyncio.TimeoutError) on outbound HTTP. Total
@@ -57,14 +60,22 @@ class YooMoneyTransferProvider:
     def __init__(
         self,
         *,
-        receiver_account: int,
         access_token: str,
         notification_secret: str,
+        moy_nalog: MoyNalogClient | None = None,
     ) -> None:
-        self._receiver_account = receiver_account
         self._access_token = access_token
         self._notification_secret = notification_secret
+        # ``receiver_account`` (the wallet number used in quickpay URLs as
+        # ``receiver=...``) is resolved lazily from /api/account-info on the
+        # first ``create_invoice`` call and cached for the provider's lifetime.
+        # Single source of truth = the token's owning wallet — no risk of
+        # token/account mismatch in env config.
+        self._receiver_account: str | None = None
+        self._account_lock = asyncio.Lock()
         self._session: aiohttp.ClientSession | None = None
+        # See YookassaProvider for the same field's rationale.
+        self._moy_nalog = moy_nalog
 
     async def _get_session(self) -> aiohttp.ClientSession:
         """Lazily create the shared ``ClientSession`` once we're inside a running loop."""
@@ -80,6 +91,42 @@ class YooMoneyTransferProvider:
         if self._session is not None and not self._session.closed:
             await self._session.close()
             self._session = None
+
+    async def _get_receiver_account(self) -> str:
+        """Resolve the wallet's ``account`` (receiver) via /api/account-info, once.
+
+        YooMoney quickpay URLs require ``receiver=<wallet_number>`` as the
+        destination. We derive that from the token rather than storing it as a
+        separate config value — the token already authorizes one specific
+        wallet, so any inconsistency between configured account and token's
+        wallet would be a silent bug.
+
+        Cached for the lifetime of the provider. If the wallet ever rotates,
+        bot restart re-fetches.
+        """
+        if self._receiver_account is not None:
+            return self._receiver_account
+        async with self._account_lock:
+            if self._receiver_account is not None:
+                return self._receiver_account
+            headers = {"Authorization": f"Bearer {self._access_token}"}
+            resp = await self._request_with_retry(
+                "POST", _ACCOUNT_INFO_URL, headers=headers,
+            )
+            async with resp:
+                if resp.status >= 400:
+                    raise ProviderError(
+                        f"YooMoney /api/account-info returned status {resp.status}",
+                    )
+                payload = await resp.json(content_type=None)
+            account = payload.get("account")
+            if not account:
+                raise ProviderError(
+                    "YooMoney /api/account-info response missing 'account' field",
+                )
+            self._receiver_account = str(account)
+            logger.info("YooMoney receiver account resolved: %s", self._receiver_account)
+            return self._receiver_account
 
     async def _request_with_retry(
         self,
@@ -148,7 +195,7 @@ class YooMoneyTransferProvider:
         """
         label = str(uuid.uuid4())
         params: dict[str, Any] = {
-            "receiver": self._receiver_account,
+            "receiver": await self._get_receiver_account(),
             "quickpay-form": "button",
             "paymentType": "PC",  # YooMoney wallet (matches legacy default in sub_renewal)
             "sum": str(amount.amount),
@@ -275,6 +322,25 @@ class YooMoneyTransferProvider:
             status=PaymentStatus.SUCCEEDED,  # YooMoney only notifies on success
             payment_id=None,
             raw_payload=fields,
+        )
+
+    async def fiscalize_income(
+        self,
+        *,
+        payment_id: int,
+        amount: Decimal,
+        description: str,
+    ) -> FiscalReceipt | None:
+        """Register income in «Мой налог» — same flow as YookassaProvider.
+
+        YooMoney never had built-in fiscalization (it's a P2P-wallet, not a
+        merchant gateway), so this has always required a separate channel.
+        Returns ``None`` if fiscalization is disabled for this provider.
+        """
+        if self._moy_nalog is None:
+            return None
+        return await self._moy_nalog.register_income(
+            amount=amount, description=description,
         )
 
 

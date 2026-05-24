@@ -609,6 +609,19 @@ internal_functions:
       ❤️‍🔥 <b>Оплата произведена успешно!</b>
 
       Идентификатор платежа: #{0}
+    payment_successful_with_receipt: |-
+      ❤️‍🔥 <b>Оплата произведена успешно!</b>
+
+      Идентификатор платежа: #{0}
+
+      🧾 <a href="{1}">Чек об оплате</a>
+    fiscal_receipt_description: Оплата подписки на {0} дней
+    admin_fiscalization_failed: |-
+      ⚠️ <b>Ошибка регистрации чека в «Мой налог»</b>
+
+      payment_id=<code>{0}</code>
+
+      Зарегистрируй доход вручную в приложении «Мой налог».
   keyboard_buttons: {}
   telegram_file_ids:
     template_image_url: https://github.com/exmanka/ksiVPN-telegram-bot/assets/74555362/38b4bf5b-bfa8-4904-b8e8-4c492c4eb872

@@ -1259,6 +1259,26 @@ files = [
 ]
 
 [[package]]
+name = "nalogo"
+version = "1.0.0"
+description = "Asynchronous Python client for Russian self-employed tax service API (Moy Nalog / lknpd.nalog.ru)"
+optional = false
+python-versions = ">=3.11"
+groups = ["main"]
+files = [
+    {file = "nalogo-1.0.0-py3-none-any.whl", hash = "sha256:4ca1d67521bb37fe9aee33102a6b79af5e2a155e7cb8f96765815b5d42946320"},
+    {file = "nalogo-1.0.0.tar.gz", hash = "sha256:e53edbf4b498928a1a840cf8f6adad28d47e1b98f5d95bf9f7723c796f0a3c60"},
+]
+
+[package.dependencies]
+httpx = ">=0.25.0"
+pydantic = ">=2.0.0,<3.0.0"
+python-dotenv = ">=1.0.0"
+
+[package.extras]
+dev = ["bandit[toml] (>=1.7.0)", "black (>=23.0.0)", "build (>=1.0.0)", "coverage (>=7.0.0)", "mypy (>=1.0.0)", "pytest (>=7.0.0)", "pytest-asyncio (>=0.21.0)", "pytest-cov (>=4.0.0)", "respx (>=0.20.0)", "ruff (>=0.1.0)", "twine (>=4.0.0)"]
+
+[[package]]
 name = "nest-asyncio2"
 version = "1.7.2"
 description = "Patch asyncio to allow nested event loops"
@@ -1796,6 +1816,21 @@ docs = ["sphinx (>=5.3)", "sphinx-rtd-theme (>=1.0)"]
 testing = ["coverage (>=6.2)", "hypothesis (>=5.7.1)"]
 
 [[package]]
+name = "python-dotenv"
+version = "1.2.2"
+description = "Read key-value pairs from a .env file and set them as environment variables"
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = [
+    {file = "python_dotenv-1.2.2-py3-none-any.whl", hash = "sha256:1d8214789a24de455a8b8bd8ae6fe3c6b69a5e3d64aa8a8e5d68e694bbcb285a"},
+    {file = "python_dotenv-1.2.2.tar.gz", hash = "sha256:2c371a91fbd7ba082c2c1dc1f8bf89ca22564a087c2c287cd9b662adde799cf3"},
+]
+
+[package.extras]
+cli = ["click (>=5.0)"]
+
+[[package]]
 name = "python-socks"
 version = "2.8.1"
 description = "Proxy (SOCKS4, SOCKS5, HTTP CONNECT) client for Python"
@@ -2331,4 +2366,4 @@ urllib3 = "*"
 [metadata]
 lock-version = "2.1"
 python-versions = "~=3.12.0"
-content-hash = "978b27a2f248f97e8d98a9654c00e346a4e3a16a907bb0e231934da2804b7ae8"
+content-hash = "008fb0c3c66f6932dd89f2309f8f0cb243049dba26f575474d71e664efa8569f"

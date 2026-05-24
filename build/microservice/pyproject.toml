@@ -22,6 +22,7 @@ dependencies = [
     "babel (>=2.16,<3.0)",
     "remnawave (>=2.7.0,<3.0)",
     "yookassa (>=3.5.0,<4.0)",
+    "nalogo (>=1.0.0,<2.0)",
 ]
 
 [tool.poetry]

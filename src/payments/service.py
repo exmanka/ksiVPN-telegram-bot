@@ -38,8 +38,15 @@ from .models import Money, ProviderPaymentEvent
 from .providers.base import PaymentProvider
 
 
-PaymentSucceededCallback = Callable[[int, int, int], Awaitable[None]]
-"""Invoked once per payment when it transitions to SUCCEEDED. Args: ``(payment_id, client_id, days_number)``."""
+PaymentSucceededCallback = Callable[[int, int, int, PaymentProviderName], Awaitable[None]]
+"""Invoked once per payment when it transitions to SUCCEEDED.
+
+Args: ``(payment_id, client_id, days_number, provider_name)``.
+
+``provider_name`` is included so the business-logic chain can branch on
+provider — currently used to delegate fiscalization to ``provider.fiscalize_income``
+via :mod:`src.payments.runtime.providers` lookup.
+"""
 
 
 logger = logging.getLogger(__name__)
@@ -139,7 +146,7 @@ class PaymentService:
             invoice = await provider.create_invoice(
                 payment_id=payment_id,
                 amount=Money(amount=price, currency="RUB"),
-                description=f"Подписка на {days_number} дн., payment_id={payment_id}",
+                description=f"Подписка на {days_number} дней, payment_id={payment_id}",
                 return_url=return_url,
             )
         except Exception:
@@ -216,7 +223,7 @@ class PaymentService:
                 return
 
         if event.status == PaymentStatus.SUCCEEDED:
-            await self._finalize_succeeded(payment_id, event)
+            await self._finalize_succeeded(payment_id, event, provider_name)
         elif event.status in (PaymentStatus.FAILED, PaymentStatus.EXPIRED):
             await self._mark_failed(payment_id, event)
         else:
@@ -226,7 +233,12 @@ class PaymentService:
                 payment_id, event.external_id,
             )
 
-    async def _finalize_succeeded(self, payment_id: int, event: ProviderPaymentEvent) -> None:
+    async def _finalize_succeeded(
+        self,
+        payment_id: int,
+        event: ProviderPaymentEvent,
+        provider_name: PaymentProviderName,
+    ) -> None:
         ctx = await repository.get_finalize_context(payment_id)
         if ctx is None:
             logger.error("Payment finalize: payment_id=%s not found in DB", payment_id)
@@ -264,7 +276,7 @@ class PaymentService:
         # Hand off to the business-logic chain. Any errors there are the
         # callback's responsibility — service has done its job (DB is consistent).
         try:
-            await self._on_payment_succeeded(payment_id, client_id, days_number)
+            await self._on_payment_succeeded(payment_id, client_id, days_number, provider_name)
         except Exception:
             logger.exception(
                 "on_payment_succeeded callback raised for payment_id=%s; "

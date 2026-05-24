@@ -82,13 +82,13 @@ async def main() -> None:
     await runner.setup()
     site = web.TCPSite(
         runner,
-        host=settings.payments.webhook.host,
-        port=settings.payments.webhook.port,
+        host=settings.webhook.host,
+        port=settings.webhook.port,
     )
     await site.start()
     logger.info(
         'Webhook listener started on %s:%d',
-        settings.payments.webhook.host, settings.payments.webhook.port,
+        settings.webhook.host, settings.webhook.port,
     )
 
     try:

@@ -84,10 +84,12 @@ include:
         GITLAB_TGBOT_PROXY_URL=ksivpn-kv2-test/data/tgbot/bot/proxy,url
         GITLAB_TGBOT_BOT_TOKEN=ksivpn-kv2-test/data/tgbot/bot/credentials,token
         GITLAB_TGBOT_REMNAWAVE_TOKEN=ksivpn-kv2-test/data/tgbot/remnawave/credentials,token
-        GITLAB_TGBOT_YOOMONEY_TOKEN=ksivpn-kv2-test/data/tgbot/yoomoney/credentials,token
-        GITLAB_TGBOT_YOOMONEY_ACCOUNT=ksivpn-kv2-test/data/tgbot/yoomoney/credentials,account
-        GITLAB_TGBOT_YOOKASSA_SHOP_ID=ksivpn-kv2-test/data/tgbot/yookassa/credentials,shopID
-        GITLAB_TGBOT_YOOKASSA_SECRET_KEY=ksivpn-kv2-test/data/tgbot/yookassa/credentials,token
+        GITLAB_TGBOT_PAYMENTS_MOY_NALOG_INN=ksivpn-kv2-test/data/tgbot/moynalog/credentials,inn
+        GITLAB_TGBOT_PAYMENTS_MOY_NALOG_PASSWORD=ksivpn-kv2-test/data/tgbot/moynalog/credentials,password
+        GITLAB_TGBOT_PAYMENTS_YOOMONEY_TOKEN=ksivpn-kv2-test/data/tgbot/yoomoney/credentials,token
+        GITLAB_TGBOT_PAYMENTS_YOOMONEY_NOTIFICATION_SECRET=ksivpn-kv2-test/data/tgbot/yoomoney/credentials,webhookSecret
+        GITLAB_TGBOT_PAYMENTS_YOOKASSA_SHOP_ID=ksivpn-kv2-test/data/tgbot/yookassa/credentials,shopID
+        GITLAB_TGBOT_PAYMENTS_YOOKASSA_SECRET_KEY=ksivpn-kv2-test/data/tgbot/yookassa/credentials,token
       vault-jwt-role: gitlab.ksivpn.tgbot.test
       job-name: deploy-test
       job-stage: deploy:test
@@ -121,17 +123,18 @@ include:
         GITLAB_POSTGRES_PASSWORD=$GITLAB_POSTGRES_PASSWORD
         GITLAB_POSTGRES_DB=$GITLAB_POSTGRES_DB
         GITLAB_POSTGRES_PORT=$GITLAB_POSTGRES_PORT
-        GITLAB_TGBOT_PROXY_URL=$GITLAB_TGBOT_PROXY_URL
         GITLAB_TGBOT_BOT_TOKEN=$GITLAB_TGBOT_BOT_TOKEN
         GITLAB_TGBOT_ADMIN_ID=$GITLAB_TGBOT_ADMIN_ID
-        GITLAB_TGBOT_LOCALIZATION_LANGUAGE=$GITLAB_TGBOT_LOCALIZATION_LANGUAGE
+        GITLAB_TGBOT_PROXY_URL=$GITLAB_TGBOT_PROXY_URL
         GITLAB_TGBOT_REMNAWAVE_BASE_URL=$GITLAB_TGBOT_REMNAWAVE_BASE_URL
         GITLAB_TGBOT_REMNAWAVE_TOKEN=$GITLAB_TGBOT_REMNAWAVE_TOKEN
         GITLAB_TGBOT_PAYMENTS_RETURN_URL=$GITLAB_TGBOT_PAYMENTS_RETURN_URL
-        GITLAB_TGBOT_YOOMONEY_TOKEN=$GITLAB_TGBOT_YOOMONEY_TOKEN
-        GITLAB_TGBOT_YOOMONEY_ACCOUNT=$GITLAB_TGBOT_YOOMONEY_ACCOUNT
-        GITLAB_TGBOT_YOOKASSA_SHOP_ID=$GITLAB_TGBOT_YOOKASSA_SHOP_ID
-        GITLAB_TGBOT_YOOKASSA_SECRET_KEY=$GITLAB_TGBOT_YOOKASSA_SECRET_KEY
+        GITLAB_TGBOT_PAYMENTS_MOY_NALOG_INN=$GITLAB_TGBOT_PAYMENTS_MOY_NALOG_INN
+        GITLAB_TGBOT_PAYMENTS_MOY_NALOG_PASSWORD=$GITLAB_TGBOT_PAYMENTS_MOY_NALOG_PASSWORD
+        GITLAB_TGBOT_PAYMENTS_YOOMONEY_TOKEN=$GITLAB_TGBOT_PAYMENTS_YOOMONEY_TOKEN
+        GITLAB_TGBOT_PAYMENTS_YOOMONEY_NOTIFICATION_SECRET=$GITLAB_TGBOT_PAYMENTS_YOOMONEY_NOTIFICATION_SECRET
+        GITLAB_TGBOT_PAYMENTS_YOOKASSA_SHOP_ID=$GITLAB_TGBOT_PAYMENTS_YOOKASSA_SHOP_ID
+        GITLAB_TGBOT_PAYMENTS_YOOKASSA_SECRET_KEY=$GITLAB_TGBOT_PAYMENTS_YOOKASSA_SECRET_KEY
         GITLAB_TGBOT_WEBHOOK_HOST_BIND=$GITLAB_TGBOT_WEBHOOK_HOST_BIND
       vault-enabled: true
       vault-address: ${VAULT_URL}
@@ -142,10 +145,12 @@ include:
         GITLAB_TGBOT_PROXY_URL=ksivpn-kv2-prod/data/tgbot/bot/proxy,url
         GITLAB_TGBOT_BOT_TOKEN=ksivpn-kv2-prod/data/tgbot/bot/credentials,token
         GITLAB_TGBOT_REMNAWAVE_TOKEN=ksivpn-kv2-prod/data/tgbot/remnawave/credentials,token
-        GITLAB_TGBOT_YOOMONEY_TOKEN=ksivpn-kv2-prod/data/tgbot/yoomoney/credentials,token
-        GITLAB_TGBOT_YOOMONEY_ACCOUNT=ksivpn-kv2-prod/data/tgbot/yoomoney/credentials,account
-        GITLAB_TGBOT_YOOKASSA_SHOP_ID=ksivpn-kv2-prod/data/tgbot/yookassa/credentials,shopID
-        GITLAB_TGBOT_YOOKASSA_SECRET_KEY=ksivpn-kv2-prod/data/tgbot/yookassa/credentials,token
+        GITLAB_TGBOT_PAYMENTS_MOY_NALOG_INN=ksivpn-kv2-test/data/tgbot/moynalog/credentials,inn
+        GITLAB_TGBOT_PAYMENTS_MOY_NALOG_PASSWORD=ksivpn-kv2-test/data/tgbot/moynalog/credentials,password
+        GITLAB_TGBOT_PAYMENTS_YOOMONEY_TOKEN=ksivpn-kv2-prod/data/tgbot/yoomoney/credentials,token
+        GITLAB_TGBOT_PAYMENTS_YOOMONEY_NOTIFICATION_SECRET=ksivpn-kv2-test/data/tgbot/yoomoney/credentials,webhookSecret
+        GITLAB_TGBOT_PAYMENTS_YOOKASSA_SHOP_ID=ksivpn-kv2-prod/data/tgbot/yookassa/credentials,shopID
+        GITLAB_TGBOT_PAYMENTS_YOOKASSA_SECRET_KEY=ksivpn-kv2-prod/data/tgbot/yookassa/credentials,token
       vault-jwt-role: gitlab.ksivpn.tgbot.prod
       job-name: deploy-prod
       job-stage: deploy:prod

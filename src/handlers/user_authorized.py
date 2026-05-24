@@ -121,14 +121,35 @@ async def sub_renewal_fsm_start(message: Message, state: FSMContext):
     await message.answer(loc.auth.msgs['go_sub_renewal_menu'], reply_markup=user_authorized_kb.sub_renewal)
 
 
-async def _go_to_provider_selection(
+async def _go_to_payment(
     message: Message,
     state: FSMContext,
     *,
     days_number: int,
     discount: float,
 ) -> None:
-    """Stash chosen days/discount in FSM data and show the provider-choice keyboard."""
+    """Entry point after the user picks days. Decides UI flow based on enabled providers.
+
+    Two paths:
+
+    - **One provider enabled** → skip the selection step entirely and call
+      ``_initiate_payment`` directly. Showing a one-button "choose your
+      payment method" screen would be UX noise.
+    - **Two or more providers enabled** → stash the chosen days+discount in
+      FSM data and transition to ``provider_selection`` so the user can pick.
+
+    The empty-list case is impossible — schema-level validation in
+    :class:`PaymentsSettings` forbids it.
+    """
+    enabled = user_authorized_kb.ENABLED_PAYMENT_PROVIDERS
+    if len(enabled) == 1:
+        await _initiate_payment(
+            message, state,
+            days_number=days_number, discount=discount,
+            provider_name=enabled[0],
+        )
+        return
+
     await state.update_data(payment_days_number=days_number, payment_discount=discount)
     await state.set_state(user_authorized_fsm.PaymentMenu.provider_selection)
     await message.answer(
@@ -214,7 +235,7 @@ async def _initiate_payment(
 @throttling_mw.antiflood(rate_limit=4)
 async def sub_renewal_days_30(message: Message, state: FSMContext):
     """Pick 30-day subscription, then prompt the user to choose a payment provider."""
-    await _go_to_provider_selection(message, state, days_number=30, discount=0.)
+    await _go_to_payment(message, state, days_number=30, discount=0.)
 
 
 @router.message(
@@ -225,7 +246,7 @@ async def sub_renewal_days_30(message: Message, state: FSMContext):
 @throttling_mw.antiflood(rate_limit=4)
 async def sub_renewal_days_90(message: Message, state: FSMContext):
     """Pick 90-day subscription, then prompt the user to choose a payment provider."""
-    await _go_to_provider_selection(message, state, days_number=90, discount=.1)
+    await _go_to_payment(message, state, days_number=90, discount=.1)
 
 
 @router.message(
@@ -236,7 +257,7 @@ async def sub_renewal_days_90(message: Message, state: FSMContext):
 @throttling_mw.antiflood(rate_limit=4)
 async def sub_renewal_days_365(message: Message, state: FSMContext):
     """Pick 365-day subscription, then prompt the user to choose a payment provider."""
-    await _go_to_provider_selection(message, state, days_number=365, discount=.15)
+    await _go_to_payment(message, state, days_number=365, discount=.15)
 
 
 @router.message(
