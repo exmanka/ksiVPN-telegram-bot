@@ -38,12 +38,6 @@ class YooMoneySettings(BaseModel):
     # whether its UI buttons appear. Disabled providers don't need their
     # credentials populated — that's enforced by the model_validator below.
     enabled: bool = True
-    # ``fiscalization_enabled`` controls whether successful payments via this
-    # provider are reported to ФНС through «Мой налог» (i.e. whether
-    # ``PaymentProvider.fiscalize_income`` is wired with a real MoyNalogClient
-    # for this provider). Independent of the master ``payments.fiscalization_enabled`` —
-    # both must be True for fiscalization to fire.
-    fiscalization_enabled: bool = False
     token: SecretStr | None = None
     # ``receiver_account`` (YooMoney wallet number, format 4100...) is NOT
     # configured here — it's resolved at runtime by the provider via
@@ -65,8 +59,6 @@ class YooMoneySettings(BaseModel):
 class YooKassaSettings(BaseModel):
     # ``enabled`` — see YooMoneySettings.enabled. Same semantics.
     enabled: bool = True
-    # ``fiscalization_enabled`` — see YooMoneySettings.fiscalization_enabled.
-    fiscalization_enabled: bool = False
     # YooKassa merchant shop_id (account_id) — not a secret.
     shop_id: int | None = None
     # YooKassa API key — used both for API auth (Payment.create / Payment.find_one)
@@ -86,8 +78,8 @@ class MoyNalogSettings(BaseModel):
     """Credentials for direct integration with lknpd.nalog.ru via nalogo SDK.
 
     Fields are optional at the type level, but the cross-field validator on
-    PaymentsSettings enforces them as required when ``fiscalization_enabled``
-    is True for the global flag AND for at least one provider.
+    PaymentsSettings enforces them as required when fiscalization is enabled
+    AND for at least one provider.
     """
     # 12-digit ИНН — comes from env as int when not quoted (dynaconf auto-parses
     # all-digit values). ``coerce_numbers_to_str`` lets pydantic accept it.
@@ -97,6 +89,38 @@ class MoyNalogSettings(BaseModel):
     # Password for ЛК НПД (the web-cabinet password, NOT the PIN of the «Мой
     # налог» mobile app).
     password: SecretStr | None = None
+
+
+class FiscalizationProvidersSettings(BaseModel):
+    """Per-provider fiscalization toggles.
+
+    Both must be True together with the master ``payments.fiscalization.enabled``
+    flag for fiscalization to actually fire for that provider. Lives under
+    ``fiscalization`` (not under each provider) to keep all tax-related config
+    in one place — a provider's own section only describes the provider itself.
+    """
+    yoomoney: bool = False
+    yookassa: bool = False
+
+
+class FiscalizationSettings(BaseModel):
+    """Cross-cutting settings for tax-receipt registration with ФНС.
+
+    Owns the master kill-switch, per-provider toggles, shared «Мой налог»
+    credentials, and the policy for sending the receipt URL to the buyer.
+    """
+    # Master kill-switch. When False, no ФНС registration regardless of
+    # per-provider flags. Default off — opt-in for a regulated feature.
+    enabled: bool = False
+    # Whether to send the receipt's print URL to the buyer in the «payment
+    # successful» message. Independent of registration itself — the URL is
+    # always persisted in ``payments.fiscal_receipt_url`` for audit; this only
+    # controls whether the bot includes it in the user-facing notification.
+    # Default True — most setups want to send the receipt to satisfy 54-ФЗ /
+    # 422-ФЗ "receipt to buyer" rule.
+    send_receipt: bool = True
+    providers: FiscalizationProvidersSettings = FiscalizationProvidersSettings()
+    moy_nalog: MoyNalogSettings = MoyNalogSettings()
 
 
 class WebhookSettings(BaseModel):
@@ -115,14 +139,9 @@ class WebhookSettings(BaseModel):
 
 
 class PaymentsSettings(BaseModel):
-    # Master kill-switch for fiscalization across all providers. When False, no
-    # ФНС registration happens regardless of per-provider flags. Useful for ops
-    # (turn off fiscalization without changing per-provider config) and dev
-    # (default-off, no need for real ЛК НПД credentials).
-    fiscalization_enabled: bool = False
     yoomoney: YooMoneySettings
     yookassa: YooKassaSettings
-    moy_nalog: MoyNalogSettings = MoyNalogSettings()
+    fiscalization: FiscalizationSettings = FiscalizationSettings()
     # Where the gateway redirects the user after payment (success or cancel).
     # Single value across all providers — no provider-specific reasons to differ
     # right now, and a shared setting avoids drift between handler call sites.
@@ -150,14 +169,14 @@ class PaymentsSettings(BaseModel):
     def _validate_fiscalization_credentials(self) -> "PaymentsSettings":
         """If master fiscalization is on AND any provider has it on, moy_nalog creds are required."""
         any_provider_fiscalizes = (
-            self.yoomoney.fiscalization_enabled or self.yookassa.fiscalization_enabled
+            self.fiscalization.providers.yoomoney or self.fiscalization.providers.yookassa
         )
-        if self.fiscalization_enabled and any_provider_fiscalizes:
-            if not (self.moy_nalog.inn and self.moy_nalog.password):
+        if self.fiscalization.enabled and any_provider_fiscalizes:
+            if not (self.fiscalization.moy_nalog.inn and self.fiscalization.moy_nalog.password):
                 raise ValueError(
-                    "payments.moy_nalog.inn and payments.moy_nalog.password are required "
-                    "when payments.fiscalization_enabled=True and at least one provider has "
-                    "fiscalization_enabled=True",
+                    "payments.fiscalization.moy_nalog.inn and payments.fiscalization.moy_nalog.password "
+                    "are required when payments.fiscalization.enabled=True and at least one of "
+                    "payments.fiscalization.providers.{yoomoney,yookassa} is True",
                 )
         return self
 
