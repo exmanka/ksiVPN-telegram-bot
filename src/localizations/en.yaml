@@ -80,7 +80,7 @@ user_authorized:
       If you are sure that the payment was completed successfully, please contact the help section /help
     cancel_payment: <i>Payment canceled</i>
     payment_provider_error: |-
-      🚧 <b>Could not create the payment</b>
+      🤖 <b>Could not create the payment</b>
 
       The payment provider returned an error. Please try again in a few minutes or pick a different payment method.
 
