@@ -23,18 +23,27 @@ from src.payments.fiscalization import FiscalizationError, MoyNalogClient
 def _make_mocked_nalogo_client(create_responses, auth_responses=None):
     """Build a MagicMock that behaves enough like nalogo.Client for the wrapper.
 
+    Important shape notes (these match the real SDK and have bitten us before):
+
+    - ``authenticate`` is a coroutine — mocked as ``AsyncMock``.
+    - ``income`` is a **method** returning a fresh ``IncomeAPI`` per call,
+      NOT a property. Mocked as a callable that returns the income-api mock,
+      so the wrapper's ``client.income().create(...)`` works.
+
     ``create_responses`` is the list of values/exceptions that
-    ``client.income.create`` returns/raises on successive calls. ``auth_responses``
+    ``client.income().create`` returns/raises on successive calls. ``auth_responses``
     is the same for ``client.create_new_access_token``; defaults to a stable token.
     """
     if auth_responses is None:
         auth_responses = ["access-token-1"]
 
+    income_api = MagicMock()
+    income_api.create = AsyncMock(side_effect=create_responses)
+
     mock = MagicMock()
     mock.create_new_access_token = AsyncMock(side_effect=auth_responses)
-    mock.authenticate = MagicMock(return_value=None)
-    mock.income = MagicMock()
-    mock.income.create = AsyncMock(side_effect=create_responses)
+    mock.authenticate = AsyncMock(return_value=None)
+    mock.income = MagicMock(return_value=income_api)
     mock.close = AsyncMock()
     return mock
 
@@ -81,7 +90,7 @@ async def test_register_income_passes_arguments_to_sdk(patched_client_factory):
 
     await wrapper.register_income(amount=Decimal("99.50"), description="x")
 
-    nalogo_mock.income.create.assert_awaited_once_with(
+    nalogo_mock.income.return_value.create.assert_awaited_once_with(
         name="x", amount=Decimal("99.50"), quantity=1,
     )
 
@@ -104,7 +113,7 @@ async def test_register_income_reauths_once_on_unauthorized(patched_client_facto
     # Two auth calls: initial bootstrap + re-auth after 401.
     assert nalogo_mock.create_new_access_token.await_count == 2
     # Two create calls: failed + successful retry.
-    assert nalogo_mock.income.create.await_count == 2
+    assert nalogo_mock.income.return_value.create.await_count == 2
 
 
 async def test_register_income_gives_up_after_one_reauth(patched_client_factory):
@@ -122,7 +131,7 @@ async def test_register_income_gives_up_after_one_reauth(patched_client_factory)
     with pytest.raises(FiscalizationError, match="after re-auth"):
         await wrapper.register_income(amount=Decimal("100"), description="x")
 
-    assert nalogo_mock.income.create.await_count == 2  # exactly two attempts, no more
+    assert nalogo_mock.income.return_value.create.await_count == 2  # exactly two attempts, no more
 
 
 async def test_register_income_wraps_non_auth_errors_as_fiscalization_error(patched_client_factory):
@@ -157,3 +166,42 @@ async def test_auth_failure_surfaces_as_fiscalization_error(patched_client_facto
 
     with pytest.raises(FiscalizationError, match="credentials rejected"):
         await wrapper.register_income(amount=Decimal("100"), description="x")
+
+
+async def test_authenticate_is_awaited(patched_client_factory):
+    """Regression: ``nalogo.Client.authenticate`` is a coroutine (NOT a setter).
+
+    If we forget to ``await`` it, Python emits a RuntimeWarning and the client
+    is left without an attached token — subsequent requests then go out
+    unauthenticated and fail with cryptic SDK errors. Pin the behavior by
+    asserting that the mock's ``authenticate`` was actually awaited.
+    """
+    nalogo_mock = _make_mocked_nalogo_client(
+        create_responses=[{"approvedReceiptUuid": "u"}],
+    )
+    patched_client_factory.append(nalogo_mock)
+    wrapper = MoyNalogClient(inn="1234567890", password="pw")
+
+    await wrapper.register_income(amount=Decimal("100"), description="x")
+
+    nalogo_mock.authenticate.assert_awaited_once_with("access-token-1")
+
+
+async def test_income_is_called_as_method_not_property(patched_client_factory):
+    """Regression: ``nalogo.Client.income`` returns a fresh IncomeAPI per call.
+
+    The wrapper MUST invoke ``client.income()`` with parentheses — using it as
+    an attribute (``client.income.create``) breaks with
+    ``'function' object has no attribute 'create'``. Pin the call shape by
+    asserting that ``income()`` itself was invoked.
+    """
+    nalogo_mock = _make_mocked_nalogo_client(
+        create_responses=[{"approvedReceiptUuid": "u"}],
+    )
+    patched_client_factory.append(nalogo_mock)
+    wrapper = MoyNalogClient(inn="1234567890", password="pw")
+
+    await wrapper.register_income(amount=Decimal("100"), description="x")
+
+    nalogo_mock.income.assert_called()  # method invocation, not attribute access
+    nalogo_mock.income.return_value.create.assert_awaited_once()
