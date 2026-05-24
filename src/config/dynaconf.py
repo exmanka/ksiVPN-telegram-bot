@@ -34,13 +34,48 @@ dynaconf_settings = Dynaconf(
         Validator("connections.redis.password", must_exist=True, is_type_of=str),
         Validator("connections.redis.fsm_prefix", default="fsm", is_type_of=str),
 
-        Validator("payments.yoomoney.token", must_exist=True, is_type_of=str),
-        Validator("payments.yoomoney.account", must_exist=True, is_type_of=int),
-        Validator("payments.yoomoney.notification_secret", must_exist=True, is_type_of=str),
-        Validator("payments.yookassa.shop_id", must_exist=True, is_type_of=int),
-        Validator("payments.yookassa.secret_key", must_exist=True, is_type_of=str),
-        Validator("payments.webhook.host", default="0.0.0.0", is_type_of=str),
-        Validator("payments.webhook.port", default=8080, is_type_of=int, gte=1024, lte=65535),
+        # Payments — provider enable/disable flags
+        Validator("payments.yoomoney.enabled", default=True, is_type_of=bool),
+        Validator("payments.yookassa.enabled", default=True, is_type_of=bool),
+        Validator("payments.yoomoney.notification_secret", is_type_of=str),
+
+        # Payments — provider credentials. Required only when the provider is
+        # enabled — pydantic cross-field validators on the Settings models
+        # enforce that; we don't duplicate the conditional logic here, just
+        # type-check whatever value comes through.
+        Validator(
+            "payments.yoomoney.token",
+            must_exist=True,
+            is_type_of=str,
+            when=Validator("payments.yoomoney.enabled", eq=True),
+        ),
+        Validator(
+            "payments.yookassa.shop_id",
+            must_exist=True,
+            is_type_of=int,
+            when=Validator("payments.yookassa.enabled", eq=True),
+        ),
+        Validator(
+            "payments.yookassa.secret_key",
+            must_exist=True,
+            is_type_of=str,
+            when=Validator("payments.yookassa.enabled", eq=True),
+        ),
+
+        # Fiscalization — master switch + per-provider flags
+        Validator("payments.fiscalization_enabled", default=False, is_type_of=bool),
+        Validator("payments.yoomoney.fiscalization_enabled", default=False, is_type_of=bool),
+        Validator("payments.yookassa.fiscalization_enabled", default=False, is_type_of=bool),
+
+        # Fiscalization — «Мой налог» credentials. Required only when at least
+        # one provider has fiscalization on AND the master flag is on — enforced
+        # by the model_validator on PaymentsSettings, not here. ``inn`` accepts
+        # both str and int because dynaconf auto-parses 12-digit numeric env
+        # values as int — pydantic then coerces back to str at the schema
+        # boundary.
+        Validator("payments.moy_nalog.inn", is_type_of=(str, int)),
+        Validator("payments.moy_nalog.password", is_type_of=str),
+
         Validator(
             "payments.return_url",
             default="https://t.me/ksiVPN_bot",
@@ -55,6 +90,11 @@ dynaconf_settings = Dynaconf(
             gte=2,
             messages={"operations": "payments.test_price must be ≥ 2 (YooMoney lower bound)"},
         ),
+
+        # Webhook listener (top-level — shared across all inbound webhooks,
+        # not only payment-providers; e.g. future Remnawave panel events).
+        Validator("webhook.host", default="0.0.0.0", is_type_of=str),
+        Validator("webhook.port", default=8080, is_type_of=int, gte=1024, lte=65535),
 
         Validator("localization.language", must_exist=True, is_type_of=str),
         Validator("backup.path", default="/home/ksivpn-tgbot/backups", is_type_of=str),

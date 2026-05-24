@@ -1324,6 +1324,36 @@ async def update_payment_status(
             status, is_successful, paid_at, raw_payload_json, payment_id)
 
 
+async def update_payment_fiscal_receipt_url(payment_id: int, fiscal_receipt_url: str) -> None:
+    """Persist the «Мой налог» receipt URL for ``payment_id``.
+
+    Called after a successful income registration via :mod:`src.payments.fiscalization`.
+    The URL is used both for admin audit (``SELECT … WHERE fiscal_receipt_url IS NULL``
+    to find non-registered payments) and to share with the buyer at notification time.
+    """
+    async with pool.acquire() as conn:
+        await conn.execute(
+            '''
+            UPDATE payments
+            SET fiscal_receipt_url = $1,
+                updated_at         = CURRENT_TIMESTAMP
+            WHERE id = $2;
+            ''',
+            fiscal_receipt_url, payment_id)
+
+
+async def get_payment_amount(payment_id: int) -> Decimal | None:
+    """Return the ``price`` value for ``payment_id`` (the amount actually charged).
+
+    Used by the fiscalization step in ``finalize_successful_payment`` — needs
+    the canonical amount to register with «Мой налог».
+    """
+    async with pool.acquire() as conn:
+        return await conn.fetchval(
+            "SELECT price FROM payments WHERE id = $1;",
+            payment_id)
+
+
 async def list_pending_payments_recent(minutes: int = 30) -> list[asyncpg.Record]:
     """Pending payments initiated within the last ``minutes`` — for reconciler.
 

@@ -1,8 +1,10 @@
 """``PaymentProvider`` protocol — contract every gateway adapter implements."""
 
+from decimal import Decimal
 from typing import ClassVar, Mapping, Protocol, runtime_checkable
 
 from ..enums import PaymentProviderName
+from ..fiscalization import FiscalReceipt
 from ..models import CreatedInvoice, Money, ProviderPaymentEvent
 
 
@@ -67,5 +69,32 @@ class PaymentProvider(Protocol):
         For providers where ``supports_webhook is False``, calling this MUST
         raise ``NotImplementedError`` — but such providers should never have
         their webhook route registered in the first place.
+        """
+        ...
+
+    async def fiscalize_income(
+        self,
+        *,
+        payment_id: int,
+        amount: Decimal,
+        description: str,
+    ) -> FiscalReceipt | None:
+        """Register income with the tax authority (ФНС) for this payment.
+
+        Returns ``None`` when fiscalization is disabled for this provider OR
+        when this provider doesn't fiscalize at all. Returns a populated
+        :class:`FiscalReceipt` on success. Raises
+        :class:`~src.payments.fiscalization.FiscalizationError` on registration
+        failure — the business-logic chain handles it as best-effort (logs +
+        admin alert, payment is not unwound).
+
+        Each concrete provider decides its mechanism:
+
+        - YooKassa, YooMoney: delegate to a shared ``MoyNalogClient`` (direct
+          calls to ``lknpd.nalog.ru`` since YooKassa removed its built-in
+          fiscalization for self-employed on 2025-12-29).
+        - Hypothetical Robokassa or CloudPayments (if their built-in
+          fiscalization comes back): read receipt URL out of their own payment
+          response — no «Мой налог» call needed.
         """
         ...

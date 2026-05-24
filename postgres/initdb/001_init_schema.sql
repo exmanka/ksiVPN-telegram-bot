@@ -178,7 +178,8 @@ CREATE TABLE payments (
 	status VARCHAR(16) NOT NULL DEFAULT 'pending',       -- pending | succeeded | failed | expired
 	paid_at TIMESTAMP,
 	updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	raw_payload JSONB                                    -- webhook body or last get_status response
+	raw_payload JSONB,                                   -- webhook body or last get_status response
+	fiscal_receipt_url VARCHAR(256)                      -- public «Мой налог» print URL (NULL if fiscalization disabled or failed)
 );
 
 CREATE UNIQUE INDEX payments_provider_external_id_uniq

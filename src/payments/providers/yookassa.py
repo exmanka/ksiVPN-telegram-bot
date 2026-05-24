@@ -8,10 +8,13 @@ thread per payment-event is negligible overhead.
 
 Key design notes:
 
-- **Idempotency**: ``Payment.create`` is called with ``idempotence_key=str(payment_id)``.
-  Retrying the same call (e.g. after a transient network error) returns the
-  existing Payment instead of creating a new one. This matches our DB design
-  where ``payments.id`` is the sole authoritative identifier.
+- **Idempotency**: ``Payment.create`` is called with a fresh UUID as
+  ``idempotence_key`` per attempt. Same-call retry-safety could be added later
+  by stashing the key in DB if needed, but cross-call independence is the more
+  important property here: YooKassa keeps idempotence keys for 24h, and reusing
+  ``payment_id`` (BIGSERIAL) as the key caused collisions in dev (DB resets but
+  YooKassa remembers). Our ``metadata.payment_id`` field still carries our DB
+  id as informational payload for webhook debugging.
 
 - **Webhook authenticity**: YooKassa webhooks are **not** cryptographically
   signed by the provider. The recommended trust model is: never trust the
@@ -35,6 +38,8 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import uuid
+from decimal import Decimal
 from typing import Any, ClassVar, Mapping
 
 from yookassa import Configuration, Payment as YooKassaPayment
@@ -45,6 +50,7 @@ from yookassa.domain.notification import (
 
 from ..enums import PaymentProviderName, PaymentStatus
 from ..exceptions import InvalidWebhookSignature, ProviderError
+from ..fiscalization import FiscalReceipt, MoyNalogClient
 from ..models import CreatedInvoice, Money, ProviderPaymentEvent
 
 
@@ -72,6 +78,7 @@ class YookassaProvider:
         shop_id: int,
         secret_key: str,
         return_url: str,
+        moy_nalog: MoyNalogClient | None = None,
     ) -> None:
         # YooKassa SDK uses module-level configuration. Setting these here means
         # any subsequent ``Payment.*`` call uses these credentials. Safe as long
@@ -81,6 +88,10 @@ class YookassaProvider:
         Configuration.account_id = str(shop_id)
         Configuration.secret_key = secret_key
         self._return_url = return_url
+        # Optional «Мой налог» fiscalizer. When ``None``, ``fiscalize_income``
+        # returns ``None`` — meaning fiscalization is disabled for this provider
+        # (either globally or via this provider's flag, decided in runtime.py).
+        self._moy_nalog = moy_nalog
 
     # ---- PaymentProvider interface -------------------------------------------------
 
@@ -98,9 +109,14 @@ class YookassaProvider:
             description=description,
             return_url=return_url or self._return_url,
         )
+        # Fresh UUID per attempt. YooKassa keeps idempotence keys for 24h —
+        # using ``str(payment_id)`` here would collide in dev (DB resets while
+        # YooKassa remembers). The DB ``payment_id`` is still carried as
+        # ``metadata.payment_id`` for webhook debugging.
+        idempotence_key = str(uuid.uuid4())
         try:
             payment = await asyncio.to_thread(
-                YooKassaPayment.create, payload, str(payment_id),
+                YooKassaPayment.create, payload, idempotence_key,
             )
         except (ApiError, BadRequestError, ResponseProcessingError) as exc:
             raise ProviderError(
@@ -164,6 +180,22 @@ class YookassaProvider:
             ) from exc
 
         return self._normalize(payment)
+
+    async def fiscalize_income(
+        self,
+        *,
+        payment_id: int,
+        amount: Decimal,
+        description: str,
+    ) -> FiscalReceipt | None:
+        """Register income in «Мой налог» (since YooKassa removed self-employed
+        receipts on 2025-12-29). Returns ``None`` if fiscalization is disabled.
+        """
+        if self._moy_nalog is None:
+            return None
+        return await self._moy_nalog.register_income(
+            amount=amount, description=description,
+        )
 
     # ---- internals ----------------------------------------------------------------
 

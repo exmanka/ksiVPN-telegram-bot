@@ -23,7 +23,6 @@ from src.payments.providers.yoomoney import YooMoneyTransferProvider
 @pytest.fixture
 def provider() -> YooMoneyTransferProvider:
     return YooMoneyTransferProvider(
-        receiver_account=4100123456789,
         access_token="test-token",
         notification_secret="test-secret",
     )

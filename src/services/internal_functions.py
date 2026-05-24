@@ -629,7 +629,12 @@ async def safe_delete_message(chat_id: int, message_id: int | None) -> None:
         pass
 
 
-async def finalize_successful_payment(payment_id: int, client_id: int, days_number: int) -> None:
+async def finalize_successful_payment(
+    payment_id: int,
+    client_id: int,
+    days_number: int,
+    provider_name,  # PaymentProviderName; not annotated to avoid module-level cycle
+) -> None:
     """Post-finalize business chain after a payment is marked SUCCEEDED in DB.
 
     The atomic ``payments``/``clients_subscriptions`` update has already been
@@ -640,14 +645,18 @@ async def finalize_successful_payment(payment_id: int, client_id: int, days_numb
     1. Sync new expiry to Remnawave Panel.
     2. Pay out the referral bonus if this is the user's first successful payment.
     3. Notify the admin.
-    4. Notify the user: delete the payment-link message, reset FSM if they're
+    4. Fiscalize income in «Мой налог» if enabled for ``provider_name`` (records
+       the receipt URL in DB; URL is included in the user notification below).
+    5. Notify the user: delete the payment-link message, reset FSM if they're
        still in the verification flow, send the "payment successful" message
-       (with the renewal keyboard when the user was actively waiting).
+       (with the receipt URL if step 4 succeeded; with the renewal keyboard
+       when the user was actively waiting).
 
     Each step is independently wrapped so a failure in one (e.g. Remnawave
-    panel temporarily unreachable) does not skip the others. Errors are logged
-    but never propagated — the payment is already valid in DB and that's the
-    source of truth.
+    panel temporarily unreachable, «Мой налог» down) does not skip the others.
+    Errors are logged but never propagated — the payment is already valid in
+    DB and that's the source of truth. Fiscalization failures additionally
+    trigger an admin alert so the receipt can be issued manually in «Мой налог».
 
     Wired as the ``on_payment_succeeded`` callback in
     :mod:`src.payments.runtime`. Webhook deliveries, the APScheduler reconciler,
@@ -677,8 +686,10 @@ async def finalize_successful_payment(payment_id: int, client_id: int, days_numb
             client_id, payment_id,
         )
 
+    receipt_url = await _try_fiscalize_income(payment_id, days_number, provider_name)
+
     try:
-        await _notify_user_payment_succeeded(payment_id, client_id)
+        await _notify_user_payment_succeeded(payment_id, client_id, receipt_url=receipt_url)
     except Exception:
         logger.exception(
             "_notify_user_payment_succeeded failed for client_id=%s after payment_id=%s",
@@ -686,7 +697,88 @@ async def finalize_successful_payment(payment_id: int, client_id: int, days_numb
         )
 
 
-async def _notify_user_payment_succeeded(payment_id: int, client_id: int) -> None:
+async def _try_fiscalize_income(payment_id: int, days_number: int, provider_name) -> str | None:
+    """Run ``provider.fiscalize_income`` and persist the receipt URL.
+
+    Returns the public print-URL on success, ``None`` if fiscalization is
+    disabled for this provider OR if it failed. Failures trigger an admin
+    alert so a manual receipt can be issued in «Мой налог».
+
+    Imports happen inside the function — at module-load time ``src.payments.runtime``
+    is still being constructed (it imports this module via the
+    ``on_payment_succeeded`` wiring), so a module-level import would cycle.
+    """
+    from src.payments.runtime import payment_service
+
+    provider = payment_service.providers.get(provider_name)
+    if provider is None:
+        logger.warning(
+            "fiscalize: provider %s not in registry for payment_id=%s — skipping",
+            provider_name, payment_id,
+        )
+        return None
+
+    amount = await postgres_dbms.get_payment_amount(payment_id)
+    if amount is None:
+        logger.error("fiscalize: payment_id=%s not found in DB", payment_id)
+        return None
+
+    description = loc.internal.msgs['fiscal_receipt_description'].format(days_number)
+
+    try:
+        receipt = await provider.fiscalize_income(
+            payment_id=payment_id, amount=amount, description=description,
+        )
+    except Exception:
+        logger.exception(
+            "fiscalize_income raised for payment_id=%s provider=%s — admin will be alerted",
+            payment_id, provider_name,
+        )
+        await _alert_admin_fiscalization_failed(payment_id)
+        return None
+
+    if receipt is None:
+        # Provider's fiscalization is disabled — silent no-op, not an error.
+        return None
+
+    try:
+        await postgres_dbms.update_payment_fiscal_receipt_url(payment_id, receipt.print_url)
+    except Exception:
+        logger.exception(
+            "Failed to persist fiscal_receipt_url for payment_id=%s "
+            "(receipt was registered with ФНС but DB is now inconsistent)",
+            payment_id,
+        )
+        # We still return the URL — the user gets their receipt even if our
+        # audit column failed to update.
+
+    logger.info(
+        "Income registered in Мой налог for payment_id=%s receipt_url=%s",
+        payment_id, receipt.print_url,
+    )
+    return receipt.print_url
+
+
+async def _alert_admin_fiscalization_failed(payment_id: int) -> None:
+    """Best-effort admin notification on fiscalization failure."""
+    try:
+        await safe_deliver(
+            lambda: bot.send_message(
+                settings.bot.admin_id,
+                loc.internal.msgs['admin_fiscalization_failed'].format(payment_id),
+            ),
+            telegram_id=settings.bot.admin_id,
+        )
+    except Exception:
+        logger.exception("admin alert for fiscalization failure also failed")
+
+
+async def _notify_user_payment_succeeded(
+    payment_id: int,
+    client_id: int,
+    *,
+    receipt_url: str | None = None,
+) -> None:
     """Delete payment-link message, reset FSM if in verification, send success message.
 
     Keyboard policy: if the user is currently in the verification state, we
@@ -694,6 +786,13 @@ async def _notify_user_payment_succeeded(payment_id: int, client_id: int) -> Non
     renewal keyboard so the flow continues coherently. Otherwise (paid hours
     ago, currently doing something else), send the success message without a
     keyboard — interrupting their current screen would be jarring.
+
+    Receipt: when ``receipt_url`` is provided (fiscalization on and succeeded),
+    we use the ``payment_successful_with_receipt`` template that includes a
+    link to the «Мой налог» print page. When ``None`` (fiscalization off, or
+    on but failed), use the plain template — user can't distinguish "no
+    receipt configured" from "receipt failed", which is intentional (admin
+    handles failed cases separately via the alert).
 
     Best-effort: all errors are caught at the caller (``finalize_successful_payment``).
     """
@@ -725,12 +824,13 @@ async def _notify_user_payment_succeeded(payment_id: int, client_id: int) -> Non
 
     reply_markup = user_authorized_kb.sub_renewal if was_in_payment_flow else None
 
+    if receipt_url is not None:
+        text = loc.internal.msgs['payment_successful_with_receipt'].format(payment_id, receipt_url)
+    else:
+        text = loc.internal.msgs['payment_successful'].format(payment_id)
+
     await safe_deliver(
-        lambda: bot.send_message(
-            telegram_id,
-            loc.internal.msgs['payment_successful'].format(payment_id),
-            reply_markup=reply_markup,
-        ),
+        lambda: bot.send_message(telegram_id, text, reply_markup=reply_markup),
         telegram_id=telegram_id,
     )
 
