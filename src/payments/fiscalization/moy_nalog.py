@@ -83,7 +83,11 @@ class MoyNalogClient:
                 username=self._inn,
                 password=self._password,
             )
-            self._client.authenticate(token)
+            # ``authenticate`` is a coroutine (not a plain setter, as one might
+            # guess from its signature ``(token) -> None``). Forgetting ``await``
+            # here produces a silent RuntimeWarning and a client without a
+            # bound token — later requests then go out unauthenticated.
+            await self._client.authenticate(token)
             self._authed = True
             logger.info("MoyNalog: authenticated (inn=%s)", self._inn)
         except UnauthorizedException as exc:
@@ -128,7 +132,11 @@ class MoyNalogClient:
     async def _register_once(self, amount: Decimal, description: str) -> FiscalReceipt:
         client = await self._get_authed_client()
         try:
-            result = await client.income.create(
+            # ``client.income`` is a *method* returning a fresh ``IncomeAPI``
+            # (not a property) — must be called with parentheses. Same pattern
+            # for ``client.receipt``, ``client.user``, ``client.tax`` etc. if
+            # we ever wire them.
+            result = await client.income().create(
                 name=description,
                 amount=amount,
                 quantity=1,
