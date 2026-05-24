@@ -688,8 +688,15 @@ async def finalize_successful_payment(
 
     receipt_url = await _try_fiscalize_income(payment_id, days_number, provider_name)
 
+    # ``send_receipt`` is the UI policy: do we put the URL in the buyer's
+    # message? Independent of whether registration happened — the URL stays
+    # in ``payments.fiscal_receipt_url`` either way for audit / re-send.
+    display_receipt_url = (
+        receipt_url if settings.payments.fiscalization.send_receipt else None
+    )
+
     try:
-        await _notify_user_payment_succeeded(payment_id, client_id, receipt_url=receipt_url)
+        await _notify_user_payment_succeeded(payment_id, client_id, receipt_url=display_receipt_url)
     except Exception:
         logger.exception(
             "_notify_user_payment_succeeded failed for client_id=%s after payment_id=%s",

@@ -62,10 +62,11 @@ dynaconf_settings = Dynaconf(
             when=Validator("payments.yookassa.enabled", eq=True),
         ),
 
-        # Fiscalization — master switch + per-provider flags
-        Validator("payments.fiscalization_enabled", default=False, is_type_of=bool),
-        Validator("payments.yoomoney.fiscalization_enabled", default=False, is_type_of=bool),
-        Validator("payments.yookassa.fiscalization_enabled", default=False, is_type_of=bool),
+        # Fiscalization — master switch + per-provider flags + UI receipt-send policy
+        Validator("payments.fiscalization.enabled", default=False, is_type_of=bool),
+        Validator("payments.fiscalization.send_receipt", default=True, is_type_of=bool),
+        Validator("payments.fiscalization.providers.yoomoney", default=False, is_type_of=bool),
+        Validator("payments.fiscalization.providers.yookassa", default=False, is_type_of=bool),
 
         # Fiscalization — «Мой налог» credentials. Required only when at least
         # one provider has fiscalization on AND the master flag is on — enforced
@@ -73,8 +74,8 @@ dynaconf_settings = Dynaconf(
         # both str and int because dynaconf auto-parses 12-digit numeric env
         # values as int — pydantic then coerces back to str at the schema
         # boundary.
-        Validator("payments.moy_nalog.inn", is_type_of=(str, int)),
-        Validator("payments.moy_nalog.password", is_type_of=str),
+        Validator("payments.fiscalization.moy_nalog.inn", is_type_of=(str, int)),
+        Validator("payments.fiscalization.moy_nalog.password", is_type_of=str),
 
         Validator(
             "payments.return_url",

@@ -29,11 +29,11 @@ from .service import PaymentService
 # enabled and the master is on, so the assertions below cannot trip in a
 # validated-startup path — they're for type-narrowing.
 moy_nalog_client: MoyNalogClient | None = None
-if settings.payments.fiscalization_enabled:
-    if settings.payments.moy_nalog.inn and settings.payments.moy_nalog.password:
+if settings.payments.fiscalization.enabled:
+    if settings.payments.fiscalization.moy_nalog.inn and settings.payments.fiscalization.moy_nalog.password:
         moy_nalog_client = MoyNalogClient(
-            inn=settings.payments.moy_nalog.inn,
-            password=settings.payments.moy_nalog.password.get_secret_value(),
+            inn=settings.payments.fiscalization.moy_nalog.inn,
+            password=settings.payments.fiscalization.moy_nalog.password.get_secret_value(),
         )
 
 
@@ -59,7 +59,7 @@ if settings.payments.yookassa.enabled:
         shop_id=settings.payments.yookassa.shop_id,
         secret_key=settings.payments.yookassa.secret_key.get_secret_value(),
         return_url=settings.payments.return_url,
-        moy_nalog=_moy_nalog_for(settings.payments.yookassa.fiscalization_enabled),
+        moy_nalog=_moy_nalog_for(settings.payments.fiscalization.providers.yookassa),
     )
 
 if settings.payments.yoomoney.enabled:
@@ -68,7 +68,7 @@ if settings.payments.yoomoney.enabled:
     providers[PaymentProviderName.YOOMONEY] = YooMoneyTransferProvider(
         access_token=settings.payments.yoomoney.token.get_secret_value(),
         notification_secret=settings.payments.yoomoney.notification_secret.get_secret_value(),
-        moy_nalog=_moy_nalog_for(settings.payments.yoomoney.fiscalization_enabled),
+        moy_nalog=_moy_nalog_for(settings.payments.fiscalization.providers.yoomoney),
     )
 
 if not providers:
