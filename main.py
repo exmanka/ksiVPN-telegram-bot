@@ -31,7 +31,7 @@ from src.services import scheduler
 from src.runtime import dp, bot
 from src.config import settings
 from src.payments.runtime import payment_service, aclose_all_providers
-from src.payments.webhook import build_webhook_app
+from src.webhook_app import build_webhook_app
 
 
 logger = logging.getLogger(__name__)
