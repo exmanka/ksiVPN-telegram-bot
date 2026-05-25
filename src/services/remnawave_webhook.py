@@ -91,21 +91,23 @@ async def _handle_torrent_blocker_report(data: dict) -> None:
     Payload shape (per docs.rw, not fully covered by the Remnawave SDK DTOs):
         data.user.telegramId : int | None
         data.node.name       : str
-        data.report.actionReport.blockDuration : int  (minutes)
+        data.report.actionReport.blockDuration : int  (seconds)
     """
     try:
         user_block = data.get("user") or {}
         telegram_id = user_block.get("telegramId")
         node_name = data["node"]["name"]
-        block_minutes = data["report"]["actionReport"]["blockDuration"]
+        block_seconds = data["report"]["actionReport"]["blockDuration"]
     except (KeyError, TypeError):
         logger.exception("torrent_blocker.report: malformed payload — keys missing")
         return
 
+    block_minutes = block_seconds // 60
+
     if telegram_id is None:
         logger.info(
-            "torrent_blocker.report on node=%s for block_minutes=%s — user has no telegramId, skip notify",
-            node_name, block_minutes,
+            "torrent_blocker.report on node=%s for block_minutes=%s (raw seconds=%s) — user has no telegramId, skip notify",
+            node_name, block_minutes, block_seconds,
         )
         return
 
