@@ -84,6 +84,7 @@ include:
         GITLAB_TGBOT_PROXY_URL=ksivpn-kv2-test/data/tgbot/bot/proxy,url
         GITLAB_TGBOT_BOT_TOKEN=ksivpn-kv2-test/data/tgbot/bot/credentials,token
         GITLAB_TGBOT_REMNAWAVE_TOKEN=ksivpn-kv2-test/data/tgbot/remnawave/credentials,token
+        GITLAB_TGBOT_REMNAWAVE_WEBHOOK_SECRET=ksivpn-kv2-test/data/tgbot/remnawave/credentials,webhookSecret
         GITLAB_TGBOT_PAYMENTS_FISCALIZATION_MOY_NALOG_INN=ksivpn-kv2-test/data/tgbot/moynalog/credentials,inn
         DOTENV_TGBOT_PAYMENTS_FISCALIZATION_MOY_NALOG_PASSWORD=ksivpn-kv2-test/data/tgbot/moynalog/credentials,password
         GITLAB_TGBOT_PAYMENTS_YOOMONEY_TOKEN=ksivpn-kv2-test/data/tgbot/yoomoney/credentials,token
@@ -128,6 +129,7 @@ include:
         GITLAB_TGBOT_PROXY_URL=$GITLAB_TGBOT_PROXY_URL
         GITLAB_TGBOT_REMNAWAVE_BASE_URL=$GITLAB_TGBOT_REMNAWAVE_BASE_URL
         GITLAB_TGBOT_REMNAWAVE_TOKEN=$GITLAB_TGBOT_REMNAWAVE_TOKEN
+        GITLAB_TGBOT_REMNAWAVE_WEBHOOK_SECRET=$GITLAB_TGBOT_REMNAWAVE_WEBHOOK_SECRET
         GITLAB_TGBOT_PAYMENTS_RETURN_URL=$GITLAB_TGBOT_PAYMENTS_RETURN_URL
         GITLAB_TGBOT_PAYMENTS_FISCALIZATION_MOY_NALOG_INN=$GITLAB_TGBOT_PAYMENTS_FISCALIZATION_MOY_NALOG_INN
         DOTENV_TGBOT_PAYMENTS_FISCALIZATION_MOY_NALOG_PASSWORD=$DOTENV_TGBOT_PAYMENTS_FISCALIZATION_MOY_NALOG_PASSWORD
@@ -145,6 +147,7 @@ include:
         GITLAB_TGBOT_PROXY_URL=ksivpn-kv2-prod/data/tgbot/bot/proxy,url
         GITLAB_TGBOT_BOT_TOKEN=ksivpn-kv2-prod/data/tgbot/bot/credentials,token
         GITLAB_TGBOT_REMNAWAVE_TOKEN=ksivpn-kv2-prod/data/tgbot/remnawave/credentials,token
+        GITLAB_TGBOT_REMNAWAVE_WEBHOOK_SECRET=ksivpn-kv2-test/data/tgbot/remnawave/credentials,webhookSecret
         GITLAB_TGBOT_PAYMENTS_FISCALIZATION_MOY_NALOG_INN=ksivpn-kv2-test/data/tgbot/moynalog/credentials,inn
         DOTENV_TGBOT_PAYMENTS_FISCALIZATION_MOY_NALOG_PASSWORD=ksivpn-kv2-test/data/tgbot/moynalog/credentials,password
         GITLAB_TGBOT_PAYMENTS_YOOMONEY_TOKEN=ksivpn-kv2-prod/data/tgbot/yoomoney/credentials,token

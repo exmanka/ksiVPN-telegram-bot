@@ -193,6 +193,9 @@ class RemnawaveSettings(BaseModel):
     base_url: str
     token: SecretStr
     caddy_token: SecretStr | None = None
+    # HMAC-SHA256 secret for inbound webhook signature verification. When None,
+    # the /webhook/remnawave route is not registered.
+    webhook_secret: SecretStr | None = None
 
 
 class Settings(BaseModel):

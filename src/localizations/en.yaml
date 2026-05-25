@@ -589,6 +589,10 @@ internal_functions:
       payment_id=<code>{0}</code>
 
       Please register the income manually in the «Мой налог» app.
+    torrent_blocker_warning: |-
+      ⚠️ <b>Location «{node_name}» is blocked for {block_minutes} minutes</b>
+
+      Torrent traffic was detected over the VPN — this is prohibited by the project rules. Please disable torrent clients while using the VPN; repeated violations may lead to account suspension.
   keyboard_buttons: {}
   telegram_file_ids:
     template_image_url: https://github.com/exmanka/ksiVPN-telegram-bot/assets/74555362/38b4bf5b-bfa8-4904-b8e8-4c492c4eb872
