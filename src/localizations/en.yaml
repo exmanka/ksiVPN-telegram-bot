@@ -65,6 +65,7 @@ user_authorized:
       4. <b>Pure</b> — a VPN location with access to services that are normally blocked when using a VPN. For example, signing up for Gemini, accessing Reddit without an account, and so on.
     return_to_main_menu: <i>Returning to the main menu</i>
     go_sub_renewal_menu: <i>Going to the subscription renewal menu</i>
+    choose_payment_provider: <i>Choose a payment method</i>
     sub_renewal_free: <pre><code class="language-matrix">You are the One, Neo! There is no need to pay for a subscription 🐇</code></pre>
     payment_history_message: |-
       🌟 <b>{0}</b> was extended for {1} days for {2:g}₽.
@@ -78,6 +79,12 @@ user_authorized:
 
       If you are sure that the payment was completed successfully, please contact the help section /help
     cancel_payment: <i>Payment canceled</i>
+    payment_provider_error: |-
+      🤖 <b>Could not create the payment</b>
+
+      The payment provider returned an error. Please try again in a few minutes or pick a different payment method.
+
+      If the error persists, please contact the help section /help
     check_payment_hour: Checking all created payments in the last hour!
     payment_found: Payment for an order with a unique identifier <b>#{0}</b> found!
     go_personal_account: <i>Going to personal account</i>
@@ -233,6 +240,8 @@ user_authorized:
     return_main_menu: Return to main menu
     payment_check: Check payment
     payment_cancel: Cancel payment
+    pay_yoomoney: 💸 YooMoney transfer
+    pay_yookassa: 💳 Card and SBP
     pay: Pay
     ref_program: 🕊 Referral program
     about_client: About client
@@ -567,6 +576,19 @@ internal_functions:
       ❤️‍🔥 <b>The payment was made successfully!</b>
 
       Payment identifier: #{0}
+    payment_successful_with_receipt: |-
+      ❤️‍🔥 <b>The payment was made successfully!</b>
+
+      Payment identifier: #{0}
+
+      🧾 <a href="{1}">Tax receipt</a>
+    fiscal_receipt_description: Subscription payment for {0} days
+    admin_fiscalization_failed: |-
+      ⚠️ <b>Failed to register receipt in «Мой налог»</b>
+
+      payment_id=<code>{0}</code>
+
+      Please register the income manually in the «Мой налог» app.
   keyboard_buttons: {}
   telegram_file_ids:
     template_image_url: https://github.com/exmanka/ksiVPN-telegram-bot/assets/74555362/38b4bf5b-bfa8-4904-b8e8-4c492c4eb872

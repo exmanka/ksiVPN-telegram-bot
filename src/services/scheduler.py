@@ -8,6 +8,7 @@ from pathlib import Path
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram.types import FSInputFile
 from src.database import postgres_dbms
+from src.payments.runtime import payment_service
 from src.services import internal_functions, localization as loc
 from src.config import settings
 from src.runtime import bot
@@ -23,8 +24,21 @@ async def apscheduler_start():
     scheduler = AsyncIOScheduler(timezone=settings.tz)
     scheduler.add_job(send_subscription_expiration_notifications, 'cron', minute='0,30')
     scheduler.add_job(send_database_backup, 'cron', hour=23, minute=00)
+    # Payment-reconciler: catches webhooks the bot missed (extended downtime,
+    # mis-registered URL). Provider retries cover transient blips; this is the
+    # belt-and-braces. Runs every 2 minutes — light DB query + at most one
+    # provider call per still-pending payment in the last 30 minutes.
+    scheduler.add_job(_reconcile_pending_payments, 'cron', minute='*/2')
     scheduler.start()
     logger.info('Scheduler has been successfully launched!')
+
+
+async def _reconcile_pending_payments() -> None:
+    """APScheduler wrapper around :meth:`PaymentService.poll_pending`."""
+    try:
+        await payment_service.poll_pending(minutes=30)
+    except Exception:
+        logger.exception('Payment reconciler tick failed; will retry next interval')
 
 
 async def apscheduler_finish():

@@ -1,7 +1,45 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
+from src.config import settings
 from src.database import postgres_dbms
+from src.payments.enums import PaymentProviderName
 from src.services import localization as loc
+
+
+# Order in which provider buttons appear in the renewal flow's selection step.
+# YooMoney first (legacy, kept as fallback), YooKassa second (current primary —
+# card / SBP). Adding a new provider = add it to this tuple + the button-text map.
+_PROVIDER_DISPLAY_ORDER: tuple[PaymentProviderName, ...] = (
+    PaymentProviderName.YOOMONEY,
+    PaymentProviderName.YOOKASSA,
+)
+
+_PROVIDER_BUTTON_TEXT: dict[PaymentProviderName, str] = {
+    PaymentProviderName.YOOMONEY: loc.auth.btns['pay_yoomoney'],
+    PaymentProviderName.YOOKASSA: loc.auth.btns['pay_yookassa'],
+}
+
+
+def _provider_enabled(name: PaymentProviderName) -> bool:
+    """Read from settings rather than ``payments.runtime.payment_service`` to
+    avoid an import cycle (runtime → internal_functions → keyboards → runtime).
+    """
+    if name == PaymentProviderName.YOOMONEY:
+        return settings.payments.yoomoney.enabled
+    if name == PaymentProviderName.YOOKASSA:
+        return settings.payments.yookassa.enabled
+    return False
+
+
+ENABLED_PAYMENT_PROVIDERS: tuple[PaymentProviderName, ...] = tuple(
+    p for p in _PROVIDER_DISPLAY_ORDER if _provider_enabled(p)
+)
+"""Providers actually wired in at startup, in display order.
+
+Handlers use this to decide whether the «pick a provider» step is needed: with
+exactly one enabled, we skip the selection screen entirely and go straight to
+``_initiate_payment``.
+"""
 
 
 menu = ReplyKeyboardMarkup(
@@ -37,6 +75,22 @@ sub_renewal_verification = ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[
         [KeyboardButton(text=loc.auth.btns['payment_check'])],
+        [KeyboardButton(text=loc.auth.btns['payment_cancel'])],
+    ],
+)
+
+# Provider selection shown between days-amount choice and the payment link itself.
+# Built dynamically from ENABLED_PAYMENT_PROVIDERS — providers disabled via the
+# corresponding `payments.<name>.enabled=False` setting don't get a button.
+# When exactly one provider is enabled, this keyboard is unused (handlers skip
+# the selection step entirely).
+sub_renewal_provider_choice = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    keyboard=[
+        *(
+            [KeyboardButton(text=_PROVIDER_BUTTON_TEXT[p])]
+            for p in ENABLED_PAYMENT_PROVIDERS
+        ),
         [KeyboardButton(text=loc.auth.btns['payment_cancel'])],
     ],
 )
