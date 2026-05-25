@@ -1,0 +1,54 @@
+# Reverse-proxy for payment webhooks.
+#
+# Caddy automatically obtains and renews TLS certificates from Let's Encrypt
+# via the ACME HTTP-01 challenge on port 80. The acquired certs are persisted
+# in the ``ksivpn-caddy-data`` volume — DO NOT recreate this volume without
+# reason, or you'll hit Let's Encrypt rate limits (5 duplicate certs / week
+# per domain).
+#
+# Routes:
+#   POST /webhook/yoomoney   → ksivpn-tgbot:${TGBOT_WEBHOOK_PORT}
+#   POST /webhook/yookassa   → ksivpn-tgbot:${TGBOT_WEBHOOK_PORT}
+#   GET  /health             → ksivpn-tgbot:${TGBOT_WEBHOOK_PORT}
+#   anything else            → 404 (defense against opportunistic scanners)
+
+{
+	email {$CADDY_ACME_EMAIL}
+	# auto_https is on by default; explicit for clarity.
+	# Servers default-listen on :80 and :443.
+}
+
+{$CADDY_DOMAIN} {
+	encode gzip
+
+	# Reject anything outside the documented webhook surface.
+	# Returns 404 without contacting the upstream — keeps the bot's aiohttp log clean.
+	@blocked not path /webhook/* /health
+	respond @blocked 404
+
+	# Limit request body to 64KB — payment webhooks are <5KB. Anything larger
+	# is suspicious; refusing early prevents memory-burn from junk uploads.
+	request_body {
+		max_size 64KB
+	}
+
+	reverse_proxy ksivpn-tgbot:{$TGBOT_WEBHOOK_PORT} {
+		# Pass through the original Host header so the bot's aiohttp logs
+		# show the public hostname, not the docker DNS name.
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+
+		# Conservative timeouts: webhook handlers are fast; if the bot is wedged,
+		# better to fail fast than hold connections open.
+		transport http {
+			dial_timeout 5s
+			response_header_timeout 30s
+		}
+	}
+
+	log {
+		output stderr
+		format console
+		level INFO
+	}
+}

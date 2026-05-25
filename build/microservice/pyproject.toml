@@ -21,10 +21,20 @@ dependencies = [
     "aiohttp-socks (>=0.11.0,<0.12)",
     "babel (>=2.16,<3.0)",
     "remnawave (>=2.7.0,<3.0)",
+    "yookassa (>=3.5.0,<4.0)",
+    "nalogo (>=1.0.0,<2.0)",
 ]
 
 [tool.poetry]
 package-mode = false
+
+[tool.poetry.group.dev.dependencies]
+# Tests are limited to src/payments/ — the only module with real-money correctness
+# requirements. They run outside Docker (pytest + asyncio loop only) and don't
+# need DB/Redis fixtures: payment service tests mock postgres_dbms calls.
+pytest = "^8.0"
+pytest-asyncio = "^0.23"
+pytest-aiohttp = "^1.0"
 
 [project.urls]
 homepage = "https://github.com/exmanka"
