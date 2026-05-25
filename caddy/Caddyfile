@@ -1,4 +1,4 @@
-# Reverse-proxy for payment webhooks.
+# Reverse-proxy for inbound webhooks (payments + Remnawave Panel).
 #
 # Caddy automatically obtains and renews TLS certificates from Let's Encrypt
 # via the ACME HTTP-01 challenge on port 80. The acquired certs are persisted
@@ -7,10 +7,11 @@
 # per domain).
 #
 # Routes:
-#   POST /webhook/yoomoney   → ksivpn-tgbot:${TGBOT_WEBHOOK_PORT}
-#   POST /webhook/yookassa   → ksivpn-tgbot:${TGBOT_WEBHOOK_PORT}
-#   GET  /health             → ksivpn-tgbot:${TGBOT_WEBHOOK_PORT}
-#   anything else            → 404 (defense against opportunistic scanners)
+#   POST /webhook/payment/yoomoney   → ksivpn-tgbot:${TGBOT_WEBHOOK_PORT}
+#   POST /webhook/payment/yookassa   → ksivpn-tgbot:${TGBOT_WEBHOOK_PORT}
+#   POST /webhook/remnawave          → ksivpn-tgbot:${TGBOT_WEBHOOK_PORT}
+#   GET  /health                     → ksivpn-tgbot:${TGBOT_WEBHOOK_PORT}
+#   anything else                    → 404 (defense against opportunistic scanners)
 
 {
 	email {$CADDY_ACME_EMAIL}

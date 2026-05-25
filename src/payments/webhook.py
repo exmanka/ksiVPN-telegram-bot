@@ -1,22 +1,14 @@
-"""aiohttp.web application for inbound payment webhooks.
-
-Mounted by :mod:`main` alongside the aiogram polling loop:
-
-    runner = web.AppRunner(build_webhook_app(payment_service))
-    await runner.setup()
-    site = web.TCPSite(runner, host, port)
-    await site.start()
+"""Payment webhook routes (mounted by :mod:`src.webhook_app`).
 
 Routes:
 
-- ``POST /webhook/{provider}`` — provider-specific webhook receiver. The
-  provider must be registered in ``PaymentService.providers`` and have
+- ``POST /webhook/payment/{provider}`` — provider-specific webhook receiver.
+  The provider must be registered in ``PaymentService.providers`` and have
   ``supports_webhook = True``.
-- ``GET /health`` — liveness probe for the reverse-proxy / orchestrator.
 
 Security: webhooks are accepted only via the local listener (docker-compose
 exposes ``127.0.0.1:<port>``); TLS is terminated on the host by an external
-reverse-proxy that proxies ``https://payments.<host>/webhook/<provider>`` to
+reverse-proxy that proxies ``https://<host>/webhook/payment/<provider>`` to
 this listener.
 
 Each provider verifies its own signature inside ``parse_webhook``. We never
@@ -29,27 +21,22 @@ from aiohttp import web
 
 from .enums import PaymentProviderName
 from .exceptions import InvalidWebhookSignature, ProviderError, ProviderUnavailable
-from .service import PaymentService
 
 
 logger = logging.getLogger(__name__)
 
 
-def build_webhook_app(service: PaymentService) -> web.Application:
-    """Construct the webhook aiohttp app for the given ``PaymentService``."""
-    app = web.Application()
-    app["payment_service"] = service
-    app.router.add_post("/webhook/{provider}", _handle_webhook)
-    app.router.add_get("/health", _handle_health)
-    return app
+def register_payment_routes(app: web.Application) -> None:
+    """Mount payment webhook routes on the given aiohttp app.
+
+    Expects ``app["payment_service"]`` to be set by the caller (see
+    :mod:`src.webhook_app`).
+    """
+    app.router.add_post("/webhook/payment/{provider}", _handle_payment_webhook)
 
 
-async def _handle_health(request: web.Request) -> web.Response:  # noqa: ARG001
-    return web.Response(text="ok", status=200)
-
-
-async def _handle_webhook(request: web.Request) -> web.Response:
-    service: PaymentService = request.app["payment_service"]
+async def _handle_payment_webhook(request: web.Request) -> web.Response:
+    service = request.app["payment_service"]
     provider_str = request.match_info["provider"]
 
     try:

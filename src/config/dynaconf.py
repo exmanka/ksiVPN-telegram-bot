@@ -110,6 +110,7 @@ dynaconf_settings = Dynaconf(
         ),
         Validator("remnawave.token", must_exist=True, is_type_of=str, len_min=10),
         Validator("remnawave.caddy_token", default=None),
+        Validator("remnawave.webhook_secret", default=None),
     ],
 )
 

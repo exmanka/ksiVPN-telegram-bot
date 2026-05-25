@@ -619,6 +619,10 @@ internal_functions:
       ⚠️ <b>Ошибка регистрации чека в «Мой налог»</b>
 
       Зарегистрируй доход вручную в приложении «Мой налог». payment_id=<code>{0}</code>
+    torrent_blocker_warning: |-
+      ⚠️ <b>Локация «{node_name}» заблокирована на {block_minutes} минут</b>
+
+      Зафиксирована передача Torrent-трафика с использованием VPN — это запрещено согласно правилам проекта. Пожалуйста, отключайте Torrent-клиенты при работе с VPN — повторные нарушения могут привести к блокировке.
   keyboard_buttons: {}
   telegram_file_ids:
     template_image_url: https://github.com/exmanka/ksiVPN-telegram-bot/assets/74555362/38b4bf5b-bfa8-4904-b8e8-4c492c4eb872
