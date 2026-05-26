@@ -329,7 +329,11 @@ async def notify_admin_promo_entered(client_id: int, promo_phrase: str, promo_ty
                                    new_sub_str=new_sub_str))
 
 
-async def notify_admin_payment_success(client_id: int, days_number: int):
+async def notify_admin_payment_success(
+    client_id: int,
+    days_number: int,
+    provider_name,  # PaymentProviderName; not annotated to avoid module-level cycle
+):
     """Send message for admin with information about new successful client's payment.
 
     Adds a prefix to the admin notification when the paying client's
@@ -338,6 +342,8 @@ async def notify_admin_payment_success(client_id: int, days_number: int):
 
     :param client_id:
     :param days_number: number of days client paid for
+    :param provider_name: which gateway processed the payment (yoomoney/yookassa) —
+        rendered into the admin message so the operator can correlate by provider.
     """
     name, surname, username, telegram_id, *_ = await postgres_dbms.get_client_info_by_clientID(client_id)
 
@@ -352,6 +358,7 @@ async def notify_admin_payment_success(client_id: int, days_number: int):
         settings.bot.admin_id,
         loc.internal.msgs['admin_successful_payment'].format(
             days_number, client_id, username_str, name, surname_str, telegram_id,
+            provider_name=str(provider_name),
             test_prefix=test_prefix,
         )
     )
@@ -679,7 +686,7 @@ async def finalize_successful_payment(
         )
 
     try:
-        await notify_admin_payment_success(client_id, days_number)
+        await notify_admin_payment_success(client_id, days_number, provider_name)
     except Exception:
         logger.exception(
             "notify_admin_payment_success failed for client_id=%s after payment_id=%s",
