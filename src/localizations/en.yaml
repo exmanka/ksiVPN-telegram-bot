@@ -554,6 +554,7 @@ internal_functions:
 
       <b>Client ID</b>: <code>{1}</code>
       <b>Telegram INFO</b>:{2} <code>{3}{4}</code> <code>{5}</code>
+      <b>Payment Provider</b>: <code>{provider_name}</code>
 
       {test_prefix}
     admin_payment_test_prefix: 💻 <i>Test mode payment — minimum price for debugging</i>
