@@ -32,6 +32,14 @@
     .venv-3.12/bin/python scripts/analyze_remnawave_non_migrated.py
     .venv-3.12/bin/python scripts/analyze_remnawave_non_migrated.py --page-size 200
 
+Флаг --list-ids
+---------------
+Дополнительный раздел отчёта: плоский список telegram_id всех неперешедших
+пользователей (активная подписка + ни одного подключения через Remnawave),
+без разделения по серверам. Удобно для копипасты в другие инструменты.
+
+    .venv-3.12/bin/python scripts/analyze_remnawave_non_migrated.py --list-ids
+
 Флаг --no-fallback
 ------------------
 Дополнительный раздел отчёта: пользователи из числа неперешедших, у которых
@@ -219,9 +227,11 @@ async def _get_telegram_ids_not_in_bot_db(
 def _print_report(
     total_panel: int,
     candidates: list,  # panel user objects: active + never connected
+    candidate_tids: list[int],
     server_rows: list[asyncpg.Record],
     no_configs_ids: list[int],
     not_in_db_ids: list[int],
+    list_ids: bool = False,
     no_fallback_rows: list[asyncpg.Record] | None = None,
 ) -> None:
     separator = '─' * 72
@@ -271,6 +281,17 @@ def _print_report(
         print(f"  Активны в панели, НЕ найдены в clients таблице  : {len(not_in_db_ids)} чел.")
         print(f"  telegram_id : {ids_str}")
 
+    # --- flat id list (only when --list-ids flag was passed) ---
+    if list_ids:
+        print()
+        print(separator)
+        print("  ПЛОСКИЙ СПИСОК telegram_id (активны + ни разу не подключались)")
+        print(separator)
+        print(f"  Всего: {len(candidate_tids)}")
+        print()
+        print('  ' + ', '.join(str(t) for t in sorted(candidate_tids)))
+        print()
+
     # --- no-fallback section (only when --no-fallback flag was passed) ---
     if no_fallback_rows is not None:
         print()
@@ -301,7 +322,7 @@ def _print_report(
 # Main
 # ---------------------------------------------------------------------------
 
-async def main(page_size: int, no_fallback: bool) -> None:
+async def main(page_size: int, list_ids: bool, no_fallback: bool) -> None:
     for req_var, name in [
         (POSTGRES_DB, 'POSTGRES_DB'),
         (POSTGRES_USER, 'POSTGRES_USER'),
@@ -353,9 +374,11 @@ async def main(page_size: int, no_fallback: bool) -> None:
     _print_report(
         total_panel=len(all_users),
         candidates=candidates,
+        candidate_tids=candidate_tids,
         server_rows=server_rows,
         no_configs_ids=no_configs_ids,
         not_in_db_ids=not_in_db_ids,
+        list_ids=list_ids,
         no_fallback_rows=no_fallback_rows,
     )
 
@@ -367,8 +390,15 @@ if __name__ == '__main__':
         '--page-size', type=int, default=500,
         help='Page size for sdk.users.get_all_users pagination (default: 500)')
     parser.add_argument(
+        '--list-ids', action='store_true',
+        help='Add a flat list of all non-migrated telegram_ids (no server breakdown)')
+    parser.add_argument(
         '--no-fallback', action='store_true',
         help='Add a section listing users whose configs are on a single server only '
              '(losing that server = losing all VPN access)')
     args = parser.parse_args()
-    asyncio.run(main(page_size=args.page_size, no_fallback=args.no_fallback))
+    asyncio.run(main(
+        page_size=args.page_size,
+        list_ids=args.list_ids,
+        no_fallback=args.no_fallback,
+    ))
