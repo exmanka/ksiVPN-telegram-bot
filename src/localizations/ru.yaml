@@ -110,20 +110,6 @@ user_authorized:
     enter_promo: <b>🎟 Отправьте мне промокод сообщением!</b>
     go_settings: <i>Перехожу в меню настроек</i>
     return_to_personal_account: <i>Возвращаю в личный кабинет</i>
-    # LEGACY: pre-Remnawave config distribution
-    configs_info: |-
-      Информация о всех ваших конфигурациях, теперь не нужно искать их по диалогу с ботом!
-
-      Всего конфигураций <b>{0}</b>.
-    # LEGACY: pre-Remnawave config distribution
-    configs_rules: |-
-      <b>Напоминаю основные правила /rules:
-
-      1. Одно устройство — одна конфигурация.
-      2. Делиться конфигурациями с другими людьми запрещено!
-      3. Скачивать файлы через торрент-клиенты запрещено!
-
-      ❌ Нарушение любого из правил может привести к незамедлительной блокировке аккаунта.</b>
     return_to_settings: <i>Возвращаю в меню настроек</i>
     go_settings_chatgpt: <i>Перехожу в настройки режима ChatGPT</i>
     settings_chatgpt_info: |-
@@ -205,7 +191,6 @@ user_authorized:
       {0}. <code>{1}</code> на {2} подписки.
       Введен {3}.
     no_promo_entered: Вы еще не вводили ни одного промокода. Следите за новостями! 🚀
-    config_was_received: ✨ <b>Ура, конфигурация получена!</b>
     sub_expired: |-
       👾 <b>Ой-ой! Срок действия подписки истек, VPN придется отключить</b>
 
@@ -228,16 +213,6 @@ user_authorized:
       Не забудьте продлить подписку!
 
       <tg-spoiler><i>Напоминание можно отключить, перейдя в «Личный кабинет» — «Настройки» — «Уведомления».</i></tg-spoiler>
-    basic_instructions: |-
-      👾 <b>Отдельные конфигурации больше недооступны</b>
-
-      Воспользуйтесь новым функционалом подписки — он удобнее и дает доступ сразу ко всем локациям на проекте!
-      
-      Чтобы перейти в главное меню, отправьте боту команду /start
-    advanced_instructions: |-
-      👾 <b>Инструкции для подключения отдельных конфигураций больше недоступны</b>
-
-      Воспользуйтесь новым функционалом подписки — он удобнее и дает доступ сразу ко всем локациям на проекте!
   keyboard_buttons:
     sub_renewal: ❤️‍🔥 Продлить подписку!
     my_subscription: Моя подписка
@@ -277,8 +252,6 @@ user_authorized:
     return_to_settings: Обратно в настройки
     chatgpt_off: Выключить
     chatgpt_on: Включить
-    basic_installation_instruction: Базовая инструкция по установке
-    advanced_installation_instruction: Продвинутая инструкция по установке
   telegram_file_ids:
     rules: AgACAgIAAxkBAAJUyGWoBkWcqxDLR5T7rxSAgxD9k8LJAALd1DEbxdRBSUXUhjzY2aggAQADAgADcwADNAQ
     ref_program_info: AgACAgIAAxkBAAJUv2WoBaYCCxzAlLwaiIEttY5NnqytAALa1DEbxdRBSdtn1kU78RbOAQADAgADcwADNAQ
@@ -292,7 +265,6 @@ admin:
 
       /fileid
       /clients
-      /configs <i>telegram_id</i> | <i>username</i>" — LEGACY
     go_send_message_menu: <i>Перехожу в меню отправки сообщений пользователям</i>
     message_everyone_info: |-
       Введите необходимую информацию следующим сообщением, а также приложите файлы при необходимости!
@@ -327,7 +299,6 @@ admin:
       Теперь введите необходимую информацию следующим сообщением, а также приложите файлы при необходимости!
 
       Введите /perfect, чтобы подтвердить выбор последнего отправленного сообщения!
-    error_bad_attachment: Вы не приложили файл, либо добавили неверный тип вложения!
     clients_info: 🚀 Вывожу информацию обо всех клиентах!
     clients_info_sub_active: "✅  "
     clients_info_sub_inactive: "❌  "
@@ -345,23 +316,6 @@ admin:
       
       <code>{0}</code>
     error_no_file_for_file_id: Файл не был прикреплен вместе с вызовом команды /fileid!
-    # LEGACY: pre-Remnawave config distribution
-    send_configuration_info: |-
-      Пришлите мне сообщение в формате (вместо переноса строк используйте пробелы):
-
-      <b>protocol</b> — alias протокола (напр. <code>wg</code>, <code>x</code>, <code>ss</code>)
-      <b>server</b> — alias сервера (напр. <code>nl01</code>, <code>lv01</code>, <code>de01</code>)
-      <b>link</b> - если вместо файла нужна ссылка вида <code>vless://</code> или <code>ss://</code>
-
-      <b>Не забываем прикрепить файл, если требуется!</b>
-    # LEGACY: pre-Remnawave config distribution
-    config_was_sent: Отлично, конфигурация типа <b>{0}</b> отправлена!
-    # LEGACY: pre-Remnawave config distribution
-    error_bad_flags_number: |-
-      Ошибка: {0}
-      Скорее всего, вы указали неверное число флагов!
-    # LEGACY: pre-Remnawave config distribution
-    error_unrecognized: "Ошибка: {0}"
     sub_expired: |-
       👾 <b>Срок действия подписки пользователя истёк.</b>
 
@@ -412,9 +366,6 @@ admin:
       👾 Анонс всем (reset FSM + меню)
     reset_fsm_2: |-
       Вернуться
-      👾
-    config_answer_inline: |-
-      Ответить
       👾
   telegram_file_ids: {}
 other:
@@ -520,16 +471,6 @@ internal_functions:
       
       {test_note}
     test_price_note: 💻 <i>Оплата производится в тестовом режиме с минимальной стоимостью</i>
-    config_info: |-
-      <b>Сервер</b>: {0}
-      <b>Локация</b>: {1}, {2}
-      <b>Характеристики</b>: скорость до {3} Мбит/с, ожидаемый пинг {4} мс.
-      <b>Доступны сервисы</b>: {5}
-
-      <b>Протокол</b>: {6}
-      <b>Платформа</b>: {7}
-
-      <i>Создана {8}, ID {9}</i>
     new_client_joined_no_sub_url: ошибка создания пользователя в Remnawave
     new_client_joined: |-
       👾 <b>Зарегистрирован новый пользователь!</b>
@@ -589,18 +530,6 @@ internal_functions:
       🕊 Ух ты! Пользователь {0}{1} использовал ваш реферальный промокод при регистрации!
 
       <b>После того, как он (она) впервые оплатит подписку, вы получите {2} подписки бесплатно!</b>
-    # LEGACY: pre-Remnawave config distribution
-    error_no_telegram_file_id: при попытке создания конфигурации не был указан telegram_file_id!
-    # LEGACY: pre-Remnawave config distribution
-    error_bad_file_type: при попытке создания конфигурации был указан неверный file_type!
-    # LEGACY: pre-Remnawave config distribution
-    error_bad_protocol: неверное значение параметра <b>protocol</b>
-    # LEGACY: pre-Remnawave config distribution
-    error_bad_country: неверное значение параметра <b>server</b>
-    # LEGACY: pre-Remnawave config distribution
-    error_bad_os: неверное значение параметра <b>os</b>
-    # LEGACY: pre-Remnawave config distribution
-    error_bad_link: неверное значение параметра <b>link</b>
     ref_client_paid_for_sub: |-
       🕊 Вау! Пользователь {0}{1}, присоединившийся к проекту по вашему реферальному промокоду, впервые оплатил(а) подписку!
 

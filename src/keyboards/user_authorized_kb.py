@@ -184,19 +184,3 @@ async def settings_chatgpt(client_id: int) -> ReplyKeyboardMarkup:
     builder.adjust(1)
 
     return builder.as_markup(resize_keyboard=True)
-
-
-async def configuration_instruction_inline(configuration_protocol_name: str, configuration_os: str) -> InlineKeyboardMarkup:
-    """Return dynamic inline keyboard with basic and advanced instruction buttons."""
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(
-                text=loc.auth.btns['basic_installation_instruction'],
-                callback_data='basic--' + configuration_protocol_name + '--' + configuration_os,
-            )],
-            [InlineKeyboardButton(
-                text=loc.auth.btns['advanced_installation_instruction'],
-                callback_data='advanced--' + configuration_protocol_name + '--' + configuration_os,
-            )],
-        ]
-    )
