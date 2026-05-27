@@ -1,4 +1,4 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from src.services import localization as loc
 
 
@@ -32,13 +32,3 @@ notification = ReplyKeyboardMarkup(
         [KeyboardButton(text=loc.admn.btns['reset_fsm_2'])],
     ],
 )
-
-
-async def configuration_inline(telegram_id: int, os_alias: str) -> InlineKeyboardMarkup:
-    """Return dynamic inline keyboard with telegram_id and os alias encoded in callback_data."""
-    return InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(
-            text=loc.admn.btns['config_answer_inline'],
-            callback_data=f'{telegram_id}:{os_alias}',
-        )]]
-    )

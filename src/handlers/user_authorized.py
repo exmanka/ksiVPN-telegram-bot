@@ -753,31 +753,6 @@ async def account_settings_notifications_7d(message: Message):
         await message.answer(loc.auth.msgs['7d_off'], reply_markup=await user_authorized_kb.settings_notifications(client_id))
 
 
-# LEGACY: pre-Remnawave config distribution — answer with soft migration message
-@router.callback_query(F.data.startswith('basic--') | F.data.startswith('advanced--'))
-@user_authorized_mw.authorized_only()
-@user_authorized_mw.nonblank_subscription_only()
-async def configuration_instruction(call: CallbackQuery):
-    """Send message with Remnawave subscription migration."""
-    await call.message.answer(loc.auth.msgs['advanced_instructions'])
-    await call.answer()
-
-
-# LEGACY: pre-Remnawave config distribution — answer with soft migration message
-@router.message(F.text.in_(
-    {
-    'Конфигурации',
-    'Новая конфигурация',
-    'Мои конфигурации',
-    }
-))
-@user_authorized_mw.authorized_only()
-@user_authorized_mw.nonblank_subscription_only()
-async def configuration_advanced_instruction(message: Message):
-    """Send message with Remnawave subscription migration."""
-    await message.answer(loc.auth.msgs['basic_instructions'])
-
-
 @router.message(F.text == loc.auth.btns['rules'])
 @router.message(Command(commands=['rules']))
 @user_authorized_mw.authorized_only()
