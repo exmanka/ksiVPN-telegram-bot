@@ -410,54 +410,6 @@ async def get_subscription_expiration_date(telegram_id: int) -> datetime.datetim
             telegram_id)
 
 
-async def get_configurations_info(client_id: int) -> list[asyncpg.Record]:
-    """Return information about all client's configurations.
-
-    :param client_id:
-    :return: list of asyncgp.Record objects having (file_type, date_of_receipt,
-    os, name, country, city, bandwidth, ping, available_services, link, id, server_name)
-    :rtype: list[asyncpg.Record]
-    """
-    async with pool.acquire() as conn:
-        return await conn.fetch(
-            '''
-            SELECT c.file_type, c.date_of_receipt, c.os,
-            cp.name, s.country, s.city, s.bandwidth, s.ping, s.available_services, c.link, c.id, s.name AS server_name
-            FROM configurations AS c
-            JOIN configurations_protocols AS cp ON c.protocol_id = cp.id
-            JOIN servers AS s ON c.server_id = s.id
-            WHERE c.client_id = $1
-            ORDER BY c.date_of_receipt;
-            ''',
-            client_id)
-
-
-async def get_server_id_by_alias(alias: str) -> str | None:
-    """Get server hostname (PK) by short alias."""
-    async with pool.acquire() as conn:
-        return await conn.fetchval(
-            'SELECT id FROM servers WHERE alias = $1;', alias)
-
-
-async def get_protocol_id_by_alias(alias: str) -> int | None:
-    """Get protocol ID by short alias."""
-    async with pool.acquire() as conn:
-        return await conn.fetchval(
-            'SELECT id FROM configurations_protocols WHERE alias = $1;', alias)
-
-
-async def get_configurations_number(client_id: int) -> int | None:
-    """Return number of client's configurations."""
-    async with pool.acquire() as conn:
-        return await conn.fetchval(
-            '''
-            SELECT COUNT(*)
-            FROM configurations
-            WHERE client_id = $1;
-            ''',
-            client_id)
-
-
 async def get_max_configurations_by_telegramID(telegram_id: int) -> int | None:
     """Return max configurations allowed by the client's subscription."""
     async with pool.acquire() as conn:
@@ -1010,33 +962,6 @@ async def apply_ref_promo_to_existing_client(
                 WHERE client_id = $2;
                 ''',
                 bonus_time, client_id)
-
-
-async def insert_configuration(client_id: int,
-                               protocol_id: int,
-                               server_id: str,
-                               os: str,
-                               file_type: str,
-                               link: str) -> None:
-    """Add new configuration for client in DB."""
-    async with pool.acquire() as conn:
-        async with conn.transaction():
-            await conn.execute(
-                '''
-                INSERT INTO configurations (client_id, protocol_id, server_id, os, file_type, link)
-                VALUES ($1, $2, $3, $4, $5, $6);
-                ''',
-                client_id, protocol_id, server_id, os, file_type, link)
-
-            # execute only for new clients
-            await conn.execute(
-                '''
-                UPDATE clients_subscriptions
-                SET expiration_date = NOW() + (expiration_date - 'EPOCH')
-                WHERE client_id = $1
-                AND expiration_date < TIMESTAMP 'EPOCH' + INTERVAL '10 years';
-                ''',
-                client_id)
 
 
 async def insert_payment(

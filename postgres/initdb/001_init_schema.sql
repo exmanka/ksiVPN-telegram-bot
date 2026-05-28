@@ -110,60 +110,6 @@ INSERT INTO clients_promo_local(accessible_client_id, promocode_id)
 VALUES(1, 1);
 
 
-CREATE TABLE configurations_protocols (
-	id SMALLSERIAL PRIMARY KEY,
-	alias VARCHAR(16) UNIQUE NOT NULL,
-	name VARCHAR(32) NOT NULL UNIQUE,
-	description VARCHAR(64) NOT NULL
-);
-INSERT INTO configurations_protocols(alias, name, description)
-VALUES('x', 'XRay VLESS XTLS-Reality', 'Here is protocol description. Still love WireGuard!');
-
-
-CREATE TABLE servers (
-	id VARCHAR(64) PRIMARY KEY,
-	alias VARCHAR(16) UNIQUE NOT NULL,
-	name VARCHAR(128) NOT NULL,
-	country VARCHAR(32) NOT NULL,
-	city VARCHAR(32) NOT NULL,
-	description VARCHAR(256) NOT NULL,
-	bandwidth SMALLINT NOT NULL,
-	ping SMALLINT NOT NULL,
-	available_services TEXT[] NOT NULL DEFAULT '{}',
-	api_url TEXT DEFAULT NULL,
-	api_login TEXT DEFAULT NULL,
-	api_password TEXT DEFAULT NULL
-);
-INSERT INTO servers(id, alias, name, country, city, description, bandwidth, ping, available_services)
-VALUES('ksivpn-netherlands-1p', 'nl01', '🇳🇱 Netherlands #1', 'Country of your awesome server', 'City of your awesome server', 'Here is your awesome server description.', 1000, 30, ARRAY['Instagram', 'YouTube', 'ChatGPT']);
-
-
-CREATE TYPE osEnum AS ENUM ('Android', 'IOS', 'Windows', 'macOS', 'Linux');
-CREATE TYPE fileTypeEnum AS ENUM('document', 'link');
-CREATE TABLE configurations (
-	id SERIAL PRIMARY KEY,
-	client_id INT NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
-	protocol_id SMALLINT NOT NULL REFERENCES configurations_protocols(id) ON DELETE CASCADE,
-	server_id VARCHAR(64) NOT NULL REFERENCES servers(id) ON UPDATE CASCADE ON DELETE CASCADE,
-	os osEnum NOT NULL,
-	file_type fileTypeEnum NOT NULL,
-	link VARCHAR(512) UNIQUE NOT NULL,
-	date_of_receipt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-INSERT INTO configurations(client_id, protocol_id, server_id, os, file_type, link, date_of_receipt)
-VALUES(1, 1, 'ksivpn-netherlands-1p', 'Android', 'link', 'vless://link_or_telegram_file_id_here', 'EPOCH');
-
-
--- # LEGACY: pre-Remnawave config distribution
-CREATE TABLE server_inbounds (
-	id SMALLSERIAL PRIMARY KEY,
-	server_id VARCHAR(64) NOT NULL REFERENCES servers(id) ON UPDATE CASCADE ON DELETE CASCADE,
-	protocol_id SMALLINT NOT NULL REFERENCES configurations_protocols(id) ON DELETE CASCADE,
-	inbound_id INT NOT NULL,
-	UNIQUE (server_id, protocol_id)
-);
-
-
 CREATE TABLE payments (
 	id BIGSERIAL PRIMARY KEY,
 	client_id INT NOT NULL REFERENCES clients(id) ON DELETE CASCADE,

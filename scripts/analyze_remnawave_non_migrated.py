@@ -34,9 +34,14 @@
 
 Флаг --list-ids
 ---------------
-Дополнительный раздел отчёта: плоский список telegram_id всех неперешедших
-пользователей (активная подписка + ни одного подключения через Remnawave),
-без разделения по серверам. Удобно для копипасты в другие инструменты.
+Дополнительный раздел отчёта: плоский список telegram_id неперешедших
+пользователей (активная подписка + ни одного подключения через Remnawave +
+**имеют хотя бы одну старую конфигурацию в БД бота**), без разделения по
+серверам. Удобно для копипасты в другие инструменты.
+
+Пользователи без старых конфигов в БД отсюда исключаются: они зарегистрировались
+уже после Remnawave-миграции и пользуются новой системой по умолчанию — просто
+ещё не настроили VPN.
 
     .venv-3.12/bin/python scripts/analyze_remnawave_non_migrated.py --list-ids
 
@@ -282,14 +287,27 @@ def _print_report(
         print(f"  telegram_id : {ids_str}")
 
     # --- flat id list (only when --list-ids flag was passed) ---
+    # Source: union of telegram_ids from server_rows. By definition those users
+    # have at least one old configuration in DB. Users without any old configs
+    # are excluded — they registered after Remnawave migration and are not
+    # "non-migrated" but rather "not yet set up".
     if list_ids:
+        with_old_configs_tids = sorted({
+            t for row in server_rows for t in row['telegram_ids']
+        })
+        excluded_count = len(candidate_tids) - len(with_old_configs_tids)
         print()
         print(separator)
-        print("  ПЛОСКИЙ СПИСОК telegram_id (активны + ни разу не подключались)")
+        print("  ПЛОСКИЙ СПИСОК telegram_id неперешедших пользователей")
+        print("  (активны + ни разу не подключались + есть старые конфиги в БД)")
         print(separator)
-        print(f"  Всего: {len(candidate_tids)}")
+        print(f"  Всего: {len(with_old_configs_tids)}"
+              f"  (исключено без старых конфигов: {excluded_count})")
         print()
-        print('  ' + ', '.join(str(t) for t in sorted(candidate_tids)))
+        if with_old_configs_tids:
+            print('  ' + ', '.join(str(t) for t in with_old_configs_tids))
+        else:
+            print('  (никого — все неперешедшие — это свежие регистрации)')
         print()
 
     # --- no-fallback section (only when --no-fallback flag was passed) ---
