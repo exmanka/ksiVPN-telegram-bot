@@ -265,29 +265,6 @@ async def notifications_send_message_selected(message: Message, state: FSMContex
     await state.update_data(message_chat_id=message.chat.id, message_id=message.message_id)
 
 
-# LEGACY: pre-Remnawave config distribution — kept for edge cases (existing users, manual fixes)
-@router.message(Command(commands=['configs']))
-@admin_mw.admin_only()
-async def check_user_configs(message: Message):
-    """Send messages with configurations of another client."""
-    try:
-        user_info = message.text.split(' ')[1]
-
-        if user_info[0] == '@':
-            client_id = await postgres_dbms.get_clientID_by_username(user_info)
-        else:
-            client_id = await postgres_dbms.get_clientID_by_telegramID(int(user_info))
-    except Exception as e:
-        await message.answer(loc.admn.msgs['error_unrecognized'].format(e))
-        return
-
-    configurations_info = await postgres_dbms.get_configurations_info(client_id)
-    await message.answer(loc.auth.msgs['configs_info'].format(len(configurations_info)))
-
-    for file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name in configurations_info:
-        await internal_functions.send_configuration(message.from_user.id, file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name)
-
-
 @router.message(F.text == loc.admn.btns['clients_info'])
 @router.message(Command(commands=['clients']))
 @admin_mw.admin_only()
@@ -306,7 +283,6 @@ async def show_clients_info(message: Message):
         register_date_parsed = format_localized_datetime(register_date)
         *_, sub_price = await postgres_dbms.get_subscription_info_by_clientID(client_id)
         sub_expiration_date_parsed = format_localized_datetime(await postgres_dbms.get_subscription_expiration_date(telegram_id))
-        config_num = await postgres_dbms.get_configurations_number(client_id)
         paid_sum: Decimal = await postgres_dbms.get_payments_successful_sum(client_id)
         ref_promo_info = await postgres_dbms.get_refferal_promo_info_by_clientCreatorID(client_id)
         ref_promo_phrase = ref_promo_info[1] if ref_promo_info else '—'
@@ -321,7 +297,6 @@ async def show_clients_info(message: Message):
             f"| <b>{client_id}</b> "\
             f"|{await internal_functions.format_none_string(html.escape(str(username)) if username else None)} <code>{html.escape(str(name))}{await internal_functions.format_none_string(html.escape(str(surname)) if surname else None)}</code> <code>{telegram_id}</code>, {register_date_parsed[:-8]} "\
             f"| {sub_price}₽/мес, <b>{sub_expiration_date_parsed}</b> "\
-            f"| configs: {config_num} "\
             f"| paid: {float(paid_sum):g}₽ "\
             f"| <code>{html.escape(str(ref_promo_phrase))}</code> "
 
@@ -388,77 +363,6 @@ async def get_file_id(message: Message):
         await message.answer(loc.admn.msgs['file_id_document'].format(message.document.file_id))
     else:
         await message.answer(loc.admn.msgs['error_no_file_for_file_id'])
-
-
-# LEGACY: pre-Remnawave config distribution — send config to client after inline button press
-@router.callback_query(F.data.func(lambda d: d is not None and ':' in d and d.split(':', 1)[0].isdigit()))
-@admin_mw.admin_only()
-async def send_configuration_fsm_start(call: CallbackQuery, state: FSMContext):
-    """Start FSM for sending configurations for a client after pressing inline button and send instruction."""
-    await state.set_state(admin_fsm.SendConfig.ready)
-    telegram_id_str, _, os_alias = call.data.partition(':')
-    await state.update_data(telegram_id=telegram_id_str, os_alias=os_alias)
-
-    await call.message.answer(loc.admn.msgs['fsm_start'])
-    await call.message.answer(loc.admn.msgs['send_configuration_info'])
-    await call.answer()
-
-
-# LEGACY: pre-Remnawave config distribution — send config to client after inline button press
-@router.message(
-    StateFilter(admin_fsm.SendConfig.ready),
-    F.content_type.in_({'text', 'document'}),
-)
-@admin_mw.admin_only()
-async def send_configuration(message: Message, state: FSMContext):
-    """Check configuration sended by admin and send it to client."""
-    data = await state.get_data()
-    telegram_id = int(data['telegram_id'])
-    flag_os = data['os_alias']
-    client_id = await postgres_dbms.get_clientID_by_telegramID(telegram_id)
-
-    try:
-        if text := message.text:
-            file_type = 'link'
-            flag_protocol, flag_location, flag_link = text.split(' ')
-            await internal_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, flag_link)
-            _, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name = (await postgres_dbms.get_configurations_info(client_id))[-1]
-
-        elif document := message.document:
-            file_type = 'document'
-            flag_protocol, flag_location = message.caption.split(' ')
-            telegram_file_id = document.file_id
-            await internal_functions.create_configuration(client_id, file_type, flag_protocol, flag_location, flag_os, telegram_file_id=telegram_file_id)
-            file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name = (await postgres_dbms.get_configurations_info(client_id))[-1]
-
-        else:
-            await message.reply(loc.admn.msgs['error_bad_attachment'])
-            return
-
-        # Client may have blocked the bot between requesting the config and admin issuing it;
-        # wrap each delivery so the admin handler doesn't crash on that path.
-        await internal_functions.safe_deliver(
-            lambda: bot.send_message(telegram_id, loc.auth.msgs['config_was_received']),
-            telegram_id=telegram_id,
-        )
-        config_status, config_err = await internal_functions.safe_deliver(
-            lambda: internal_functions.send_configuration(telegram_id, file_type, date_of_receipt, os, name, country, city, bandwidth, ping, available_services, link, config_id, server_name),
-            telegram_id=telegram_id,
-        )
-        await internal_functions.safe_deliver(
-            lambda: bot.send_message(telegram_id, loc.auth.msgs['configs_rules']),
-            telegram_id=telegram_id,
-        )
-        if config_status is internal_functions.DeliveryStatus.OK:
-            await message.reply(loc.admn.msgs['config_was_sent'].format(file_type))
-        else:
-            await message.reply(loc.admn.msgs['config_was_sent'].format(file_type) + f'\n\n⚠️ client delivery status: {config_status.value}: {config_err}')
-        await state.clear()
-
-    except ValueError as ve:
-        await message.reply(loc.admn.msgs['error_bad_flags_number'].format(ve))
-    except Exception as e:
-        await message.reply(loc.admn.msgs['error_unrecognized'].format(e))
 
 
 def register_handlers_admin(dp):

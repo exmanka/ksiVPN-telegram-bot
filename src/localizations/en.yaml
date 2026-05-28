@@ -106,20 +106,6 @@ user_authorized:
     enter_promo: <b>🎟 Send me the promo code by message!</b>
     go_settings: <i>Going to settings</i>
     return_to_personal_account: <i>Returning to personal account</i>
-    # LEGACY: pre-Remnawave config distribution
-    configs_info: |-
-      Information about all your configurations, now you do not need to search for them through the dialogue with the bot!
-
-      All configurations <b>{0}</b>.
-    # LEGACY: pre-Remnawave config distribution
-    configs_rules: |-
-      <b>I remind you of the basic rules /rules:
-
-      1. One device is one configuration.
-      2. Sharing configurations with other people is prohibited!
-      3. Downloading files via torrent clients is prohibited!
-
-      ❌ Violation of any of the rules may result in the immediate blocking of the user.</b>
     return_to_settings: <i>Returning to the settings</i>
     go_settings_chatgpt: <i>Going to the ChatGPT mode settings</i>
     settings_chatgpt_info: 💥 When this mode is enabled, I will consciously respond to any of your messages using the full power of the ChatGPT neural network!
@@ -194,7 +180,6 @@ user_authorized:
       {0}. <code>{1}</code> for {2} of subscription.
       LED {3}.
     no_promo_entered: You have not entered any promo codes yet. Follow the news! 🚀
-    config_was_received: ✨ <b>Hooray, the configuration is received!</b>
     sub_expired: |-
       👾 <b>Oh, oh! The subscription has expired, the VPN will have to be disabled</b>
 
@@ -217,14 +202,6 @@ user_authorized:
       Don't forget to renew your subscription!
 
       <tg-spoiler><i>You can disable the reminder by going to «Personal Account» — «Settings» — «Notifications».</i></tg-spoiler>
-    basic_instructions: |-
-      👾 <b>Individual configurations are no longer available</b>
-
-      Take advantage of the new subscription functionality — it is more convenient and gives you access to all locations on the project at once!
-    advanced_instructions: |-
-      👾 <b>Instructions for connecting individual configurations are no longer available</b>
-
-      Take advantage of the new subscription functionality — it is more convenient and gives you access to all locations on the project at once!
   keyboard_buttons:
     sub_renewal: ❤️‍🔥 Renew subscription!
     my_subscription: My subscription
@@ -264,8 +241,6 @@ user_authorized:
     return_to_settings: Back
     chatgpt_off: Disable
     chatgpt_on: Enable
-    basic_installation_instruction: Basic installation instructions
-    advanced_installation_instruction: Advanced installation instructions
   telegram_file_ids:
     rules: AgACAgIAAxkBAAJUyGWoBkWcqxDLR5T7rxSAgxD9k8LJAALd1DEbxdRBSUXUhjzY2aggAQADAgADcwADNAQ
     ref_program_info: AgACAgIAAxkBAAJUv2WoBaYCCxzAlLwaiIEttY5NnqytAALa1DEbxdRBSdtn1kU78RbOAQADAgADcwADNAQ
@@ -279,7 +254,6 @@ admin:
 
       /fileid
       /clients
-      /configs <i>telegram_id</i> | <i>username</i>
     go_send_message_menu: <i>Going to the menu for sending messages to clients</i>
     message_everyone_info: |-
       Enter the necessary information with the following message, and attach files if necessary!
@@ -314,7 +288,6 @@ admin:
       Now enter the necessary information with the following message, and also attach files if necessary!
 
       Enter /perfect to confirm the selection of the last sent message!
-    error_bad_attachment: You didn't attach the file, or you added the wrong attachment type!
     clients_info: 🚀 Displaying information about all clients!
     clients_info_sub_active: "✅  "
     clients_info_sub_inactive: "❌  "
@@ -332,19 +305,6 @@ admin:
       
       <code>{0}</code>
     error_no_file_for_file_id: The file was not attached along with the /fileid command call!
-    send_configuration_info: |-
-      Send me a message in the format (use spaces instead of line breaks):
-
-      <b>protocol</b> — protocol alias (e.g. <code>wg</code>, <code>x</code>, <code>ss</code>)
-      <b>server</b> — server alias (e.g. <code>nl01</code>, <code>lv01</code>, <code>de01</code>)
-      <b>link</b> - if instead of file you need a link like <code>vless://</code> or <code>ss://</code>
-
-      <b>Do not forget to attach the file if required!</b>
-    config_was_sent: Excellent, configuration type <b>{0}</b> has been sent!
-    error_bad_flags_number: |-
-      Error: {0}
-      Most likely, you specified the wrong number of flags!
-    error_unrecognized: "Error: {0}"
     sub_expired: |-
       👾 <b>The user's subscription has expired.</b>
 
@@ -395,9 +355,6 @@ admin:
       📣 Announce to all (reset FSM + menu)
     reset_fsm_2: |-
       Return
-      👾
-    config_answer_inline: |-
-      Reply
       👾
   telegram_file_ids: {}
 other:
@@ -486,16 +443,6 @@ internal_functions:
       
       {test_note}
     test_price_note: 💻 <i>Test mode — minimum price for debugging</i>
-    config_info: |-
-      <b>Server</b>: {0}
-      <b>Locaqtion</b>: {1}, {2}
-      <b>Specifications</b>: speed up to {3} Mbit/s, expected ping 4} ms.
-      <b>Available services</b>: {5}
-
-      <b>Protocol</b>: {6}
-      <b>Platform</b>: {7}
-
-      <i>Created {8}, ID {9}</i>
     new_client_joined_no_sub_url: error creating user in Remnawave
     new_client_joined: |-
       👾 <b>New user registered!</b>
@@ -527,13 +474,6 @@ internal_functions:
       ⚠️ Failed to sync Remnawave expiry for client <code>{0}</code>. Error:
 
       <code>{1}</code>
-    config_request_new_client: |-
-      👾 <b>Connection request from a new client!</b>
-
-      <b>Client ID</b>: <code>{6}</code>
-      <b>Telegram INFO</b>:{1} <code>{0}</code> <code>{2}</code>
-      <b>Configuration</b>: {3}, {4}, {5} ChatGPT
-      <b>Referral promo code</b>: {ref_promo_str}
     new_client_no_ref_promo_str: no promocode
     new_client_ref_promo_str: <code>{0}</code> from client{3} <code>{1}{2}</code> <code>{4}</code> for free {5} by subscription {6:g}₽/month.
     admin_ref_promo_was_entered: |-
@@ -562,12 +502,6 @@ internal_functions:
       Wow! User {0}{1} used your referral promo code when registering!
 
       <b>After he pays for the subscription for the first time, you will receive {2} of subscription for free!</b>
-    error_no_telegram_file_id: when trying to create a configuration, the telegram_file_id was not specified!
-    error_bad_file_type: when trying to create a configuration, an invalid file_type was specified!
-    error_bad_protocol: incorrect input of <b>protocol</b>
-    error_bad_country: incorrect input of <b>server</b>
-    error_bad_os: incorrect input of <b>os</b>
-    error_bad_link: incorrect input of <b>link</b>
     ref_client_paid_for_sub: |-
       🕊 Wow! The client {0}{1} who joined the project using your referral promo code has paid for the subscription for the first time!
 
