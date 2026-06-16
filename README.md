@@ -51,7 +51,7 @@ Multifunctional telegram bot for ksiVPN project built on the Aiogram 3 framework
 Use Case diagram can be found [here](https://github.com/exmanka/ksiVPN-telegram-bot/assets/74555362/36163ea2-810c-4a70-b97a-cb54df6b8a60).
 
 ## PostgreSQL database diagram
-[![db-diagram](https://github.com/user-attachments/assets/6cf6ce43-543a-425f-ae93-8baa1cff7a95)](https://drawsql.app/teams/trycatch-1/diagrams/tgbot-postgres)
+[![db-diagram](https://github.com/user-attachments/assets/0b55b401-aa57-4049-abf3-0b920fa73975)](https://drawsql.app/teams/trycatch-1/diagrams/tgbot-postgres)
 
 ## Installation
 
