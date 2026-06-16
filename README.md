@@ -4,7 +4,6 @@
 
 <div align="center">
 
-[![license](https://img.shields.io/github/license/exmanka/ksiVPN-telegram-bot?style=flat-square&color=green)](https://github.com/exmanka/ksiVPN-telegram-bot/blob/main/LICENSE)
 [![docker-info](https://img.shields.io/badge/Deploy_with-Docker-royalblue?style=flat-square)](https://docs.docker.com/compose/release-notes/)
 [![python-version](https://img.shields.io/badge/python-3.12-royalblue?style=flat-square)](https://github.com/exmanka/ksiVPN-telegram-bot/releases)
 [![aiogram-version](https://img.shields.io/badge/aiogram-3.27.0-royalblue?style=flat-square)](https://pypi.org/project/aiogram/)
@@ -60,7 +59,7 @@ erDiagram
         varchar name
         varchar surname
         varchar username
-        bigint telegram_id UK
+        bigint telegram_id UK "unique, indexed"
         timestamp register_date
         int used_ref_promo_id FK
     }
@@ -73,7 +72,7 @@ erDiagram
         smallint ref_provided_sub_id FK
     }
     clients_subscriptions {
-        int client_id FK
+        int client_id FK,UK "unique"
         smallint sub_id FK
         int paid_days_counter
         timestamp expiration_date
@@ -91,24 +90,24 @@ erDiagram
         smallint sub_id FK
         decimal price
         smallint days_number
-        timestamp date_of_initiation
-        varchar provider
-        varchar external_id
-        varchar status
+        timestamp date_of_initiation "reconciler idx"
+        varchar provider "part of both idx"
+        varchar external_id UK "unique idx (provider, external_id)"
+        varchar status "reconciler idx (partial)"
         timestamp paid_at
         jsonb raw_payload
         varchar fiscal_receipt_url
     }
     clients_remnawave {
-        int client_id FK
-        uuid remnawave_uuid UK
+        int client_id FK,UK "unique, indexed"
+        uuid remnawave_uuid UK "unique"
         text remnawave_subscription_url
         timestamp created_at
         timestamp updated_at
     }
     remnawave_internal_squads {
         smallserial id PK
-        uuid squad_uuid UK
+        uuid squad_uuid UK "unique"
         varchar name
         boolean is_active
         boolean is_assignable
@@ -117,21 +116,21 @@ erDiagram
     }
     promocodes_ref {
         serial id PK
-        varchar phrase UK
-        int client_creator_id FK
+        varchar phrase UK "unique"
+        int client_creator_id FK,UK "unique"
         smallint provided_sub_id FK
         interval bonus_time
     }
     promocodes_global {
         smallserial id PK
-        varchar phrase UK
+        varchar phrase UK "unique"
         timestamp expiration_date
         int remaining_activations
         interval bonus_time
     }
     promocodes_local {
         smallserial id PK
-        varchar phrase UK
+        varchar phrase UK "unique"
         timestamp expiration_date
         smallint provided_sub_id FK
         interval bonus_time
@@ -147,19 +146,19 @@ erDiagram
         timestamp date_of_entry
     }
 
-    clients ||--o| clients_subscriptions : "subscription"
-    subscriptions ||--o{ clients_subscriptions : ""
-    clients ||--o| settings : "settings"
-    clients ||--o{ payments : "payments"
-    subscriptions ||--o{ payments : ""
-    clients ||--o| clients_remnawave : "panel account"
-    clients ||--o| promocodes_ref : "ref promo"
-    subscriptions ||--o{ promocodes_ref : ""
-    subscriptions ||--o{ promocodes_local : ""
-    clients ||--o{ clients_promo_global : ""
-    promocodes_global ||--o{ clients_promo_global : ""
-    clients ||--o{ clients_promo_local : ""
-    promocodes_local ||--o{ clients_promo_local : ""
+    clients ||--o| clients_subscriptions : "id → client_id"
+    subscriptions ||--o{ clients_subscriptions : "id → sub_id"
+    clients ||--o| settings : "id → client_id"
+    clients ||--o{ payments : "id → client_id"
+    subscriptions ||--o{ payments : "id → sub_id"
+    clients ||--o| clients_remnawave : "id → client_id"
+    clients ||--o| promocodes_ref : "id → client_creator_id"
+    subscriptions ||--o{ promocodes_ref : "id → provided_sub_id"
+    subscriptions ||--o{ promocodes_local : "id → provided_sub_id"
+    clients ||--o{ clients_promo_global : "id → client_id"
+    promocodes_global ||--o{ clients_promo_global : "id → promocode_id"
+    clients ||--o{ clients_promo_local : "id → accessible_client_id"
+    promocodes_local ||--o{ clients_promo_local : "id → promocode_id"
 ```
 
 ## Installation
