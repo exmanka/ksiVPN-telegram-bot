@@ -4,8 +4,91 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2026-01-30
-Aiogram 3.x support.
+## [1.1.0] - 2026-06-16
+Aiogram 3.27, Python 3.12 and Remnawave Panel migration 🎉
+
+### Added
+#### Remnawave Panel
+- [`95669d6`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/95669d6), [`7ae1513`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/7ae1513), [`6eba0d1`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/6eba0d1), [`196dbe1`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/196dbe1), [`56355c0`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/56355c0) — add Remnawave Panel SDK client, service layer, `clients_remnawave` and `remnawave_internal_squads` DB tables
+- [`b20ffe5`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/b20ffe5), [`20e4458`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/20e4458), [`95147bc`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/95147bc) — add migration scripts to transfer existing clients to Remnawave and sync internal squads
+- [`6e088a1`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/6e088a1) — sync `expire_at` to Remnawave Panel on subscription extension
+- [`2d5a09b`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/2d5a09b) — add inbound torrent-blocker webhook receiver from Remnawave Panel
+- [`386039a`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/386039a) — add HTTP retries for Remnawave SDK calls
+- [`c986228`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/c986228) — add max available devices count to subscription account view
+
+#### Payments
+- [`7ee8728`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/7ee8728), [`de064f5`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/de064f5), [`a773038`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/a773038) — add multi-provider payments module with YooMoney and YooKassa providers, inbound webhook listener and APScheduler reconciler
+- [`fb07edf`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/fb07edf) — add DB schema migrations for multi-provider payments
+- [`7afd1c4`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/7afd1c4), [`3c81425`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/3c81425) — add payment fiscalization via «Мой налог» (`nalogo` SDK) with per-provider toggles and optional receipt URL in user notification
+- [`6340ca5`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/6340ca5) — move from months-based to 30-days-based subscription pricing
+- [`0f2dedc`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/0f2dedc) — add minimal-price payment option for test users
+
+#### Infrastructure
+- [`9b01f81`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/9b01f81) — add Dynaconf + Pydantic config layer with typed `Settings` and `TGBOT_` env prefix
+- [`d84f48e`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/d84f48e), [`cb206c8`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/cb206c8) — add Redis `RedisStorage` FSM backend and Redis container
+- [`f24347a`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/f24347a) — add asyncpg connection pool (min=1, max=10)
+- [`35dabf8`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/35dabf8) — add safe message delivery factory (`safe_deliver` + `safe_delete_message`)
+- [`f8db23f`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/f8db23f) — add GFS backup rotation and `RotatingFileHandler` for logs
+- [`44f816d`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/44f816d) — add SOCKS5 proxy support for Telegram API
+- [`79575fc`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/79575fc) — add GitLab CI/CD pipelines, migrate from Jenkins
+
+#### Admin
+- [`80a90c9`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/80a90c9) — add admin broadcast command with FSM reset and keyboard
+- [`496e04c`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/496e04c) — add payment provider info to admin successful-payment notification
+
+#### Other
+- [`9d2f63a`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/9d2f63a), [`56ae7ed`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/56ae7ed) — add soft-migration messages for users transitioning from 3X-UI to Remnawave
+- [`7595202`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/7595202), [`f9b2874`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/f9b2874) — add DB migrations directory structure and one-off supportive scripts
+
+### Changed
+#### Dependencies
+- [`550a8f6`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/550a8f6), [`c104b73`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/c104b73) — upgrade aiogram to 3.27.0
+- [`340d3b0`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/340d3b0) — upgrade Python to 3.12
+
+#### Registration & account
+- [`7b1c9b6`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/7b1c9b6) — drop platform/OS/ChatGPT steps from registration, provision user in Remnawave Panel on sign-up
+- [`f30f57a`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/f30f57a) — replace inline skip button with reply keyboard in registration flow
+- [`a60efc5`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/a60efc5) — replace configs distribution menu with «My subscription» subscription view
+
+#### Payments & scheduler
+- [`f073b52`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/f073b52) — drop config rebroadcast from scheduler, keep subscription notifications only
+- [`185079f`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/185079f) — refactor promocodes validation and usage
+- [`0a47acc`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/0a47acc) — spread env variables across multiple `.env` files
+
+#### Infrastructure
+- [`ea27a37`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/ea27a37) — move PostgreSQL to vanilla official image without custom build
+- [`8c40f99`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/8c40f99) — move bot to alpine-based Python Docker image
+- [`497bbe3`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/497bbe3) — move localization from JSON to YAML format (`ru.yaml` / `en.yaml`)
+- numerous `feat(loc)` and `chore(loc)` commits — update UX messages across `ru.yaml` / `en.yaml`
+
+### Fixed
+#### Payments & bot
+- [`2e73130`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/2e73130) — fix and unify successful payment transaction logic
+- [`903ae80`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/903ae80) — fix issues with users on free subscription
+- [`5a585f1`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/5a585f1) — add try/except for expiring-subscription notification messages
+- [`21d1c18`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/21d1c18) — fix SIGTERM signal handling
+- [`362372b`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/362372b) — fix `allowed_updates` registration
+
+#### Admin
+- [`44a1770`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/44a1770), [`aff7312`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/aff7312), [`6b317a2`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/6b317a2) — fix admin send-message callback and broadcast function
+- [`5d5bb58`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/5d5bb58), [`f2f9371`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/f2f9371) — fix admin callback message split and paddings
+- [`3958f84`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/3958f84) — add missing HTML escape in admin output
+- [`3aabd42`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/3aabd42) — fix crash on `None` referral promo in admin
+- [`3cfc419`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/3cfc419) — fix admin command output overflow by adding pagination
+
+#### Promocodes & other
+- [`0e4e356`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/0e4e356) — fix client unable to enter own referral promo code
+- [`5d17596`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/5d17596) — fix invalid promocode usage for unauthorized users
+- [`78e73e2`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/78e73e2) — disable `parse_mode` for g4f LLM answers
+
+### Removed
+- [`4765c74`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/4765c74) — remove legacy 3X-UI features: handlers, services, UI; drop DB tables (`configurations`, `server_inbounds`, `servers`, `configurations_protocols`) and enums (`fileTypeEnum`, `osEnum`)
+- [`8c6560d`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/8c6560d), [`ac534a9`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/ac534a9) — remove legacy config-request keyboards and orphaned localization keys
+- [`fcd95e0`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/fcd95e0) — remove unused `sync_internal_squads_from_panel` (YAGNI)
+- [`9f54061`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/9f54061) — remove stale admin commands
+- [`8206e6e`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/8206e6e) — remove stale dependencies from pyproject.toml
+- [`d8bfe62`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/d8bfe62) — remove one-off scripts
+- [`bb2cc2d`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/bb2cc2d), [`c2019cb`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/c2019cb) — remove old promocodes
 
 ## [1.0.3] - 2025-11-29
 Fix annoying bugs
