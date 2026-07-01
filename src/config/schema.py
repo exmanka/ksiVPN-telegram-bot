@@ -13,6 +13,20 @@ class ProxySettings(BaseModel):
     url: str | None = None
 
 
+class NetworkSettings(BaseModel):
+    """Bounded retry policy for outgoing Telegram API calls.
+
+    aiogram retries only the ``getUpdates`` polling loop; per-handler method
+    calls get one attempt. Behind an unstable SOCKS5 proxy this surfaces as
+    ``ProxyError: Network unreachable`` in ``aiogram.event``. Wired into the Bot
+    session via ``RetryRequestMiddleware`` (``src/middlewares/retry_mw.py``).
+    """
+    # Total attempts per request (1 initial + retries-1 retries).
+    retries: int = Field(default=3, ge=1, le=10)
+    # Base linear-backoff delay in seconds; attempt N waits retry_delay * N.
+    retry_delay: float = Field(default=0.5, ge=0.0)
+
+
 class PostgresSettings(BaseModel):
     host: str
     user: str
@@ -201,6 +215,7 @@ class RemnawaveSettings(BaseModel):
 class Settings(BaseModel):
     bot: BotSettings
     proxy: ProxySettings = ProxySettings()
+    network: NetworkSettings = NetworkSettings()
     connections: ConnectionsSettings
     payments: PaymentsSettings
     webhook: WebhookSettings = WebhookSettings()
