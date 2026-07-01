@@ -360,7 +360,7 @@ admin:
 other:
   messages:
     hello_message: |-
-      👋 <b>Hi! I am a bot of the ksiVPN project — an unlimited, fast and completely secure VPN service for 200</b>₽<b>/month!</b>
+      👋 <b>Hi! I am a bot of the ksiVPN project — an unlimited, fast and completely secure VPN service for 199</b>₽<b>/month!</b>
 
       I will help you configure the connection, pay for the subscription, extend it for free, as well as solve many other tasks! If desired, you can even discuss <code>human</code> topics with me!
     more_info: More information about the service is available by clicking the <b>«About project»</b> button from below 👇
@@ -368,11 +368,11 @@ other:
       You can easily write to my creator if you have any problems, as well as if you have ideas to improve my work!
 
       <b>If I do not perceive button clicks, reset my state using the /start command</b>
-    project_info: Unlimited, fast and completely secure service that allows you to establish a VPN connection in various countries of the world through your own VPS for 200₽ per month.
-    service_info: Unlimited, fast and completely secure service that allows you to establish a VPN connection in various countries of the world through your own VPS for 200₽ per month.
+    project_info: Unlimited, fast and completely secure service that allows you to establish a VPN connection in various countries of the world through your own VPS for 199₽ per month.
+    service_info: Unlimited, fast and completely secure service that allows you to establish a VPN connection in various countries of the world through your own VPS for 199₽ per month.
     faq_info: |-
       💬 <b>How much does a subscription cost?</b>
-      The cost of a standard subscription is 200₽ per month. However, within the framework of promotions and the internal referral system, the subscription price can be 75₽ per month!
+      The cost of a standard subscription is 199₽ per month. However, within the framework of promotions and the internal referral system, the subscription price can be 75₽ per month!
 
       💬 <b>What do I get for this cost?</b>
       VPN connection at maximum speed without traffic limit on all project servers!
