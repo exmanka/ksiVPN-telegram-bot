@@ -23,6 +23,10 @@ dynaconf_settings = Dynaconf(
             when=Validator("proxy.enabled", eq=True),
         ),
 
+        # Retry policy for outgoing Telegram API calls (RetryRequestMiddleware).
+        Validator("network.retries", default=3, is_type_of=int, gte=1, lte=10),
+        Validator("network.retry_delay", default=0.5, is_type_of=(int, float), gte=0),
+
         Validator("connections.postgres.host", must_exist=True, is_type_of=str),
         Validator("connections.postgres.user", must_exist=True, is_type_of=str),
         Validator("connections.postgres.password", must_exist=True, is_type_of=str),

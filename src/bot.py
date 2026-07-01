@@ -6,6 +6,7 @@ from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.enums import ParseMode
 
 from src.config.schema import Settings
+from src.middlewares.retry_mw import RetryRequestMiddleware
 
 
 logger = logging.getLogger(__name__)
@@ -18,11 +19,16 @@ def build_bot(settings: Settings) -> Bot:
 
     if settings.proxy.enabled and settings.proxy.url:
         logger.info("Bot starts using SOCKS5 proxy")
-        return Bot(
-            token=token,
-            default=default_props,
-            session=AiohttpSession(proxy=settings.proxy.url),
-        )
+        session = AiohttpSession(proxy=settings.proxy.url)
+    else:
+        logger.info("Bot starts in normal mode without SOCKS5 proxy")
+        session = AiohttpSession()
 
-    logger.info("Bot starts in normal mode without SOCKS5 proxy")
-    return Bot(token=token, default=default_props)
+    session.middleware.register(
+        RetryRequestMiddleware(
+            retries=settings.network.retries,
+            retry_delay=settings.network.retry_delay,
+        )
+    )
+
+    return Bot(token=token, default=default_props, session=session)
