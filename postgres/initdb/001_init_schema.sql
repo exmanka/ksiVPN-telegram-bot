@@ -26,7 +26,7 @@ CREATE TABLE subscriptions (
 	ref_provided_sub_id SMALLINT NOT NULL DEFAULT 1
 );
 INSERT INTO subscriptions (price, title, description, max_configurations, ref_provided_sub_id)
-VALUES(200, 'Standard subscription', 'Here is standard subscription description.', 3, 1);
+VALUES(199, 'Standard subscription', 'Here is standard subscription description.', 3, 1);
 INSERT INTO subscriptions (price, title, description, max_configurations, ref_provided_sub_id)
 VALUES(75, 'Low-cost subscription', 'Here is low-cost subscription description.', 3, 2);
 -- Add FK after both rows exist (self-referential constraint requires target rows to be present).
