@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-09-01
+Resilient Telegram API calls and referral bonus fix
+
+### Added
+- [`08ebcea`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/08ebcea) — add bounded retries for outgoing Telegram API calls (`RetryRequestMiddleware` on the Bot session) with configurable `network.retries` and `network.retry_delay`
+
+### Changed
+- [`141b002`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/141b002) — update standard subscription price in DB schema and `ru.yaml` / `en.yaml`
+- [`1e922c6`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/1e922c6) — update FAQ wording about subscription price
+
+### Fixed
+- [`b0dd683`](https://github.com/exmanka/ksiVPN-telegram-bot/commit/b0dd683) — fix referral and promo bonus days being added to an already expired (or blank) expiration date instead of the current timestamp
+
 ## [1.1.0] - 2026-06-16
 Aiogram 3.27, Python 3.12 and Remnawave Panel migration 🎉
 
