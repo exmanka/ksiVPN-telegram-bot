@@ -1355,12 +1355,20 @@ async def update_notifications_7d(client_id: int) -> bool | None:
 
 
 async def add_subscription_period(client_id: int, days: int) -> None:
-    """Add interval for subscription expiration date."""
+    """Add interval for subscription expiration date.
+
+    For blank (EPOCH) or already expired subscriptions counts from CURRENT_TIMESTAMP,
+    so the bonus is never added to a date in the past.
+    """
     async with pool.acquire() as conn:
         await conn.execute(
             '''
             UPDATE clients_subscriptions
-            SET expiration_date = expiration_date + make_interval(days => $1)
+            SET expiration_date = CASE
+                WHEN expiration_date <= CURRENT_TIMESTAMP
+                THEN CURRENT_TIMESTAMP + make_interval(days => $1)
+                ELSE expiration_date + make_interval(days => $1)
+            END
             WHERE client_id = $2;
             ''',
             days, client_id)
