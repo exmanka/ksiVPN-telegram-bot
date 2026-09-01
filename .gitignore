@@ -18,7 +18,3 @@ venv*
 
 *.local*
 docs/
-
-# Claude tests
-.claude/
-CLAUDE.md
