@@ -13,8 +13,8 @@
 
 Требования
 ----------
-  Python 3.12 (.venv-3.12):
-      .venv-3.12/bin/pip install asyncpg remnawave
+  Python 3.12 (.venv):
+      .venv/bin/pip install asyncpg remnawave
 
 Переменные окружения (БД):
     POSTGRES_HOST     — хост БД (по умолчанию 'ksivpn-tgbot-postgres')
@@ -30,10 +30,10 @@
 
 Использование:
     # Dry-run (посмотреть что изменится):
-    .venv-3.12/bin/python scripts/sync_remnawave_squads.py
+    .venv/bin/python scripts/sync_remnawave_squads.py
 
     # Применить изменения:
-    .venv-3.12/bin/python scripts/sync_remnawave_squads.py --apply
+    .venv/bin/python scripts/sync_remnawave_squads.py --apply
 """
 import argparse
 import asyncio

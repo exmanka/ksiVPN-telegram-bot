@@ -6,8 +6,8 @@
 
 Требования
 ----------
-  Python 3.12 (.venv-3.12):
-      .venv-3.12/bin/pip install asyncpg remnawave
+  Python 3.12 (.venv):
+      .venv/bin/pip install asyncpg remnawave
 
 Переменные окружения (БД):
     POSTGRES_HOST     — хост БД (по умолчанию 'ksivpn-tgbot-postgres')
@@ -22,8 +22,8 @@
     REMNAWAVE_CADDY_TOKEN  — необязательно
 
 Использование:
-    .venv-3.12/bin/python scripts/check_remnawave_orphan_users.py
-    .venv-3.12/bin/python scripts/check_remnawave_orphan_users.py --page-size 200
+    .venv/bin/python scripts/check_remnawave_orphan_users.py
+    .venv/bin/python scripts/check_remnawave_orphan_users.py --page-size 200
 """
 import argparse
 import asyncio

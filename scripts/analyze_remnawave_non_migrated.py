@@ -13,8 +13,8 @@
 
 Требования
 ----------
-  Python 3.12 (.venv-3.12):
-      .venv-3.12/bin/pip install asyncpg remnawave
+  Python 3.12 (.venv):
+      .venv/bin/pip install asyncpg remnawave
 
 Переменные окружения (БД):
     POSTGRES_HOST     — хост БД (по умолчанию 'ksivpn-tgbot-postgres')
@@ -29,8 +29,8 @@
     REMNAWAVE_CADDY_TOKEN — необязательно, если панель за Caddy с токен-авторизацией
 
 Использование:
-    .venv-3.12/bin/python scripts/analyze_remnawave_non_migrated.py
-    .venv-3.12/bin/python scripts/analyze_remnawave_non_migrated.py --page-size 200
+    .venv/bin/python scripts/analyze_remnawave_non_migrated.py
+    .venv/bin/python scripts/analyze_remnawave_non_migrated.py --page-size 200
 
 Флаг --list-ids
 ---------------
@@ -43,7 +43,7 @@
 уже после Remnawave-миграции и пользуются новой системой по умолчанию — просто
 ещё не настроили VPN.
 
-    .venv-3.12/bin/python scripts/analyze_remnawave_non_migrated.py --list-ids
+    .venv/bin/python scripts/analyze_remnawave_non_migrated.py --list-ids
 
 Флаг --no-fallback
 ------------------
@@ -52,7 +52,7 @@
 отключить — они полностью теряют VPN-доступ (нет fallback-конфигурации).
 Вывод группируется по тому единственному серверу.
 
-    .venv-3.12/bin/python scripts/analyze_remnawave_non_migrated.py --no-fallback
+    .venv/bin/python scripts/analyze_remnawave_non_migrated.py --no-fallback
 """
 import argparse
 import asyncio
