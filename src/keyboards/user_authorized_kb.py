@@ -123,6 +123,7 @@ my_subscription_inline = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text=loc.auth.btns['how_to_connect'], callback_data='subscription_how_to_connect')],
     [InlineKeyboardButton(text=loc.auth.btns['how_to_renew'], callback_data='subscription_how_to_renew')],
     [InlineKeyboardButton(text=loc.auth.btns['location_types'], callback_data='subscription_location_types')],
+    [InlineKeyboardButton(text=loc.auth.btns['locations_status'], url=loc.auth.msgs['locations_status_url'])],
 ])
 
 promo = ReplyKeyboardMarkup(

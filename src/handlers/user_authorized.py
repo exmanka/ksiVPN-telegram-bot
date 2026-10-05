@@ -29,45 +29,12 @@ router = Router(name="user_authorized")
 async def my_subscription(message: Message):
     """Send unified subscription info card with how-to-connect and how-to-renew buttons."""
     telegram_id = message.from_user.id
-    client_id = await postgres_dbms.get_clientID_by_telegramID(telegram_id)
 
-    subscription_url = await postgres_dbms.get_client_remnawave_subscription_url_by_telegramID(telegram_id)
-    url = subscription_url or loc.auth.msgs['my_subscription_url_pending']
-    locations_status_page = loc.auth.msgs['my_subscription_locations_status_page']
-
-    # Determine status and expiry line.
-    # Priority: blank (EPOCH) → free → active → inactive/expired.
-    # blank and free subscriptions carry no expiry line.
     if await postgres_dbms.is_subscription_blank(telegram_id):
-        status = loc.auth.msgs['my_subscription_status_blank']
-        expiry = ''
-        locations_status_page = ''
-        url = loc.auth.msgs['my_subscription_url_blank']
         await message.answer(loc.unauth.msgs['need_renew_sub'])
-    elif await postgres_dbms.is_subscription_free(telegram_id):
-        status = loc.auth.msgs['my_subscription_status_free']
-        expiry = ''
-    elif await postgres_dbms.is_subscription_active(telegram_id):
-        status = loc.auth.msgs['my_subscription_status_active']
-        expiration_date = await postgres_dbms.get_subscription_expiration_date(telegram_id)
-        expiry = loc.auth.msgs['my_subscription_expiry_line_active'].format(
-            format_localized_datetime(expiration_date)) if expiration_date else ''
-    else:
-        status = loc.auth.msgs['my_subscription_status_inactive']
-        expiration_date = await postgres_dbms.get_subscription_expiration_date(telegram_id)
-        expiry = loc.auth.msgs['my_subscription_expiry_line_inactive'].format(
-            format_localized_datetime(expiration_date)) if expiration_date else ''
-
-    _, title, description, price = await postgres_dbms.get_subscription_info_by_clientID(client_id)
-    max_devices = await postgres_dbms.get_max_configurations_by_telegramID(telegram_id)
 
     await message.answer(
-        loc.auth.msgs['my_subscription'].format(
-            status=status, expiry=expiry, url=url,
-            title=title, description=description,
-            price=price, max_devices=max_devices,
-            locations_status_page=locations_status_page,
-        ),
+        await internal_functions.build_subscription_card(telegram_id),
         reply_markup=user_authorized_kb.my_subscription_inline,
     )
 
@@ -75,9 +42,20 @@ async def my_subscription(message: Message):
 @router.callback_query(F.data == 'subscription_how_to_connect')
 @user_authorized_mw.authorized_only()
 async def subscription_how_to_connect(callback: CallbackQuery):
-    """Send instructions on how to connect the subscription."""
+    """Send the personal subscription link, whose page holds the connection instructions."""
     await callback.answer()
-    await callback.message.answer(loc.auth.msgs['how_to_connect_subscription'])
+    telegram_id = callback.from_user.id
+
+    if await postgres_dbms.is_subscription_blank(telegram_id):
+        await callback.message.answer(loc.unauth.msgs['need_renew_sub'])
+        return
+
+    subscription_url = await postgres_dbms.get_client_remnawave_subscription_url_by_telegramID(telegram_id)
+    if subscription_url is None:
+        await callback.message.answer(loc.auth.msgs['how_to_connect_subscription_pending'])
+        return
+
+    await callback.message.answer(loc.auth.msgs['how_to_connect_subscription'].format(subscription_url))
 
 
 @router.callback_query(F.data == 'subscription_how_to_renew')
@@ -593,6 +571,7 @@ async def account_promo_check(message: Message, state: FSMContext):
             loc.auth.msgs['ref_promo_accepted'].format(creator_name, format_localized_bonus_days(bonus_time), title, price),
             reply_markup=user_authorized_kb.account,
         )
+        await internal_functions.send_subscription_card(message.from_user.id)
         await state.set_state(user_authorized_fsm.AccountMenu.menu)
         return
 

@@ -13,7 +13,7 @@ from src.states import user_authorized_fsm
 from src.database import postgres_dbms
 from src.services import localization as loc
 from src.services.date_formatting import format_localized_bonus_days, format_localized_datetime
-from src.services.remnawave_service import RemnawaveError, create_panel_user, extend_panel_user_expiry
+from src.services.remnawave_service import RemnawaveError, create_panel_user, extend_panel_user_expiry, get_user_hwid_devices
 from src.config import settings
 from src.runtime import bot
 
@@ -420,6 +420,10 @@ async def authorization_complete(from_user: User, state: FSMContext) -> None:
                             telegram_file_id=loc.auth.tfids['welcome'],
                             caption=welcome_text,
                             reply_markup=user_authorized_kb.menu)
+
+    if data.get('promo') and subscription_url:
+        await send_subscription_card(from_user.id)
+
     await state.clear()
 
 
@@ -447,6 +451,66 @@ async def extend_remnawave_expiry_for_client(client_id: int) -> None:
             lambda: bot.send_message(settings.bot.admin_id, loc.internal.msgs['remnawave_expiry_sync_error'].format(client_id, html.escape(str(exc)))),
             telegram_id=settings.bot.admin_id,
         )
+
+
+async def build_subscription_card(telegram_id: int) -> str:
+    """Return the «Subscription information» card text for the client with specified telegram_id.
+
+    Active devices are counted from Remnawave HWID devices; the count is shown as «—»
+    when the subscription is blank, the client isn't provisioned in the panel, or the panel is unreachable.
+    """
+    client_id = await postgres_dbms.get_clientID_by_telegramID(telegram_id)
+
+    subscription_url = await postgres_dbms.get_client_remnawave_subscription_url_by_telegramID(telegram_id)
+    url = subscription_url or loc.auth.msgs['my_subscription_url_pending']
+
+    # Determine status and expiry line.
+    # Priority: blank (EPOCH) → free → active → inactive/expired.
+    # blank and free subscriptions carry no expiry line.
+    is_blank = await postgres_dbms.is_subscription_blank(telegram_id)
+    if is_blank:
+        status = loc.auth.msgs['my_subscription_status_blank']
+        expiry = ''
+        url = loc.auth.msgs['my_subscription_url_blank']
+    elif await postgres_dbms.is_subscription_free(telegram_id):
+        status = loc.auth.msgs['my_subscription_status_free']
+        expiry = ''
+    elif await postgres_dbms.is_subscription_active(telegram_id):
+        status = loc.auth.msgs['my_subscription_status_active']
+        expiration_date = await postgres_dbms.get_subscription_expiration_date(telegram_id)
+        expiry = loc.auth.msgs['my_subscription_expiry_line_active'].format(
+            format_localized_datetime(expiration_date)) if expiration_date else ''
+    else:
+        status = loc.auth.msgs['my_subscription_status_inactive']
+        expiration_date = await postgres_dbms.get_subscription_expiration_date(telegram_id)
+        expiry = loc.auth.msgs['my_subscription_expiry_line_inactive'].format(
+            format_localized_datetime(expiration_date)) if expiration_date else ''
+
+    _, title, description, price = await postgres_dbms.get_subscription_info_by_clientID(client_id)
+    max_devices = await postgres_dbms.get_max_configurations_by_telegramID(telegram_id)
+
+    devices_count = '—'
+    remnawave_uuid = await postgres_dbms.get_client_remnawave_uuid_by_telegramID(telegram_id)
+    if not is_blank and remnawave_uuid is not None:
+        try:
+            devices_count = len(await get_user_hwid_devices(remnawave_uuid))
+        except RemnawaveError as exc:
+            logger.warning("Failed to fetch HWID devices for tg_id=%s: %s", telegram_id, exc)
+
+    return loc.auth.msgs['my_subscription'].format(
+        status=status, expiry=expiry, url=url,
+        title=title, description=description,
+        price=price, active_devices=f'{devices_count}/{max_devices}',
+    )
+
+
+async def send_subscription_card(telegram_id: int) -> None:
+    """Send the «Subscription information» card to a DB-sourced recipient, e.g. after a first payment or referral promo."""
+    text = await build_subscription_card(telegram_id)
+    await safe_deliver(
+        lambda: bot.send_message(telegram_id, text, reply_markup=user_authorized_kb.my_subscription_inline),
+        telegram_id=telegram_id,
+    )
 
 
 async def safe_delete_message(chat_id: int, message_id: int | None) -> None:
@@ -489,6 +553,8 @@ async def finalize_successful_payment(
        still in the verification flow, send the "payment successful" message
        (with the receipt URL if step 4 succeeded; with the renewal keyboard
        when the user was actively waiting).
+    6. On the client's first successful payment, send the subscription card so
+       a new user sees how to connect right away.
 
     Each step is independently wrapped so a failure in one (e.g. Remnawave
     panel temporarily unreachable, «Мой налог» down) does not skip the others.
@@ -540,6 +606,26 @@ async def finalize_successful_payment(
             "_notify_user_payment_succeeded failed for client_id=%s after payment_id=%s",
             client_id, payment_id,
         )
+
+    try:
+        await _send_subscription_card_after_first_payment(client_id)
+    except Exception:
+        logger.exception(
+            "_send_subscription_card_after_first_payment failed for client_id=%s after payment_id=%s",
+            client_id, payment_id,
+        )
+
+
+async def _send_subscription_card_after_first_payment(client_id: int) -> None:
+    """Send the subscription card if this is the client's first successful payment."""
+    if await postgres_dbms.get_payments_successful_number(client_id) != 1:
+        return
+
+    telegram_id = await postgres_dbms.get_telegramID_by_clientID(client_id)
+    if telegram_id is None:
+        return
+
+    await send_subscription_card(telegram_id)
 
 
 async def _try_fiscalize_income(payment_id: int, days_number: int, provider_name) -> str | None:

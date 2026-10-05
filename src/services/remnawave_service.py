@@ -15,6 +15,7 @@ import httpx
 from remnawave.exceptions import NetworkError as RemnawaveNetworkError
 from remnawave.exceptions import ServerError as RemnawaveServerError
 from remnawave.models import CreateUserRequestDto, UpdateUserRequestDto
+from remnawave.models.hwid import HwidDeviceDto
 
 from src.config import settings
 from src.database import postgres_dbms
@@ -149,4 +150,22 @@ async def extend_panel_user_expiry(remnawave_uuid: uuid.UUID,
         raise RemnawaveError(f"Unexpected error while updating panel user expiry: {exc}") from exc
 
     logger.info("Updated expire_at for Remnawave user %s to %s", remnawave_uuid, new_expire_at)
+
+
+async def get_user_hwid_devices(remnawave_uuid: uuid.UUID) -> list[HwidDeviceDto]:
+    """Return HWID devices registered in Remnawave Panel for the user.
+
+    Raises RemnawaveError on any API failure.
+    """
+    try:
+        response = await _call_with_http_retry(
+            lambda: remnawave_sdk.hwid.get_hwid_user(str(remnawave_uuid)),
+            label="get_user_hwid_devices",
+        )
+    except RemnawaveError:
+        raise
+    except Exception as exc:
+        raise RemnawaveError(f"Unexpected error while fetching panel user HWID devices: {exc}") from exc
+
+    return response.devices
 

@@ -37,11 +37,11 @@ user_authorized:
 
       <b>Статус</b>: {status}{expiry}
       <b>Стоимость</b>: {price:g}₽ в месяц
-      <b>Максимум устройств</b>: {max_devices}
+      <b>Активно устройств</b>: {active_devices}
       <b>Ссылка на подписку</b>: {url}
 
       <b>Тип подписки</b>: {title}
-      <b>Описание подписки</b>: {description}{locations_status_page}
+      <b>Описание подписки</b>: {description}
     my_subscription_status_blank: неактивна 😔
     my_subscription_status_free: активна вечно 🔥
     my_subscription_status_active: активна 🔥
@@ -50,11 +50,17 @@ user_authorized:
     my_subscription_expiry_line_inactive: "\n<b>Истекла</b>: {0}"
     my_subscription_url_pending: в процессе создания
     my_subscription_url_blank: доступна после продления подписки
-    my_subscription_locations_status_page: "\n<b>Статус работы локаций</b>: https://ksivpn.com/status"
+    locations_status_url: https://ksivpn.com/status
     how_to_connect_subscription: |-
-      ☝️ <b>Инструкция доступна по ссылке на подписку выше</b>
-      
-      <b>Важно!</b> Ссылку необходимо открыть в браузере, а не в приложении VPN.
+      ⬇️ <b>Перейдите по вашей персональной ссылке на подписку</b>
+
+      {0}
+
+      На странице находится подробная инструкция по подключению. Ссылку лучше открыть в отдельном браузере, не в Telegram.
+    how_to_connect_subscription_pending: |-
+      ⏳ <b>Ссылка на подписку еще в процессе создания</b>
+
+      Попробуйте чуть позже, а если ссылка так и не появится — обратитесь в раздел /help
     how_to_renew_subscription: 💫 Чтобы оплатить подписку, воспользуйтесь кнопкой «<b>{0}</b>» в меню под строкой ввода сообщений боту
     location_types_info: |-
       🔥 <b>Типы локаций и подключений</b>
@@ -219,6 +225,7 @@ user_authorized:
     how_to_connect: Как подключить VPN?
     how_to_renew: Как продлить подписку?
     location_types: Что значат Fast, Breach и Pure?
+    locations_status: 🟢 Статус работы локаций
     personal_account: Личный кабинет
     rules: Правила
     payment_30d: 30 дней
