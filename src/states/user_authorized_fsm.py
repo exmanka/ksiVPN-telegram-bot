@@ -9,6 +9,11 @@ class AccountMenu(StatesGroup):
     settings = State()
 
 
+class SubscriptionMenu(StatesGroup):
+    """FSM states for «My subscription» menu."""
+    menu = State()
+
+
 class PaymentMenu(StatesGroup):
     """FSM states for payment menu.
 

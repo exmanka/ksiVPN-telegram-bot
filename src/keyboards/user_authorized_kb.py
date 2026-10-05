@@ -119,6 +119,17 @@ account = ReplyKeyboardMarkup(
     ],
 )
 
+subscription = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    keyboard=[
+        [
+            KeyboardButton(text=loc.auth.btns['about_subscription']),
+            KeyboardButton(text=loc.auth.btns['my_devices']),
+        ],
+        [KeyboardButton(text=loc.auth.btns['return_main_menu'])],
+    ],
+)
+
 my_subscription_inline = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text=loc.auth.btns['how_to_connect'], callback_data='subscription_how_to_connect')],
     [InlineKeyboardButton(text=loc.auth.btns['how_to_renew'], callback_data='subscription_how_to_renew')],

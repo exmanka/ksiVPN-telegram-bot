@@ -42,9 +42,6 @@ user_authorized:
       <b>Cost</b>: {price:g}₽ per month
       <b>Active devices</b>: {active_devices}
       <b>Subscription link</b>: {url}
-
-      <b>Subscription type</b>: {title}
-      <b>Description</b>: {description}
     my_subscription_status_blank: inactive 😔
     my_subscription_status_free: active forever 🔥
     my_subscription_status_active: active 🔥
@@ -114,6 +111,21 @@ user_authorized:
     go_promo_menu: <i>Going to the promo codes menu</i>
     enter_promo: <b>🎟 Send me the promo code by message!</b>
     go_settings: <i>Going to settings</i>
+    go_subscription_menu: <i>Going to subscription menu</i>
+    about_subscription: |-
+      💎 <b>About subscription</b>
+
+      <b>Subscription type</b>: {title}
+      <b>Cost</b>: {price:g}₽ per month
+      <b>Description</b>: {description}
+    my_devices: |-
+      💻 Your active devices:
+
+      {devices}
+    my_devices_row: "{0}. {1}"
+    my_devices_unknown_model: Unknown device
+    my_devices_empty: No devices are connected to your subscription yet. To connect, use the «<b>{0}</b>» button under the subscription information
+    my_devices_unavailable: 🤖 Couldn't get the list of devices. Please try again later, and if the error persists — contact /help
     return_to_personal_account: <i>Returning to personal account</i>
     return_to_settings: <i>Returning to the settings</i>
     go_settings_chatgpt: <i>Going to the ChatGPT mode settings</i>
@@ -225,6 +237,8 @@ user_authorized:
     payment_365d: 365 days (-15%)
     payment_history: Payment history
     return_main_menu: Return to main menu
+    about_subscription: About subscription
+    my_devices: My devices
     payment_check: Check payment
     payment_cancel: Cancel payment
     pay_yoomoney: 💸 YooMoney transfer

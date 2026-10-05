@@ -39,9 +39,6 @@ user_authorized:
       <b>Стоимость</b>: {price:g}₽ в месяц
       <b>Активно устройств</b>: {active_devices}
       <b>Ссылка на подписку</b>: {url}
-
-      <b>Тип подписки</b>: {title}
-      <b>Описание подписки</b>: {description}
     my_subscription_status_blank: неактивна 😔
     my_subscription_status_free: активна вечно 🔥
     my_subscription_status_active: активна 🔥
@@ -115,6 +112,21 @@ user_authorized:
     go_promo_menu: <i>Перехожу в меню промокодов</i>
     enter_promo: <b>🎟 Отправьте мне промокод сообщением!</b>
     go_settings: <i>Перехожу в меню настроек</i>
+    go_subscription_menu: <i>Перехожу в меню подписки</i>
+    about_subscription: |-
+      💎 <b>О подписке</b>
+
+      <b>Тип подписки</b>: {title}
+      <b>Стоимость</b>: {price:g}₽ в месяц
+      <b>Описание подписки</b>: {description}
+    my_devices: |-
+      💻 Ваши активные устройства:
+
+      {devices}
+    my_devices_row: "{0}. {1}"
+    my_devices_unknown_model: Неизвестное устройство
+    my_devices_empty: К подписке пока не подключено ни одного устройства. Чтобы подключиться, воспользуйтесь кнопкой «<b>{0}</b>» под информацией о подписке
+    my_devices_unavailable: 🤖 Не удалось получить список устройств. Попробуйте позже, а если ошибка повторяется — обратитесь в раздел /help
     return_to_personal_account: <i>Возвращаю в личный кабинет</i>
     return_to_settings: <i>Возвращаю в меню настроек</i>
     go_settings_chatgpt: <i>Перехожу в настройки режима ChatGPT</i>
@@ -233,6 +245,8 @@ user_authorized:
     payment_365d: 365 дней (-15%)
     payment_history: История оплаты
     return_main_menu: Возврат в главное меню
+    about_subscription: О подписке
+    my_devices: Мои устройства
     payment_check: Проверить оплату
     payment_cancel: Отмена оплаты
     pay_yoomoney: 💸 ЮMoney — быстрее

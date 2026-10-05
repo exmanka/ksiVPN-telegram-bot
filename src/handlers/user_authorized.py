@@ -1,3 +1,4 @@
+import html
 import logging
 import random
 from decimal import Decimal
@@ -6,12 +7,14 @@ from aiogram.enums import ChatAction
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
+from remnawave.models.hwid import HwidDeviceDto
 from src.middlewares import user_authorized_mw, throttling_mw
 from src.keyboards import user_authorized_kb
 from src.states import user_authorized_fsm
 from src.database import postgres_dbms
 from src.services import internal_functions, localization as loc
 from src.services.date_formatting import format_localized_bonus_days, format_localized_datetime
+from src.services.remnawave_service import RemnawaveError, get_user_hwid_devices
 from src.config import settings
 from src.runtime import bot
 from src.payments.enums import PaymentProviderName
@@ -26,9 +29,12 @@ router = Router(name="user_authorized")
 
 @router.message(F.text == loc.auth.btns['my_subscription'])
 @user_authorized_mw.authorized_only()
-async def my_subscription(message: Message):
-    """Send unified subscription info card with how-to-connect and how-to-renew buttons."""
+async def my_subscription(message: Message, state: FSMContext):
+    """Start FSM for subscription menu and send unified subscription info card with how-to-connect and how-to-renew buttons."""
     telegram_id = message.from_user.id
+
+    await state.set_state(user_authorized_fsm.SubscriptionMenu.menu)
+    await message.answer(loc.auth.msgs['go_subscription_menu'], reply_markup=user_authorized_kb.subscription)
 
     if await postgres_dbms.is_subscription_blank(telegram_id):
         await message.answer(loc.unauth.msgs['need_renew_sub'])
@@ -37,6 +43,60 @@ async def my_subscription(message: Message):
         await internal_functions.build_subscription_card(telegram_id),
         reply_markup=user_authorized_kb.my_subscription_inline,
     )
+
+
+@router.message(
+    F.text == loc.auth.btns['about_subscription'],
+    StateFilter(user_authorized_fsm.SubscriptionMenu.menu),
+)
+@user_authorized_mw.authorized_only()
+async def subscription_about(message: Message):
+    """Send subscription type, cost and description."""
+    client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
+    _, title, description, price = await postgres_dbms.get_subscription_info_by_clientID(client_id)
+    await message.answer(loc.auth.msgs['about_subscription'].format(title=title, description=description, price=price))
+
+
+def _format_hwid_device(device: HwidDeviceDto) -> str:
+    """Return «Model (Platform OS version)» for a Remnawave HWID device, skipping empty fields.
+
+    Values come from VPN client request headers — escaped since the bot sends HTML.
+    """
+    model = html.escape(device.device_model or loc.auth.msgs['my_devices_unknown_model'])
+    system = ' '.join(html.escape(part) for part in (device.platform, device.os_version) if part)
+    return f'{model} ({system})' if system else model
+
+
+@router.message(
+    F.text == loc.auth.btns['my_devices'],
+    StateFilter(user_authorized_fsm.SubscriptionMenu.menu),
+)
+@user_authorized_mw.authorized_only()
+async def subscription_devices(message: Message):
+    """Send list of client's devices registered in Remnawave Panel."""
+    telegram_id = message.from_user.id
+
+    remnawave_uuid = await postgres_dbms.get_client_remnawave_uuid_by_telegramID(telegram_id)
+    if remnawave_uuid is None:
+        await message.answer(loc.auth.msgs['my_devices_unavailable'])
+        return
+
+    try:
+        devices = await get_user_hwid_devices(remnawave_uuid)
+    except RemnawaveError as exc:
+        logger.warning("Failed to fetch HWID devices for tg_id=%s: %s", telegram_id, exc)
+        await message.answer(loc.auth.msgs['my_devices_unavailable'])
+        return
+
+    if not devices:
+        await message.answer(loc.auth.msgs['my_devices_empty'].format(loc.auth.btns['how_to_connect']))
+        return
+
+    devices_str = '\n'.join(
+        loc.auth.msgs['my_devices_row'].format(idx, _format_hwid_device(device))
+        for idx, device in enumerate(devices, start=1)
+    )
+    await message.answer(loc.auth.msgs['my_devices'].format(devices=devices_str))
 
 
 @router.callback_query(F.data == 'subscription_how_to_connect')
@@ -78,7 +138,12 @@ async def subscription_location_types(callback: CallbackQuery):
 
 @router.message(
     F.text == loc.auth.btns['return_main_menu'],
-    StateFilter(None, user_authorized_fsm.AccountMenu.menu, user_authorized_fsm.PaymentMenu.menu),
+    StateFilter(
+        None,
+        user_authorized_fsm.AccountMenu.menu,
+        user_authorized_fsm.PaymentMenu.menu,
+        user_authorized_fsm.SubscriptionMenu.menu,
+    ),
 )
 @user_authorized_mw.authorized_only()
 async def submenu_fsm_cancel(message: Message, state: FSMContext):

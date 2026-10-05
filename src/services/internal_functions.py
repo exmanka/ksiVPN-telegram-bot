@@ -486,7 +486,7 @@ async def build_subscription_card(telegram_id: int) -> str:
         expiry = loc.auth.msgs['my_subscription_expiry_line_inactive'].format(
             format_localized_datetime(expiration_date)) if expiration_date else ''
 
-    _, title, description, price = await postgres_dbms.get_subscription_info_by_clientID(client_id)
+    *_, price = await postgres_dbms.get_subscription_info_by_clientID(client_id)
     max_devices = await postgres_dbms.get_max_configurations_by_telegramID(telegram_id)
 
     devices_count = '—'
@@ -499,7 +499,6 @@ async def build_subscription_card(telegram_id: int) -> str:
 
     return loc.auth.msgs['my_subscription'].format(
         status=status, expiry=expiry, url=url,
-        title=title, description=description,
         price=price, active_devices=f'{devices_count}/{max_devices}',
     )
 
