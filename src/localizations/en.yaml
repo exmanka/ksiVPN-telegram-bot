@@ -125,7 +125,12 @@ user_authorized:
     my_devices_row: "{0}. {1}"
     my_devices_unknown_model: Unknown device
     my_devices_empty: No devices are connected to your subscription yet. To connect, use the «<b>{0}</b>» button under the subscription information
-    my_devices_unavailable: 🤖 Couldn't get the list of devices. Please try again later, and if the error persists — contact /help
+    my_devices_unavailable: |-
+      🤖 <b>Could not create the payment</b>
+
+      Please try again in a few minutes.
+
+      If the error persists, please contact the help section /help
     return_to_personal_account: <i>Returning to personal account</i>
     return_to_settings: <i>Returning to the settings</i>
     go_settings_chatgpt: <i>Going to the ChatGPT mode settings</i>
@@ -420,8 +425,7 @@ other:
       Not at the moment, but this area is actively being worked out in the service. Expect an update soon!
 
       💬 <b>What locations are provided?</b>
-      The following locations are currently available:
-      🇳🇱 Netherlands, 🇱🇻 Latvia, 🇩🇪 Germany, 🇺🇸 USA, 🇪🇸 Spain, 🇵🇱 Poland.
+      The full list is available on the website: https://ksivpn.com/status/
 
       💬 <b>What do Fast, Breach and Pure mean?</b>
       These are the types of VPN connections and locations:
