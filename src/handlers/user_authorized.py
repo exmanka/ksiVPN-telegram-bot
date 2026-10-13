@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 router = Router(name="user_authorized")
 
 
-@router.message(F.text == loc.auth.btns['my_subscription'])
+@router.message(F.text == loc.auth.btns['sub_menu'])
 @user_authorized_mw.authorized_only()
 async def my_subscription(message: Message, state: FSMContext):
     """Start FSM for subscription menu and send unified subscription info card with how-to-connect and how-to-renew buttons."""

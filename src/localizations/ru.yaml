@@ -47,7 +47,6 @@ user_authorized:
     subscription_info_expiry_line_inactive: "\n<b>Истекла</b>: {0}"
     subscription_info_url_pending: в процессе создания
     subscription_info_url_blank: доступна после продления подписки
-    locations_status_url: https://ksivpn.com/status
     how_to_connect_subscription: |-
       ⬇️ <b>Перейдите по вашей персональной ссылке на подписку</b>
 
@@ -133,7 +132,7 @@ user_authorized:
     my_devices_unavailable: |-
       🤖 <b>Не удалось получить список устройств</b>
       
-      Временная проблема на нашей стороне. Рекомендуем попробовать ещё раз чеерез несколько минут.
+      Временная проблема на нашей стороне. Рекомендуем попробовать ещё раз через несколько минут.
 
       <i>Если ошибка повторяется — обратитесь в раздел /help</i>
     return_to_personal_account: <i>Возвращаю в личный кабинет</i>
@@ -246,7 +245,9 @@ user_authorized:
     how_to_connect: Как подключить VPN?
     how_to_renew: Как продлить подписку?
     location_types: Что значат Fast, Breach и Pure?
-    locations_status: <tg-emoji emoji-id="5323787447165787608">🟢</tg-emoji> Статус работы локаций
+    locations_status: Статус работы локаций
+    locations_status_emoji: '5323787447165787608'
+    locations_status_url: https://ksivpn.com/status
     personal_account: Личный кабинет
     rules: Правила
     payment_30d: 30 дней
