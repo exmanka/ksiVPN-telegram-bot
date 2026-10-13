@@ -32,21 +32,21 @@ user_authorized:
       <i>Пример: вы хотите скачать фильм, однако сайт, на котором размещен его Torrent, недоступен в России. Вы включаете VPN, заходите на сайт и загружаете его Torrent-файл. Далее вы отключаете VPN и приступаете к загрузке самого фильма в вашем Torrent-клиенте.</i>
 
       ❌ <b>Нарушение этих правил может привести к незамедлительной блокировке пользователя</b>
-    my_subscription: |-
+    subscription_info: |-
       💎 <b>Информация о подписке</b>
 
       <b>Статус</b>: {status}{expiry}
       <b>Стоимость</b>: {price:g}₽/мес
       <b>Активно устройств</b>: {active_devices}
       <b>Ссылка на подписку</b>: {url}
-    my_subscription_status_blank: неактивна 😔
-    my_subscription_status_free: активна вечно 🔥
-    my_subscription_status_active: активна 🔥
-    my_subscription_status_inactive: деактивирована 💔
-    my_subscription_expiry_line_active: "\n<b>Истекает</b>: {0}"
-    my_subscription_expiry_line_inactive: "\n<b>Истекла</b>: {0}"
-    my_subscription_url_pending: в процессе создания
-    my_subscription_url_blank: доступна после продления подписки
+    subscription_info_status_blank: неактивна 😔
+    subscription_info_status_free: активна вечно 🔥
+    subscription_info_status_active: активна 🔥
+    subscription_info_status_inactive: деактивирована 💔
+    subscription_info_expiry_line_active: "\n<b>Истекает</b>: {0}"
+    subscription_info_expiry_line_inactive: "\n<b>Истекла</b>: {0}"
+    subscription_info_url_pending: в процессе создания
+    subscription_info_url_blank: доступна после продления подписки
     locations_status_url: https://ksivpn.com/status
     how_to_connect_subscription: |-
       ⬇️ <b>Перейдите по вашей персональной ссылке на подписку</b>
@@ -118,7 +118,7 @@ user_authorized:
     enter_promo: <b>🎟 Отправьте мне промокод сообщением!</b>
     go_settings: <i>Перехожу в меню настроек</i>
     go_subscription_menu: <i>Перехожу в меню подписки</i>
-    about_subscription: |-
+    my_subscription: |-
       🌟 <b>{title}</b>
 
       <b>Стоимость</b>: {price:g}₽ в месяц
@@ -242,7 +242,7 @@ user_authorized:
       <tg-spoiler><i>Напоминание можно отключить, перейдя в «Личный кабинет» — «Настройки» — «Уведомления».</i></tg-spoiler>
   keyboard_buttons:
     sub_renewal: ❤️‍🔥 Продлить подписку!
-    my_subscription: Моя подписка
+    sub_menu: Меню подписки
     how_to_connect: Как подключить VPN?
     how_to_renew: Как продлить подписку?
     location_types: Что значат Fast, Breach и Pure?
@@ -254,7 +254,7 @@ user_authorized:
     payment_365d: 365 дней (-15%)
     payment_history: История оплаты
     return_main_menu: Возврат в главное меню
-    about_subscription: Моя подписка
+    my_subscription: Моя подписка
     my_devices: Мои устройства
     payment_check: Проверить оплату
     payment_cancel: Отмена оплаты

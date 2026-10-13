@@ -47,7 +47,7 @@ menu = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text=loc.auth.btns['sub_renewal'])],
         [
-            KeyboardButton(text=loc.auth.btns['my_subscription']),
+            KeyboardButton(text=loc.auth.btns['sub_menu']),
             KeyboardButton(text=loc.auth.btns['personal_account']),
         ],
         [
@@ -123,7 +123,7 @@ subscription = ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[
         [
-            KeyboardButton(text=loc.auth.btns['about_subscription']),
+            KeyboardButton(text=loc.auth.btns['my_subscription']),
             KeyboardButton(text=loc.auth.btns['my_devices']),
         ],
         [KeyboardButton(text=loc.auth.btns['return_main_menu'])],

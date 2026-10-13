@@ -46,7 +46,7 @@ async def my_subscription(message: Message, state: FSMContext):
 
 
 @router.message(
-    F.text == loc.auth.btns['about_subscription'],
+    F.text == loc.auth.btns['my_subscription'],
     StateFilter(user_authorized_fsm.SubscriptionMenu.menu),
 )
 @user_authorized_mw.authorized_only()
@@ -54,7 +54,7 @@ async def subscription_about(message: Message):
     """Send subscription type, cost and description."""
     client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
     _, title, description, price = await postgres_dbms.get_subscription_info_by_clientID(client_id)
-    await message.answer(loc.auth.msgs['about_subscription'].format(title=title, description=description, price=price))
+    await message.answer(loc.auth.msgs['my_subscription'].format(title=title, description=description, price=price))
 
 
 def _format_hwid_device(device: HwidDeviceDto) -> str:

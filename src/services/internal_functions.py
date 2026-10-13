@@ -462,28 +462,28 @@ async def build_subscription_card(telegram_id: int) -> str:
     client_id = await postgres_dbms.get_clientID_by_telegramID(telegram_id)
 
     subscription_url = await postgres_dbms.get_client_remnawave_subscription_url_by_telegramID(telegram_id)
-    url = subscription_url or loc.auth.msgs['my_subscription_url_pending']
+    url = subscription_url or loc.auth.msgs['subscription_info_url_pending']
 
     # Determine status and expiry line.
     # Priority: blank (EPOCH) → free → active → inactive/expired.
     # blank and free subscriptions carry no expiry line.
     is_blank = await postgres_dbms.is_subscription_blank(telegram_id)
     if is_blank:
-        status = loc.auth.msgs['my_subscription_status_blank']
+        status = loc.auth.msgs['subscription_info_status_blank']
         expiry = ''
-        url = loc.auth.msgs['my_subscription_url_blank']
+        url = loc.auth.msgs['subscription_info_url_blank']
     elif await postgres_dbms.is_subscription_free(telegram_id):
-        status = loc.auth.msgs['my_subscription_status_free']
+        status = loc.auth.msgs['subscription_info_status_free']
         expiry = ''
     elif await postgres_dbms.is_subscription_active(telegram_id):
-        status = loc.auth.msgs['my_subscription_status_active']
+        status = loc.auth.msgs['subscription_info_status_active']
         expiration_date = await postgres_dbms.get_subscription_expiration_date(telegram_id)
-        expiry = loc.auth.msgs['my_subscription_expiry_line_active'].format(
+        expiry = loc.auth.msgs['subscription_info_expiry_line_active'].format(
             format_localized_datetime(expiration_date)) if expiration_date else ''
     else:
-        status = loc.auth.msgs['my_subscription_status_inactive']
+        status = loc.auth.msgs['subscription_info_status_inactive']
         expiration_date = await postgres_dbms.get_subscription_expiration_date(telegram_id)
-        expiry = loc.auth.msgs['my_subscription_expiry_line_inactive'].format(
+        expiry = loc.auth.msgs['subscription_info_expiry_line_inactive'].format(
             format_localized_datetime(expiration_date)) if expiration_date else ''
 
     *_, price = await postgres_dbms.get_subscription_info_by_clientID(client_id)
@@ -497,7 +497,7 @@ async def build_subscription_card(telegram_id: int) -> str:
         except RemnawaveError as exc:
             logger.warning("Failed to fetch HWID devices for tg_id=%s: %s", telegram_id, exc)
 
-    return loc.auth.msgs['my_subscription'].format(
+    return loc.auth.msgs['subscription_info'].format(
         status=status, expiry=expiry, url=url,
         price=price, active_devices=f'{devices_count} из {max_devices}',
     )
