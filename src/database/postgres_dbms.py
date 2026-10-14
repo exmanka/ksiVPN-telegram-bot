@@ -1403,26 +1403,21 @@ async def insert_client_remnawave(client_id: int,
             client_id, remnawave_uuid, subscription_url)
 
 
-async def update_client_remnawave(client_id: int,
-                                  subscription_url: str | None = None) -> None:
-    """Update Remnawave panel record (e.g. after subscription revoke)."""
+async def update_client_remnawave_subscription_url(remnawave_uuid: uuid.UUID,
+                                                   subscription_url: str) -> bool:
+    """Update the cached subscription_url (e.g. after subscription revoke).
+
+    Return False when no client is linked to remnawave_uuid (panel user not registered through the bot).
+    """
     async with pool.acquire() as conn:
-        if subscription_url is not None:
-            await conn.execute(
-                '''
-                UPDATE clients_remnawave
-                SET remnawave_subscription_url = $2, updated_at = NOW()
-                WHERE client_id = $1;
-                ''',
-                client_id, subscription_url)
-        else:
-            await conn.execute(
-                '''
-                UPDATE clients_remnawave
-                SET updated_at = NOW()
-                WHERE client_id = $1;
-                ''',
-                client_id)
+        return await conn.fetchval(
+            '''
+            UPDATE clients_remnawave
+            SET remnawave_subscription_url = $2, updated_at = NOW()
+            WHERE remnawave_uuid = $1
+            RETURNING client_id;
+            ''',
+            remnawave_uuid, subscription_url) is not None
 
 
 async def has_remnawave_record(client_id: int) -> bool:

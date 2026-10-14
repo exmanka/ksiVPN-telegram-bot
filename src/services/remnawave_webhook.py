@@ -2,8 +2,9 @@
 
 Single endpoint ``POST /webhook/remnawave`` accepts all event types the panel
 is subscribed to deliver. Dispatch happens by the ``event`` field of the JSON
-payload; first supported event is ``torrent_blocker.report`` (emitted by the
-node's torrent-blocker plugin, see https://docs.rw/docs/learn/node-plugins/).
+payload. Supported events: ``torrent_blocker.report`` (emitted by the node's
+torrent-blocker plugin, see https://docs.rw/docs/learn/node-plugins/) and
+``user.revoked`` (refreshes the cached subscription_url).
 
 Signature verification: HMAC-SHA256 over the raw request body using the
 shared secret from ``settings.remnawave.webhook_secret``. We do **not** call
@@ -18,11 +19,13 @@ reject by 404 (i.e. route not mounted at all).
 
 import json
 import logging
+import uuid
 
 from aiohttp import web
 from remnawave.controllers.webhooks import WebhookUtility
 
 from src.config import settings
+from src.database import postgres_dbms
 from src.runtime import bot
 from src.services.internal_functions import safe_deliver
 from src.services import localization as loc
@@ -78,6 +81,8 @@ async def _handle_remnawave_webhook(request: web.Request) -> web.Response:
 
     if event == "torrent_blocker.report":
         await _handle_torrent_blocker_report(data)
+    elif event == "user.revoked":
+        await _handle_user_revoked(data)
     else:
         logger.info("Unhandled Remnawave event: %s", event)
 
@@ -124,3 +129,25 @@ async def _handle_torrent_blocker_report(data: dict) -> None:
         lambda: bot.send_message(telegram_id, text),
         telegram_id=telegram_id,
     )
+
+
+async def _handle_user_revoked(data: dict) -> None:
+    """Refresh the cached subscription_url after the subscription was revoked in the panel.
+
+    A revoke regenerates the user's shortUuid, so the old subscription_url stops working.
+    Payload shape: ``data`` is the panel user (UserDto):
+        data.uuid            : str
+        data.subscriptionUrl : str
+    """
+    try:
+        remnawave_uuid = uuid.UUID(data["uuid"])
+        subscription_url = data["subscriptionUrl"]
+    except (KeyError, TypeError, ValueError):
+        logger.exception("user.revoked: malformed payload — keys missing or invalid uuid")
+        return
+
+    if not await postgres_dbms.update_client_remnawave_subscription_url(remnawave_uuid, subscription_url):
+        logger.info("user.revoked for remnawave_uuid=%s — no linked client, skip", remnawave_uuid)
+        return
+
+    logger.info("user.revoked: updated subscription_url for remnawave_uuid=%s", remnawave_uuid)

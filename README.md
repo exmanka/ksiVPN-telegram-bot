@@ -120,8 +120,9 @@ The bot runs an `aiohttp` server on port 8080 for inbound webhooks. **This step 
 
 - **Faster payment confirmation** — webhooks deliver near-instantly; without them a payment is confirmed within up to ~2 minutes (the reconciler interval).
 - **Remnawave torrent-blocker notifications** — these are push-only (no reconciler fallback). Without an exposed `/webhook/remnawave` endpoint, users will not receive torrent-block warning messages.
+- **Subscription link refresh after revoke** — when a subscription is revoked in the panel, its link changes; the `user.revoked` event updates the link stored in the bot. Without the webhook the bot keeps showing the old, dead link.
 
-If instant confirmation and torrent notifications are not important to you, **skip to step 5** and rely on the reconciler.
+If instant confirmation, torrent notifications and link refresh after revoke are not important to you, **skip to step 5** and rely on the reconciler.
 
 To expose the listener, terminate TLS with one of:
 
@@ -138,7 +139,7 @@ After configuring your proxy, register the webhook URLs in each provider's dashb
 - YooMoney: `https://vpn.example.com/webhook/payment/yoomoney`
 - YooKassa: `https://vpn.example.com/webhook/payment/yookassa`
 
-For Remnawave torrent-blocker notifications, also set the shared secret (when empty, the `/webhook/remnawave` route is not mounted):
+For Remnawave events, also set the shared secret (when empty, the `/webhook/remnawave` route is not mounted) and make sure the panel delivers `torrent_blocker.report` and `user.revoked` events to it:
 ```env
 DOTENV_TGBOT_REMNAWAVE_WEBHOOK_SECRET=<hmac-sha256-secret>
 ```
