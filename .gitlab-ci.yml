@@ -67,6 +67,7 @@ include:
       kaniko-additional-env-file: .env
       job-name: ksivpn-tgbot
       job-stage: build
+      job-tags: [ docker, non-socket, proxmox ]
       job-interruptible: true
 
   - component: ${CI_SERVER_FQDN}/${CICD_CATALOG_PATH}/docker-cd/compose-host@1.1.1
@@ -94,6 +95,7 @@ include:
       vault-jwt-role: gitlab.ksivpn.tgbot.test
       job-name: deploy-test
       job-stage: deploy:test
+      job-tags: [ shell, proxmox ]
       job-environment: test
       job-timeout: 3h 15m
       job-interruptible: true
@@ -159,6 +161,7 @@ include:
       vault-jwt-role: gitlab.ksivpn.tgbot.prod
       job-name: deploy-prod
       job-stage: deploy:prod
+      job-tags: [ docker, non-socket, proxmox ]
       job-environment: prod
       job-authorization-enabled: true
       job-authorization-users: KSIVA
