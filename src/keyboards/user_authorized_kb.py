@@ -141,6 +141,12 @@ my_subscription_inline = InlineKeyboardMarkup(inline_keyboard=[
     )],
 ])
 
+def device_inline(device_key: str) -> InlineKeyboardMarkup:
+    """Return inline keyboard with «Remove device» button for the device with specified key."""
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=loc.auth.btns['delete_device'], callback_data=f'device_delete:{device_key}')],
+    ])
+
 promo = ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[

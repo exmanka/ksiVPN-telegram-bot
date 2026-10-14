@@ -12,7 +12,7 @@ user_unauthorized:
 
       Подключена {2} со стоимостью {3:g}₽ в месяц.
     invalid_promo: Такого промокода нет! Попробуйте ввести его еще раз
-    need_renew_sub: ❗️ <b>Чтобы активировать подписку и подключить VPN, вам необходимо совершить первую оплату</b>
+    need_renew_sub: ❗️ <b>Чтобы активировать подписку и подключить VPN, вам необходимо совершить первую оплату!</b>
   keyboard_buttons:
     join: 🔥 Подключиться!
     project_info: О проекте
@@ -38,7 +38,7 @@ user_authorized:
       <b>Статус</b>: {status}{expiry}
       <b>Стоимость</b>: {price:g}₽/мес
       <b>Активно устройств</b>: {active_devices}
-      <b>Ссылка на подписку</b>: {url}
+      <b>Персональная ссылка на подписку</b>: {url}
     subscription_info_status_blank: неактивна 😔
     subscription_info_status_free: активна вечно 🔥
     subscription_info_status_active: активна 🔥
@@ -62,7 +62,7 @@ user_authorized:
     how_to_renew_subscription: |-
       💫 <b>Оплата доступна по отдельной кнопке в боте</b>
       
-      Вернитесь в главное меню при помощи команды /start и нажмите кнопку «<b>{0}</b>» в меню под строкой ввода сообщений боту
+      Вернитесь в главное меню при помощи команды /start и нажмите кнопку «<b>{0}</b>» в меню под строкой ввода сообщений боту.
     location_types_info: |-
       🔥 <b>Типы локаций и подключений</b>
 
@@ -122,12 +122,26 @@ user_authorized:
 
       <b>Стоимость</b>: {price:g}₽ в месяц
       <b>Описание подписки</b>: {description}
-    my_devices: |-
-      💻 Ваши активные устройства:
-
-      {devices}
-    my_devices_row: "{0}. {1}"
+    my_devices: 💻 <b>Ваши активные устройства</b>
     my_devices_unknown_model: Неизвестное устройство
+    device_info: |-
+      📱 <b>{name}</b>
+
+      <b>Приложение</b>: {app}
+      <b>Подключено</b>: {created_at}
+      <b>Последняя активность</b>: {updated_at}
+    device_info_unknown: неизвестно
+    device_deleted: |-
+      ⚙️ <b>Устройство {0} удалено</b>
+
+      Рекомендуем удалить подписку ksiVPN в VPN-приложении на данном устройстве, иначе оно появится в списке ваших устройств снова.
+    device_already_deleted: Устройство уже удалено
+    device_delete_error: |-
+      🤖 <b>Не удалось удалить устройство</b>
+
+      Временная проблема на нашей стороне. Рекомендуем попробовать ещё раз через несколько минут.
+
+      <i>Если ошибка повторяется — обратитесь в раздел /help</i>
     my_devices_empty: |-
       👾 <b>Нет подключённых устройств</b>
       
@@ -243,7 +257,7 @@ user_authorized:
 
       <tg-spoiler><i>Напоминание можно отключить, перейдя в «Личный кабинет» — «Настройки» — «Уведомления».</i></tg-spoiler>
   keyboard_buttons:
-    sub_renewal: ❤️‍🔥 Продлить подписку!
+    sub_renewal: ❤️‍🔥 Продлить подписку
     sub_menu: Меню подписки
     how_to_connect: Как подключить VPN?
     how_to_renew: Как продлить подписку?
@@ -260,6 +274,7 @@ user_authorized:
     return_main_menu: Возврат в главное меню
     my_subscription: Моя подписка
     my_devices: Мои устройства
+    delete_device: Удалить устройство
     payment_check: Проверить оплату
     payment_cancel: Отмена оплаты
     pay_yoomoney: 💸 ЮMoney — быстрее

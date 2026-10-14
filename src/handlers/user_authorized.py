@@ -1,7 +1,10 @@
+import hashlib
 import html
 import logging
 import random
+from datetime import datetime
 from decimal import Decimal
+from zoneinfo import ZoneInfo
 from aiogram import F, Router
 from aiogram.enums import ChatAction
 from aiogram.filters import Command, StateFilter
@@ -14,7 +17,7 @@ from src.states import user_authorized_fsm
 from src.database import postgres_dbms
 from src.services import internal_functions, localization as loc
 from src.services.date_formatting import format_localized_bonus_days, format_localized_datetime
-from src.services.remnawave_service import RemnawaveError, get_user_hwid_devices
+from src.services.remnawave_service import RemnawaveError, delete_user_hwid_device, get_user_hwid_devices
 from src.config import settings
 from src.runtime import bot
 from src.payments.enums import PaymentProviderName
@@ -57,7 +60,7 @@ async def subscription_about(message: Message):
     await message.answer(loc.auth.msgs['my_subscription'].format(title=title, description=description, price=price))
 
 
-def _format_hwid_device(device: HwidDeviceDto) -> str:
+def _format_hwid_device_name(device: HwidDeviceDto) -> str:
     """Return «Model (Platform OS version)» for a Remnawave HWID device, skipping empty fields.
 
     Values come from VPN client request headers — escaped since the bot sends HTML.
@@ -67,13 +70,29 @@ def _format_hwid_device(device: HwidDeviceDto) -> str:
     return f'{model} ({system})' if system else model
 
 
+def _hwid_device_app(device: HwidDeviceDto) -> str:
+    """Return VPN app name from the device's user agent without version, e.g. «Happ» from «Happ/3.10.0/ios»."""
+    app = (device.user_agent or '').split('/', 1)[0].strip()
+    return html.escape(app) if app else loc.auth.msgs['device_info_unknown']
+
+
+def _format_panel_datetime(dt: datetime) -> str:
+    """Format a panel datetime (UTC-aware) in the bot's timezone."""
+    return format_localized_datetime(dt.astimezone(ZoneInfo(settings.tz)))
+
+
+def _hwid_device_key(hwid: str) -> str:
+    """Return a short stable key for the HWID — raw HWIDs may exceed the 64-byte callback_data limit."""
+    return hashlib.sha256(hwid.encode()).hexdigest()[:16]
+
+
 @router.message(
     F.text == loc.auth.btns['my_devices'],
     StateFilter(user_authorized_fsm.SubscriptionMenu.menu),
 )
 @user_authorized_mw.authorized_only()
 async def subscription_devices(message: Message):
-    """Send list of client's devices registered in Remnawave Panel."""
+    """Send each of client's devices registered in Remnawave Panel as a separate message with «Remove device» button."""
     telegram_id = message.from_user.id
 
     remnawave_uuid = await postgres_dbms.get_client_remnawave_uuid_by_telegramID(telegram_id)
@@ -92,11 +111,55 @@ async def subscription_devices(message: Message):
         await message.answer(loc.auth.msgs['my_devices_empty'].format(loc.auth.btns['how_to_connect']))
         return
 
-    devices_str = '\n'.join(
-        loc.auth.msgs['my_devices_row'].format(idx, _format_hwid_device(device))
-        for idx, device in enumerate(devices, start=1)
-    )
-    await message.answer(loc.auth.msgs['my_devices'].format(devices=devices_str))
+    await message.answer(loc.auth.msgs['my_devices'])
+    for device in devices:
+        await message.answer(
+            loc.auth.msgs['device_info'].format(
+                name=_format_hwid_device_name(device),
+                app=_hwid_device_app(device),
+                created_at=_format_panel_datetime(device.created_at),
+                updated_at=_format_panel_datetime(device.updated_at),
+            ),
+            reply_markup=user_authorized_kb.device_inline(_hwid_device_key(device.hwid)),
+        )
+
+
+@router.callback_query(F.data.startswith('device_delete:'))
+@user_authorized_mw.authorized_only()
+async def subscription_device_delete(callback: CallbackQuery):
+    """Delete the client's device in Remnawave Panel, remove the device message and send a reminder to clean up the VPN app.
+
+    The device is looked up among the caller's own panel devices, so a forged callback can't touch another user's device.
+    """
+    telegram_id = callback.from_user.id
+    device_key = callback.data.removeprefix('device_delete:')
+
+    remnawave_uuid = await postgres_dbms.get_client_remnawave_uuid_by_telegramID(telegram_id)
+    if remnawave_uuid is None:
+        await callback.answer()
+        await callback.message.answer(loc.auth.msgs['device_delete_error'])
+        return
+
+    try:
+        devices = await get_user_hwid_devices(remnawave_uuid)
+        device = next((d for d in devices if _hwid_device_key(d.hwid) == device_key), None)
+        if device is not None:
+            await delete_user_hwid_device(remnawave_uuid, device.hwid)
+    except RemnawaveError as exc:
+        logger.warning("Failed to delete HWID device for tg_id=%s: %s", telegram_id, exc)
+        await callback.answer()
+        await callback.message.answer(loc.auth.msgs['device_delete_error'])
+        return
+
+    await internal_functions.safe_delete_message(callback.message.chat.id, callback.message.message_id)
+
+    if device is None:
+        await callback.answer(loc.auth.msgs['device_already_deleted'])
+        return
+
+    await callback.answer()
+    model = html.escape(device.device_model or loc.auth.msgs['my_devices_unknown_model'])
+    await callback.message.answer(loc.auth.msgs['device_deleted'].format(model))
 
 
 @router.callback_query(F.data == 'subscription_how_to_connect')
