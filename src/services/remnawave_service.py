@@ -15,6 +15,7 @@ import httpx
 from remnawave.exceptions import NetworkError as RemnawaveNetworkError
 from remnawave.exceptions import ServerError as RemnawaveServerError
 from remnawave.models import CreateUserRequestDto, UpdateUserRequestDto
+from remnawave.models.hwid import DeleteUserHwidDeviceRequestDto, HwidDeviceDto
 
 from src.config import settings
 from src.database import postgres_dbms
@@ -150,3 +151,39 @@ async def extend_panel_user_expiry(remnawave_uuid: uuid.UUID,
 
     logger.info("Updated expire_at for Remnawave user %s to %s", remnawave_uuid, new_expire_at)
 
+
+async def get_user_hwid_devices(remnawave_uuid: uuid.UUID) -> list[HwidDeviceDto]:
+    """Return HWID devices registered in Remnawave Panel for the user.
+
+    Raises RemnawaveError on any API failure.
+    """
+    try:
+        response = await _call_with_http_retry(
+            lambda: remnawave_sdk.hwid.get_hwid_user(str(remnawave_uuid)),
+            label="get_user_hwid_devices",
+        )
+    except RemnawaveError:
+        raise
+    except Exception as exc:
+        raise RemnawaveError(f"Unexpected error while fetching panel user HWID devices: {exc}") from exc
+
+    return response.devices
+
+
+async def delete_user_hwid_device(remnawave_uuid: uuid.UUID, hwid: str) -> None:
+    """Delete a HWID device of the user in Remnawave Panel.
+
+    Raises RemnawaveError on any API failure.
+    """
+    try:
+        dto = DeleteUserHwidDeviceRequestDto(user_uuid=remnawave_uuid, hwid=hwid)
+        await _call_with_http_retry(
+            lambda: remnawave_sdk.hwid.delete_hwid_to_user(dto),
+            label="delete_user_hwid_device",
+        )
+    except RemnawaveError:
+        raise
+    except Exception as exc:
+        raise RemnawaveError(f"Unexpected error while deleting panel user HWID device: {exc}") from exc
+
+    logger.info("Deleted HWID device %s of Remnawave user %s", hwid, remnawave_uuid)

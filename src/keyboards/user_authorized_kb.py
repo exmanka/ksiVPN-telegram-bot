@@ -47,7 +47,7 @@ menu = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text=loc.auth.btns['sub_renewal'])],
         [
-            KeyboardButton(text=loc.auth.btns['my_subscription']),
+            KeyboardButton(text=loc.auth.btns['sub_menu']),
             KeyboardButton(text=loc.auth.btns['personal_account']),
         ],
         [
@@ -119,11 +119,33 @@ account = ReplyKeyboardMarkup(
     ],
 )
 
+subscription = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    keyboard=[
+        [
+            KeyboardButton(text=loc.auth.btns['my_subscription']),
+            KeyboardButton(text=loc.auth.btns['my_devices']),
+        ],
+        [KeyboardButton(text=loc.auth.btns['return_main_menu'])],
+    ],
+)
+
 my_subscription_inline = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text=loc.auth.btns['how_to_connect'], callback_data='subscription_how_to_connect')],
     [InlineKeyboardButton(text=loc.auth.btns['how_to_renew'], callback_data='subscription_how_to_renew')],
     [InlineKeyboardButton(text=loc.auth.btns['location_types'], callback_data='subscription_location_types')],
+    [InlineKeyboardButton(
+        text=loc.auth.btns['locations_status'],
+        url=loc.auth.btns['locations_status_url'],
+        icon_custom_emoji_id=loc.auth.btns['locations_status_emoji'],
+    )],
 ])
+
+def device_inline(device_key: str) -> InlineKeyboardMarkup:
+    """Return inline keyboard with «Remove device» button for the device with specified key."""
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=loc.auth.btns['delete_device'], callback_data=f'device_delete:{device_key}')],
+    ])
 
 promo = ReplyKeyboardMarkup(
     resize_keyboard=True,

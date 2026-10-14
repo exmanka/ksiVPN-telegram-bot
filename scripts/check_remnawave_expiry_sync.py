@@ -9,8 +9,8 @@
 
 Требования
 ----------
-  Python 3.12 (.venv-3.12):
-      .venv-3.12/bin/pip install asyncpg remnawave
+  Python 3.12 (.venv):
+      .venv/bin/pip install asyncpg remnawave
 
 Переменные окружения (БД):
     POSTGRES_HOST     — хост БД (по умолчанию 'ksivpn-tgbot-postgres')
@@ -29,12 +29,12 @@
 
 Использование:
     # Только проверка:
-    .venv-3.12/bin/python scripts/check_remnawave_expiry_sync.py
-    .venv-3.12/bin/python scripts/check_remnawave_expiry_sync.py --only-mismatches
+    .venv/bin/python scripts/check_remnawave_expiry_sync.py
+    .venv/bin/python scripts/check_remnawave_expiry_sync.py --only-mismatches
 
     # Проверка + синхронизация расхождений:
-    .venv-3.12/bin/python scripts/check_remnawave_expiry_sync.py --apply
-    .venv-3.12/bin/python scripts/check_remnawave_expiry_sync.py --apply --tolerance 120
+    .venv/bin/python scripts/check_remnawave_expiry_sync.py --apply
+    .venv/bin/python scripts/check_remnawave_expiry_sync.py --apply --tolerance 120
 """
 import argparse
 import asyncio

@@ -35,26 +35,31 @@ user_authorized:
       Thanks to this, you will not experience problems with your applications.
 
       ❌ <b>Violation of rules 1-2 may result in immediate blocking of the user.</b>
-    my_subscription: |-
+    subscription_info: |-
       🌟 <b>Subscription information</b>
 
       <b>Status</b>: {status}{expiry}
       <b>Cost</b>: {price:g}₽ per month
-      <b>Maximum devices</b>: {max_devices}
+      <b>Active devices</b>: {active_devices}
       <b>Subscription link</b>: {url}
+    subscription_info_status_blank: inactive 😔
+    subscription_info_status_free: active forever 🔥
+    subscription_info_status_active: active 🔥
+    subscription_info_status_inactive: deactivated 💔
+    subscription_info_expiry_line_active: "\n<b>Expires</b>: {0}"
+    subscription_info_expiry_line_inactive: "\n<b>Expired</b>: {0}"
+    subscription_info_url_pending: being set up
+    subscription_info_url_blank: available after subscription renewal
+    how_to_connect_subscription: |-
+      ⬇️ <b>Open your personal subscription link</b>
 
-      <b>Subscription type</b>: {title}
-      <b>Description</b>: {description}{locations_status_page}
-    my_subscription_status_blank: inactive 😔
-    my_subscription_status_free: active forever 🔥
-    my_subscription_status_active: active 🔥
-    my_subscription_status_inactive: deactivated 💔
-    my_subscription_expiry_line_active: "\n<b>Expires</b>: {0}"
-    my_subscription_expiry_line_inactive: "\n<b>Expired</b>: {0}"
-    my_subscription_url_pending: being set up
-    my_subscription_url_blank: available after subscription renewal
-    my_subscription_locations_status_page: "\n<b>Status page</b>: https://ksivpn.com/status"
-    how_to_connect_subscription: To activate a subscription, just click on the link and follow the instructions provided there!
+      {0}
+
+      The page contains detailed connection instructions. It's better to open the link in a separate browser, not in Telegram.
+    how_to_connect_subscription_pending: |-
+      ⏳ <b>Your subscription link is still being set up</b>
+
+      Please try again a bit later, and if the link still doesn't appear — contact /help
     how_to_renew_subscription: To pay for the subscription, use the «<b>{0}</b>» button in the menu below the bot message input line
     location_types_info: |-
       🔥 <b>Location and connection types</b>
@@ -105,6 +110,40 @@ user_authorized:
     go_promo_menu: <i>Going to the promo codes menu</i>
     enter_promo: <b>🎟 Send me the promo code by message!</b>
     go_settings: <i>Going to settings</i>
+    go_subscription_menu: <i>Going to subscription menu</i>
+    my_subscription: |-
+      💎 <b>About subscription</b>
+
+      <b>Subscription type</b>: {title}
+      <b>Cost</b>: {price:g}₽ per month
+      <b>Description</b>: {description}
+    my_devices: 💻 <b>Your active devices</b>
+    my_devices_unknown_model: Unknown device
+    device_info: |-
+      📱 <b>{name}</b>
+
+      <b>App</b>: {app}
+      <b>Connected</b>: {created_at}
+      <b>Last activity</b>: {updated_at}
+    device_info_unknown: unknown
+    device_deleted: |-
+      ⚙️ <b>Device {0} has been removed</b>
+
+      We recommend removing the ksiVPN subscription from the VPN app on this device, otherwise it will appear in your device list again.
+    device_already_deleted: The device has already been removed
+    device_delete_error: |-
+      🤖 <b>Could not remove the device</b>
+
+      Temporary problem on our side. Please try again in a few minutes.
+
+      <i>If the error persists, please contact the help section /help</i>
+    my_devices_empty: No devices are connected to your subscription yet. To connect, use the «<b>{0}</b>» button under the subscription information
+    my_devices_unavailable: |-
+      🤖 <b>Could not get the list of devices</b>
+
+      Temporary problem on our side. Please try again in a few minutes.
+
+      <i>If the error persists, please contact the help section /help</i>
     return_to_personal_account: <i>Returning to personal account</i>
     return_to_settings: <i>Returning to the settings</i>
     go_settings_chatgpt: <i>Going to the ChatGPT mode settings</i>
@@ -203,11 +242,14 @@ user_authorized:
 
       <tg-spoiler><i>You can disable the reminder by going to «Personal Account» — «Settings» — «Notifications».</i></tg-spoiler>
   keyboard_buttons:
-    sub_renewal: ❤️‍🔥 Renew subscription!
-    my_subscription: My subscription
+    sub_renewal: ❤️‍🔥 Renew subscription
+    sub_menu: Subscription menu
     how_to_connect: How to connect?
     how_to_renew: How to renew subscription?
     location_types: What are Fast, Breach and Pure?
+    locations_status: Locations status
+    locations_status_emoji: '5323787447165787608'
+    locations_status_url: https://ksivpn.com/status
     personal_account: Personal account
     rules: Rules
     payment_30d: 30 days
@@ -215,6 +257,9 @@ user_authorized:
     payment_365d: 365 days (-15%)
     payment_history: Payment history
     return_main_menu: Return to main menu
+    my_subscription: About subscription
+    my_devices: My devices
+    delete_device: Remove device
     payment_check: Check payment
     payment_cancel: Cancel payment
     pay_yoomoney: 💸 YooMoney transfer
@@ -396,8 +441,7 @@ other:
       Not at the moment, but this area is actively being worked out in the service. Expect an update soon!
 
       💬 <b>What locations are provided?</b>
-      The following locations are currently available:
-      🇳🇱 Netherlands, 🇱🇻 Latvia, 🇩🇪 Germany, 🇺🇸 USA, 🇪🇸 Spain, 🇵🇱 Poland.
+      The full list is available on the website: https://ksivpn.com/status/
 
       💬 <b>What do Fast, Breach and Pure mean?</b>
       These are the types of VPN connections and locations:
