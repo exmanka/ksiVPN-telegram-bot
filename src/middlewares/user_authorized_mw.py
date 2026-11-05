@@ -1,7 +1,7 @@
 from typing import Any, Awaitable, Callable, Dict
 from aiogram import BaseMiddleware
 from aiogram.types import Message
-from src.database import postgres_dbms
+from src.database import clients_db, subscriptions_db
 from src.services import localization as loc
 
 
@@ -34,11 +34,11 @@ class CheckAuthorized(BaseMiddleware):
         if handler_obj is not None:
             callback = getattr(handler_obj, "callback", None)
 
-            if getattr(callback, "authorized_only", False) and not await postgres_dbms.is_user_registered(event.from_user.id):
+            if getattr(callback, "authorized_only", False) and not await clients_db.is_user_registered(event.from_user.id):
                 await event.answer(loc.mw.msgs['authorized_only'])
                 return None
 
-            if getattr(callback, "nonblank_only", False) and await postgres_dbms.is_subscription_blank(event.from_user.id):
+            if getattr(callback, "nonblank_only", False) and await subscriptions_db.is_subscription_blank(event.from_user.id):
                 await event.answer(loc.mw.msgs['nonblank_only'])
                 return None
 

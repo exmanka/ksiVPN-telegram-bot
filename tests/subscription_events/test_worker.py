@@ -58,7 +58,7 @@ def db(monkeypatch):
         'get_next_subscription_event_delay': AsyncMock(return_value=None),
     }
     for name, mock in mocks.items():
-        monkeypatch.setattr(se.postgres_dbms, name, mock)
+        monkeypatch.setattr(se.subscription_events_db, name, mock)
     return mocks
 
 

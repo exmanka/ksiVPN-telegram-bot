@@ -25,7 +25,7 @@ from aiohttp import web
 from remnawave.controllers.webhooks import WebhookUtility
 
 from src.config import settings
-from src.database import postgres_dbms
+from src.database import remnawave_db
 from src.runtime import bot
 from src.services.internal_functions import safe_deliver
 from src.services import localization as loc
@@ -146,7 +146,7 @@ async def _handle_user_revoked(data: dict) -> None:
         logger.exception("user.revoked: malformed payload — keys missing or invalid uuid")
         return
 
-    if not await postgres_dbms.update_client_remnawave_subscription_url(remnawave_uuid, subscription_url):
+    if not await remnawave_db.update_client_remnawave_subscription_url(remnawave_uuid, subscription_url):
         logger.info("user.revoked for remnawave_uuid=%s — no linked client, skip", remnawave_uuid)
         return
 

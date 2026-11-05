@@ -18,7 +18,7 @@ from remnawave.models import CreateUserRequestDto, UpdateUserRequestDto
 from remnawave.models.hwid import DeleteUserHwidDeviceRequestDto, HwidDeviceDto
 
 from src.config import settings
-from src.database import postgres_dbms
+from src.database import remnawave_db
 from src.services.remnawave_client import remnawave_sdk
 
 
@@ -105,7 +105,7 @@ async def create_panel_user(telegram_id: int,
     Raises RemnawaveError on any API failure.
     """
     username = _sanitize_username(telegram_id, tg_username)
-    squad_uuid = await postgres_dbms.get_random_active_remnawave_squad_uuid()
+    squad_uuid = await remnawave_db.get_random_active_remnawave_squad_uuid()
     if squad_uuid is None:
         logger.warning("No active Remnawave squads in DB — creating user without squad assignment")
 

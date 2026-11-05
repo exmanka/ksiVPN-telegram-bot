@@ -1,7 +1,7 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from src.config import settings
-from src.database import postgres_dbms
+from src.database import client_settings_db
 from src.payments.enums import PaymentProviderName
 from src.services import localization as loc
 
@@ -181,7 +181,7 @@ settings = ReplyKeyboardMarkup(
 
 async def settings_notifications(client_id: int) -> ReplyKeyboardMarkup:
     """Return dynamic reply keyboard with current notifications settings for client with specified client_id."""
-    sub_expires_in_1_day, sub_expires_in_3_days, sub_expires_in_7_days, _ = await postgres_dbms.get_settings_info(client_id)
+    sub_expires_in_1_day, sub_expires_in_3_days, sub_expires_in_7_days, _ = await client_settings_db.get_settings_info(client_id)
     builder = ReplyKeyboardBuilder()
 
     builder.button(text=loc.auth.btns['1d_off'] if sub_expires_in_1_day else loc.auth.btns['1d_on'])
@@ -197,7 +197,7 @@ async def settings_chatgpt(client_id: int) -> ReplyKeyboardMarkup:
     """Return dynamic reply keyboard with current bot's ChatGPT settings for client with specified client_id."""
     builder = ReplyKeyboardBuilder()
 
-    if await postgres_dbms.get_chatgpt_mode_status(client_id):
+    if await client_settings_db.get_chatgpt_mode_status(client_id):
         builder.button(text=loc.auth.btns['chatgpt_off'])
     else:
         builder.button(text=loc.auth.btns['chatgpt_on'])

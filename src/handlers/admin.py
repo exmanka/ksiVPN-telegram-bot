@@ -10,7 +10,7 @@ from aiogram.types import Message, CallbackQuery
 from src.middlewares import admin_mw
 from src.keyboards import admin_kb, user_authorized_kb, user_unauthorized_kb
 from src.states import admin_fsm
-from src.database import postgres_dbms
+from src.database import clients_db, payments_db, promocodes_db, subscriptions_db
 from src.services import internal_functions, localization as loc
 from src.services.date_formatting import format_localized_datetime
 from src.config import settings
@@ -34,7 +34,7 @@ async def _format_failed_delivery_row(
     Fetches client info from DB and appends a human-readable status label.
     Used in both broadcast handlers to keep their loop bodies identical.
     """
-    _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
+    _, name, surname, username, *_ = await clients_db.get_client_info_by_telegramID(telegram_id)
     row = loc.admn.msgs['clients_row_str'].format(
         idx + 1,
         html.escape(name),
@@ -93,7 +93,7 @@ async def notifications_send_message_everyone(message: Message, state: FSMContex
         ignored_clients_str = ''
         data = await state.get_data()
 
-        for idx, [telegram_id] in enumerate(await postgres_dbms.get_clients_telegram_ids()):
+        for idx, [telegram_id] in enumerate(await clients_db.get_clients_telegram_ids()):
             status, err = await internal_functions.safe_deliver(
                 lambda tid=telegram_id: bot.copy_message(tid, data['message_chat_id'], data['message_id']),
                 telegram_id=telegram_id,
@@ -150,12 +150,12 @@ async def notifications_send_message_everyone_with_reset(message: Message, state
         data = await state.get_data()
         admin_id = settings.bot.admin_id
 
-        for idx, [telegram_id] in enumerate(await postgres_dbms.get_clients_telegram_ids()):
+        for idx, [telegram_id] in enumerate(await clients_db.get_clients_telegram_ids()):
             if telegram_id == admin_id:
                 # Don't reset the admin's own FSM — they're literally in the middle of running /perfect.
                 continue
 
-            is_authorized = await postgres_dbms.is_user_registered(telegram_id)
+            is_authorized = await clients_db.is_user_registered(telegram_id)
             keyboard = user_authorized_kb.menu if is_authorized else user_unauthorized_kb.welcome
 
             # Reset FSM unconditionally: unauthorized users may be sitting in
@@ -211,9 +211,9 @@ async def notifications_send_message_selected_list(message: Message, state: FSMC
     selected_clients_telegram_ids = []
     for client in selected_clients:
         if client[0] == '@':
-            if telegram_id := await postgres_dbms.get_telegramID_by_username(client):
+            if telegram_id := await clients_db.get_telegramID_by_username(client):
                 selected_clients_telegram_ids.append(telegram_id)
-        elif await postgres_dbms.get_clientID_by_telegramID(int(client)):
+        elif await clients_db.get_clientID_by_telegramID(int(client)):
             selected_clients_telegram_ids.append(int(client))
 
     await state.update_data(selected_telegram_ids=selected_clients_telegram_ids)
@@ -221,7 +221,7 @@ async def notifications_send_message_selected_list(message: Message, state: FSMC
 
     selected_clients_str = ''
     for idx, telegram_id in enumerate(selected_clients_telegram_ids):
-        _, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
+        _, name, surname, username, *_ = await clients_db.get_client_info_by_telegramID(telegram_id)
         selected_clients_str += loc.admn.msgs['clients_row_str'].format(idx + 1, html.escape(name), html.escape(str(surname)), html.escape(str(username)), telegram_id) + '\n'
 
     if selected_clients_str:
@@ -278,17 +278,17 @@ async def show_clients_info(message: Message):
     await message.answer(loc.admn.msgs['clients_info'])
 
     answer_message = ''
-    for [client_id] in await postgres_dbms.get_clients_ids():
-        name, surname, username, telegram_id, register_date, used_ref_promo_id = await postgres_dbms.get_client_info_by_clientID(client_id)
+    for [client_id] in await clients_db.get_clients_ids():
+        name, surname, username, telegram_id, register_date, used_ref_promo_id = await clients_db.get_client_info_by_clientID(client_id)
         register_date_parsed = format_localized_datetime(register_date)
-        *_, sub_price = await postgres_dbms.get_subscription_info_by_clientID(client_id)
-        sub_expiration_date_parsed = format_localized_datetime(await postgres_dbms.get_subscription_expiration_date(telegram_id))
-        paid_sum: Decimal = await postgres_dbms.get_payments_successful_sum(client_id)
-        ref_promo_info = await postgres_dbms.get_refferal_promo_info_by_clientCreatorID(client_id)
+        *_, sub_price = await subscriptions_db.get_subscription_info_by_clientID(client_id)
+        sub_expiration_date_parsed = format_localized_datetime(await subscriptions_db.get_subscription_expiration_date(telegram_id))
+        paid_sum: Decimal = await payments_db.get_payments_successful_sum(client_id)
+        ref_promo_info = await promocodes_db.get_refferal_promo_info_by_clientCreatorID(client_id)
         ref_promo_phrase = ref_promo_info[1] if ref_promo_info else '—'
 
         answer_message_row = ''
-        if await postgres_dbms.is_subscription_active(telegram_id) or await postgres_dbms.is_subscription_free(telegram_id):
+        if await subscriptions_db.is_subscription_active(telegram_id) or await subscriptions_db.is_subscription_free(telegram_id):
             answer_message_row += loc.admn.msgs['clients_info_sub_active']
         else:
             answer_message_row += loc.admn.msgs['clients_info_sub_inactive']
@@ -302,8 +302,8 @@ async def show_clients_info(message: Message):
 
         who_invited_str = ''
         if used_ref_promo_id is not None:
-            _, who_invited_client_id, *_ = await postgres_dbms.get_refferal_promo_info_by_promoID(used_ref_promo_id)
-            who_invited_name, who_invited_surname, who_invited_username, who_invited_telegram_id, *_ = await postgres_dbms.get_client_info_by_clientID(who_invited_client_id)
+            _, who_invited_client_id, *_ = await promocodes_db.get_refferal_promo_info_by_promoID(used_ref_promo_id)
+            who_invited_name, who_invited_surname, who_invited_username, who_invited_telegram_id, *_ = await clients_db.get_client_info_by_clientID(who_invited_client_id)
             who_invited_str +=\
                 f"| {await internal_functions.format_none_string(html.escape(str(who_invited_username)) if who_invited_username else None)} <code>{html.escape(str(who_invited_name))}{await internal_functions.format_none_string(html.escape(str(who_invited_surname)) if who_invited_surname else None)}</code> <code>{who_invited_telegram_id}</code>"
 
@@ -318,7 +318,7 @@ async def show_clients_info(message: Message):
 @admin_mw.admin_only()
 async def show_earnings(message: Message):
     """Send message with information about earned money per current month."""
-    earnings_per_current_month: Decimal = await postgres_dbms.get_earnings_per_month()
+    earnings_per_current_month: Decimal = await payments_db.get_earnings_per_month()
     await message.answer(loc.admn.msgs['show_earnings'].format(float(earnings_per_current_month)))
 
 

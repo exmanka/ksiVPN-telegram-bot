@@ -29,7 +29,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Awaitable, Callable
 
-from src.database import postgres_dbms
+from src.database import clients_db, payments_db, subscriptions_db
 
 from . import repository
 from .enums import PaymentProviderName, PaymentStatus
@@ -121,8 +121,8 @@ class PaymentService:
         """
         provider = self.get_provider(provider_name)
 
-        client_id = await postgres_dbms.get_clientID_by_telegramID(telegram_id)
-        sub_id, sub_title, _, sub_price = await postgres_dbms.get_subscription_info_by_clientID(client_id)
+        client_id = await clients_db.get_clientID_by_telegramID(telegram_id)
+        sub_id, sub_title, _, sub_price = await subscriptions_db.get_subscription_info_by_clientID(client_id)
 
         is_test_payment = telegram_id in self._test_user_ids
         if is_test_payment:
@@ -366,17 +366,17 @@ class PaymentService:
         ``minutes=None`` → check the entire history (used by ``/restore_payments``).
         Returns the list of ``payment_id``s that were finalized as a result.
         """
-        client_id = await postgres_dbms.get_clientID_by_telegramID(telegram_id)
+        client_id = await clients_db.get_clientID_by_telegramID(telegram_id)
         if minutes is None:
-            rows = await postgres_dbms.get_paymentIDs(client_id)
+            rows = await payments_db.get_paymentIDs(client_id)
         else:
-            rows = await postgres_dbms.get_paymentIDs_last(client_id, minutes=minutes)
+            rows = await payments_db.get_paymentIDs_last(client_id, minutes=minutes)
 
         finalized: list[int] = []
         for row in rows:
             payment_id = row["id"] if "id" in row.keys() else row[0]
 
-            info = await postgres_dbms.get_payment_provider_info(payment_id)
+            info = await payments_db.get_payment_provider_info(payment_id)
             if info is None or info["status"] != "pending" or info["external_id"] is None:
                 continue
 

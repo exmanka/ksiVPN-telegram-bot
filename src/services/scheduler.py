@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram.types import FSInputFile
-from src.database import postgres_dbms
+from src.database import subscription_events_db
 from src.payments.runtime import payment_service
 from src.config import settings
 from src.runtime import bot
@@ -49,7 +49,7 @@ async def apscheduler_finish():
 async def _purge_subscription_events() -> None:
     """Delete processed subscription events older than 90 days."""
     try:
-        deleted = await postgres_dbms.purge_done_subscription_events(days=90)
+        deleted = await subscription_events_db.purge_done_subscription_events(days=90)
         logger.info('Purged %d processed subscription events', deleted)
     except Exception:
         logger.exception('Subscription events purge failed; will retry tomorrow')

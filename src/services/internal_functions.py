@@ -10,7 +10,7 @@ from aiogram.utils.media_group import MediaGroupBuilder
 from aiogram.types import User
 from src.keyboards import user_authorized_kb, admin_kb
 from src.states import user_authorized_fsm
-from src.database import postgres_dbms
+from src.database import clients_db, payments_db, promocodes_db, remnawave_db, subscriptions_db
 from src.services import localization as loc
 from src.services.date_formatting import format_localized_bonus_days, format_localized_datetime
 from src.services.remnawave_service import RemnawaveError, create_panel_user, extend_panel_user_expiry, get_user_hwid_devices
@@ -218,9 +218,9 @@ async def _send_new_client_joined_to_admin(client_id: int,
     if promo is None:
         ref_promo_str = loc.internal.msgs['new_client_no_ref_promo_str']
     else:
-        _, client_creator_id, provided_sub_id, bonus_time = await postgres_dbms.get_refferal_promo_info_by_phrase(promo)
-        client_creator_name, client_creator_surname, client_creator_username, client_creator_telegram_id, *_ = await postgres_dbms.get_client_info_by_clientID(client_creator_id)
-        *_, price = await postgres_dbms.get_subscription_info_by_subID(provided_sub_id)
+        _, client_creator_id, provided_sub_id, bonus_time = await promocodes_db.get_refferal_promo_info_by_phrase(promo)
+        client_creator_name, client_creator_surname, client_creator_username, client_creator_telegram_id, *_ = await clients_db.get_client_info_by_clientID(client_creator_id)
+        *_, price = await subscriptions_db.get_subscription_info_by_subID(provided_sub_id)
         client_creator_surname_str = await format_none_string(client_creator_surname)
         client_creator_username_str = await format_none_string(client_creator_username)
         ref_promo_str = loc.internal.msgs['new_client_ref_promo_str'].\
@@ -239,7 +239,7 @@ async def notify_admin_promo_entered(client_id: int, promo_phrase: str, promo_ty
     :param promo_type: type of promocode as string ('global', 'local', 'ref')
     :raises Exception: wrong type of promo code was entered
     """
-    name, surname, username, telegram_id, *_ = await postgres_dbms.get_client_info_by_clientID(client_id)
+    name, surname, username, telegram_id, *_ = await clients_db.get_client_info_by_clientID(client_id)
 
     # convert surname and username for beautiful formatting
     surname_str = await format_none_string(surname)
@@ -247,21 +247,21 @@ async def notify_admin_promo_entered(client_id: int, promo_phrase: str, promo_ty
 
     new_sub_str = ''
     if promo_type == 'global':
-        id, expiration_date, _, bonus_time = await postgres_dbms.get_global_promo_info(promo_phrase)
+        id, expiration_date, _, bonus_time = await promocodes_db.get_global_promo_info(promo_phrase)
         provided_sub_id = None
 
     elif promo_type == 'local':
-        id, expiration_date, bonus_time, provided_sub_id = await postgres_dbms.get_local_promo_info(promo_phrase)
+        id, expiration_date, bonus_time, provided_sub_id = await promocodes_db.get_local_promo_info(promo_phrase)
 
         # if local promo changes client's subscription
         if provided_sub_id:
-            *_, price = await postgres_dbms.get_subscription_info_by_subID(provided_sub_id)
+            *_, price = await subscriptions_db.get_subscription_info_by_subID(provided_sub_id)
             new_sub_str = loc.internal.msgs['admin_promo_was_entered_local_promo_new_sub_str'].format(price)
 
     elif promo_type == 'ref':
-        _, client_creator_id, provided_sub_id, bonus_time = await postgres_dbms.get_refferal_promo_info_by_phrase(promo_phrase)
-        creator_name, *_ = await postgres_dbms.get_client_info_by_clientID(client_creator_id)
-        *_, sub_price = await postgres_dbms.get_subscription_info_by_subID(provided_sub_id)
+        _, client_creator_id, provided_sub_id, bonus_time = await promocodes_db.get_refferal_promo_info_by_phrase(promo_phrase)
+        creator_name, *_ = await clients_db.get_client_info_by_clientID(client_creator_id)
+        *_, sub_price = await subscriptions_db.get_subscription_info_by_subID(provided_sub_id)
         await bot.send_message(
             settings.bot.admin_id,
             loc.internal.msgs['admin_ref_promo_was_entered'].format(
@@ -297,7 +297,7 @@ async def notify_admin_payment_success(
     :param provider_name: which gateway processed the payment (yoomoney/yookassa) —
         rendered into the admin message so the operator can correlate by provider.
     """
-    name, surname, username, telegram_id, *_ = await postgres_dbms.get_client_info_by_clientID(client_id)
+    name, surname, username, telegram_id, *_ = await clients_db.get_client_info_by_clientID(client_id)
 
     # convert surname and username for beautiful formatting
     surname_str = await format_none_string(surname)
@@ -328,9 +328,9 @@ async def notify_client_new_referal(client_creator_id: int, referral_client_name
     referral_client_username_str = await format_none_string(referral_client_username, prefix=' @')
 
     # get information about referral bonus
-    *_, bonus_time = await postgres_dbms.get_refferal_promo_info_by_clientCreatorID(client_creator_id)
+    *_, bonus_time = await promocodes_db.get_refferal_promo_info_by_clientCreatorID(client_creator_id)
 
-    client_creator_telegram_id = await postgres_dbms.get_telegramID_by_clientID(client_creator_id)
+    client_creator_telegram_id = await clients_db.get_telegramID_by_clientID(client_creator_id)
     await safe_deliver(
         lambda: bot.send_message(
             client_creator_telegram_id,
@@ -343,7 +343,7 @@ async def notify_client_new_referal(client_creator_id: int, referral_client_name
 async def notify_client_if_subscription_must_be_renewed_to_receive_configuration(telegram_id: int):
     """Send message by specified telegram_id IF client needs to renew subscription for receiving his first configuration."""
 
-    if await postgres_dbms.is_subscription_blank(telegram_id):
+    if await subscriptions_db.is_subscription_blank(telegram_id):
         await safe_deliver(
             lambda: bot.send_message(telegram_id, loc.unauth.msgs['need_renew_sub']),
             telegram_id=telegram_id,
@@ -355,21 +355,21 @@ async def check_referral_reward(ref_client_id: int):
 
     :param ref_client_id: client_id of person who registered with referral promocode
     """
-    successful_payments_number = await postgres_dbms.get_payments_successful_number(ref_client_id)
-    ref_client_name, _, ref_client_username, *_, used_ref_promo_id = await postgres_dbms.get_client_info_by_clientID(ref_client_id)
+    successful_payments_number = await payments_db.get_payments_successful_number(ref_client_id)
+    ref_client_name, _, ref_client_username, *_, used_ref_promo_id = await clients_db.get_client_info_by_clientID(ref_client_id)
 
     # if client paid for subscription for the first time and used referral promo
     if successful_payments_number == 1 and used_ref_promo_id:
 
         # add subscription bonus time (30 days) for old client
-        _, client_creator_id, *_ = await postgres_dbms.get_refferal_promo_info_by_promoID(used_ref_promo_id)
-        await postgres_dbms.add_subscription_period(client_creator_id, days=30)
+        _, client_creator_id, *_ = await promocodes_db.get_refferal_promo_info_by_promoID(used_ref_promo_id)
+        await subscriptions_db.add_subscription_period(client_creator_id, days=30)
         await extend_remnawave_expiry_for_client(client_creator_id)
 
         # notify old client about new bonus
         # if client's username exists (add whitespace for good string formatting)
         ref_client_username_str = await format_none_string(ref_client_username)
-        client_creator_telegram_id = await postgres_dbms.get_telegramID_by_clientID(client_creator_id)
+        client_creator_telegram_id = await clients_db.get_telegramID_by_clientID(client_creator_id)
         await safe_deliver(
             lambda: bot.send_message(
                 client_creator_telegram_id,
@@ -391,17 +391,17 @@ async def authorization_complete(from_user: User, state: FSMContext) -> None:
     data = await state.get_data()
 
     if phrase := data.get('promo'):
-        used_ref_promo_id, _, provided_sub_id, bonus_time = await postgres_dbms.get_refferal_promo_info_by_phrase(phrase)
+        used_ref_promo_id, _, provided_sub_id, bonus_time = await promocodes_db.get_refferal_promo_info_by_phrase(phrase)
 
-    client_id = await postgres_dbms.insert_client(from_user.first_name, from_user.id, from_user.last_name, from_user.username, used_ref_promo_id, provided_sub_id, bonus_time)
+    client_id = await clients_db.insert_client(from_user.first_name, from_user.id, from_user.last_name, from_user.username, used_ref_promo_id, provided_sub_id, bonus_time)
     if bonus_time:
-        await postgres_dbms.activate_client_bonus_time(client_id)
-    expire_at = await postgres_dbms.get_subscription_expiration_date_by_clientID(client_id)
+        await subscriptions_db.activate_client_bonus_time(client_id)
+    expire_at = await subscriptions_db.get_subscription_expiration_date_by_clientID(client_id)
 
     subscription_url: str | None = None
     try:
         remnawave_uuid, subscription_url = await create_panel_user(from_user.id, from_user.username, expire_at)
-        await postgres_dbms.insert_client_remnawave(client_id, remnawave_uuid, subscription_url)
+        await remnawave_db.insert_client_remnawave(client_id, remnawave_uuid, subscription_url)
     except RemnawaveError as exc:
         logger.error("Failed to create Remnawave user for client_id=%s tg_id=%s: %s", client_id, from_user.id, exc)
         await safe_deliver(
@@ -433,7 +433,7 @@ async def extend_remnawave_expiry_for_client(client_id: int) -> None:
     Silently skips clients not yet provisioned in Remnawave (warns admin).
     Logs error and notifies admin on panel API failures without propagating.
     """
-    remnawave_uuid = await postgres_dbms.get_client_remnawave_uuid_by_clientID(client_id)
+    remnawave_uuid = await remnawave_db.get_client_remnawave_uuid_by_clientID(client_id)
     if remnawave_uuid is None:
         logger.warning("Client %s has no Remnawave record — skipping expiry sync", client_id)
         await safe_deliver(
@@ -442,7 +442,7 @@ async def extend_remnawave_expiry_for_client(client_id: int) -> None:
         )
         return
 
-    new_expire_at = await postgres_dbms.get_subscription_expiration_date_by_clientID(client_id)
+    new_expire_at = await subscriptions_db.get_subscription_expiration_date_by_clientID(client_id)
     try:
         await extend_panel_user_expiry(remnawave_uuid, new_expire_at)
     except RemnawaveError as exc:
@@ -459,38 +459,38 @@ async def build_subscription_card(telegram_id: int) -> str:
     Active devices are counted from Remnawave HWID devices; the count is shown as «—»
     when the subscription is blank, the client isn't provisioned in the panel, or the panel is unreachable.
     """
-    client_id = await postgres_dbms.get_clientID_by_telegramID(telegram_id)
+    client_id = await clients_db.get_clientID_by_telegramID(telegram_id)
 
-    subscription_url = await postgres_dbms.get_client_remnawave_subscription_url_by_telegramID(telegram_id)
+    subscription_url = await remnawave_db.get_client_remnawave_subscription_url_by_telegramID(telegram_id)
     url = subscription_url or loc.auth.msgs['subscription_info_url_pending']
 
     # Determine status and expiry line.
     # Priority: blank (EPOCH) → free → active → inactive/expired.
     # blank and free subscriptions carry no expiry line.
-    is_blank = await postgres_dbms.is_subscription_blank(telegram_id)
+    is_blank = await subscriptions_db.is_subscription_blank(telegram_id)
     if is_blank:
         status = loc.auth.msgs['subscription_info_status_blank']
         expiry = ''
         url = loc.auth.msgs['subscription_info_url_blank']
-    elif await postgres_dbms.is_subscription_free(telegram_id):
+    elif await subscriptions_db.is_subscription_free(telegram_id):
         status = loc.auth.msgs['subscription_info_status_free']
         expiry = ''
-    elif await postgres_dbms.is_subscription_active(telegram_id):
+    elif await subscriptions_db.is_subscription_active(telegram_id):
         status = loc.auth.msgs['subscription_info_status_active']
-        expiration_date = await postgres_dbms.get_subscription_expiration_date(telegram_id)
+        expiration_date = await subscriptions_db.get_subscription_expiration_date(telegram_id)
         expiry = loc.auth.msgs['subscription_info_expiry_line_active'].format(
             format_localized_datetime(expiration_date)) if expiration_date else ''
     else:
         status = loc.auth.msgs['subscription_info_status_inactive']
-        expiration_date = await postgres_dbms.get_subscription_expiration_date(telegram_id)
+        expiration_date = await subscriptions_db.get_subscription_expiration_date(telegram_id)
         expiry = loc.auth.msgs['subscription_info_expiry_line_inactive'].format(
             format_localized_datetime(expiration_date)) if expiration_date else ''
 
-    *_, price = await postgres_dbms.get_subscription_info_by_clientID(client_id)
-    max_devices = await postgres_dbms.get_max_configurations_by_telegramID(telegram_id)
+    *_, price = await subscriptions_db.get_subscription_info_by_clientID(client_id)
+    max_devices = await subscriptions_db.get_max_configurations_by_telegramID(telegram_id)
 
     devices_count = '–'
-    remnawave_uuid = await postgres_dbms.get_client_remnawave_uuid_by_telegramID(telegram_id)
+    remnawave_uuid = await remnawave_db.get_client_remnawave_uuid_by_telegramID(telegram_id)
     if not is_blank and remnawave_uuid is not None:
         try:
             devices_count = len(await get_user_hwid_devices(remnawave_uuid))
@@ -617,10 +617,10 @@ async def finalize_successful_payment(
 
 async def _send_subscription_card_after_first_payment(client_id: int) -> None:
     """Send the subscription card if this is the client's first successful payment."""
-    if await postgres_dbms.get_payments_successful_number(client_id) != 1:
+    if await payments_db.get_payments_successful_number(client_id) != 1:
         return
 
-    telegram_id = await postgres_dbms.get_telegramID_by_clientID(client_id)
+    telegram_id = await clients_db.get_telegramID_by_clientID(client_id)
     if telegram_id is None:
         return
 
@@ -648,7 +648,7 @@ async def _try_fiscalize_income(payment_id: int, days_number: int, provider_name
         )
         return None
 
-    amount = await postgres_dbms.get_payment_amount(payment_id)
+    amount = await payments_db.get_payment_amount(payment_id)
     if amount is None:
         logger.error("fiscalize: payment_id=%s not found in DB", payment_id)
         return None
@@ -672,7 +672,7 @@ async def _try_fiscalize_income(payment_id: int, days_number: int, provider_name
         return None
 
     try:
-        await postgres_dbms.update_payment_fiscal_receipt_url(payment_id, receipt.print_url)
+        await payments_db.update_payment_fiscal_receipt_url(payment_id, receipt.print_url)
     except Exception:
         logger.exception(
             "Failed to persist fiscal_receipt_url for payment_id=%s "
@@ -729,12 +729,12 @@ async def _notify_user_payment_succeeded(
     from src.runtime import dp  # imported here to avoid moving the import to module top
     from aiogram.fsm.storage.base import StorageKey
 
-    telegram_id = await postgres_dbms.get_telegramID_by_clientID(client_id)
+    telegram_id = await clients_db.get_telegramID_by_clientID(client_id)
     if telegram_id is None:
         logger.warning("Cannot notify user payment_id=%s — telegram_id not found for client_id=%s", payment_id, client_id)
         return
 
-    telegram_message_id = await postgres_dbms.get_payment_telegram_message_id(payment_id)
+    telegram_message_id = await payments_db.get_payment_telegram_message_id(payment_id)
     if telegram_message_id is not None:
         await safe_delete_message(telegram_id, telegram_message_id)
 

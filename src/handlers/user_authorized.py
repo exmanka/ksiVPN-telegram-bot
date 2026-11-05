@@ -14,7 +14,7 @@ from remnawave.models.hwid import HwidDeviceDto
 from src.middlewares import user_authorized_mw, throttling_mw
 from src.keyboards import user_authorized_kb
 from src.states import user_authorized_fsm
-from src.database import postgres_dbms
+from src.database import client_settings_db, clients_db, payments_db, promocodes_db, remnawave_db, subscriptions_db
 from src.services import internal_functions, localization as loc
 from src.services.date_formatting import format_localized_bonus_days, format_localized_datetime
 from src.services.remnawave_service import RemnawaveError, delete_user_hwid_device, get_user_hwid_devices
@@ -39,7 +39,7 @@ async def my_subscription(message: Message, state: FSMContext):
     await state.set_state(user_authorized_fsm.SubscriptionMenu.menu)
     await message.answer(loc.auth.msgs['go_subscription_menu'], reply_markup=user_authorized_kb.subscription)
 
-    if await postgres_dbms.is_subscription_blank(telegram_id):
+    if await subscriptions_db.is_subscription_blank(telegram_id):
         await message.answer(loc.unauth.msgs['need_renew_sub'])
 
     await message.answer(
@@ -55,8 +55,8 @@ async def my_subscription(message: Message, state: FSMContext):
 @user_authorized_mw.authorized_only()
 async def subscription_about(message: Message):
     """Send subscription type, cost and description."""
-    client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
-    _, title, description, price = await postgres_dbms.get_subscription_info_by_clientID(client_id)
+    client_id = await clients_db.get_clientID_by_telegramID(message.from_user.id)
+    _, title, description, price = await subscriptions_db.get_subscription_info_by_clientID(client_id)
     await message.answer(loc.auth.msgs['my_subscription'].format(title=title, description=description, price=price))
 
 
@@ -95,7 +95,7 @@ async def subscription_devices(message: Message):
     """Send each of client's devices registered in Remnawave Panel as a separate message with «Remove device» button."""
     telegram_id = message.from_user.id
 
-    remnawave_uuid = await postgres_dbms.get_client_remnawave_uuid_by_telegramID(telegram_id)
+    remnawave_uuid = await remnawave_db.get_client_remnawave_uuid_by_telegramID(telegram_id)
     if remnawave_uuid is None:
         await message.answer(loc.auth.msgs['my_devices_unavailable'])
         return
@@ -134,7 +134,7 @@ async def subscription_device_delete(callback: CallbackQuery):
     telegram_id = callback.from_user.id
     device_key = callback.data.removeprefix('device_delete:')
 
-    remnawave_uuid = await postgres_dbms.get_client_remnawave_uuid_by_telegramID(telegram_id)
+    remnawave_uuid = await remnawave_db.get_client_remnawave_uuid_by_telegramID(telegram_id)
     if remnawave_uuid is None:
         await callback.answer()
         await callback.message.answer(loc.auth.msgs['device_delete_error'])
@@ -169,11 +169,11 @@ async def subscription_how_to_connect(callback: CallbackQuery):
     await callback.answer()
     telegram_id = callback.from_user.id
 
-    if await postgres_dbms.is_subscription_blank(telegram_id):
+    if await subscriptions_db.is_subscription_blank(telegram_id):
         await callback.message.answer(loc.unauth.msgs['need_renew_sub'])
         return
 
-    subscription_url = await postgres_dbms.get_client_remnawave_subscription_url_by_telegramID(telegram_id)
+    subscription_url = await remnawave_db.get_client_remnawave_subscription_url_by_telegramID(telegram_id)
     if subscription_url is None:
         await callback.message.answer(loc.auth.msgs['how_to_connect_subscription_pending'])
         return
@@ -219,7 +219,7 @@ async def submenu_fsm_cancel(message: Message, state: FSMContext):
 @user_authorized_mw.authorized_only()
 async def sub_renewal_fsm_start(message: Message, state: FSMContext):
     """Start FSM for subscription renewal and show subscription renewal keyboard."""
-    if await postgres_dbms.is_subscription_free(message.from_user.id):
+    if await subscriptions_db.is_subscription_free(message.from_user.id):
         await message.answer(loc.auth.msgs['sub_renewal_free'])
         return
 
@@ -330,7 +330,7 @@ async def _initiate_payment(
         reply_markup=await user_authorized_kb.sub_renewal_link_inline(initiated.payment_url),
     )
 
-    await postgres_dbms.update_payment_telegram_message_id(initiated.payment_id, message_info.message_id)
+    await payments_db.update_payment_telegram_message_id(initiated.payment_id, message_info.message_id)
 
 
 @router.message(
@@ -418,7 +418,7 @@ async def sub_renewal_pick_yoomoney(message: Message, state: FSMContext):
 @user_authorized_mw.authorized_only()
 async def sub_renewal_payment_history(message: Message):
     """Send messages with successful payments history."""
-    payment_history = await postgres_dbms.get_payments_successful_info(await postgres_dbms.get_clientID_by_telegramID(message.from_user.id))
+    payment_history = await payments_db.get_payments_successful_info(await clients_db.get_clientID_by_telegramID(message.from_user.id))
     is_payment_found = False
 
     payment_price: Decimal
@@ -446,7 +446,7 @@ async def sub_renewal_submenu_fsm_cancel(message: Message, state: FSMContext):
     accidentally pay an abandoned invoice. Returns the user to the renewal
     menu (days picker).
     """
-    last_payment_message_id = await postgres_dbms.get_payment_last_message_id(await postgres_dbms.get_clientID_by_telegramID(message.from_user.id))
+    last_payment_message_id = await payments_db.get_payment_last_message_id(await clients_db.get_clientID_by_telegramID(message.from_user.id))
 
     await internal_functions.safe_delete_message(message.chat.id, last_payment_message_id)
 
@@ -499,7 +499,7 @@ async def account_fsm_start(message: Message, state: FSMContext):
 @user_authorized_mw.authorized_only()
 async def account_client_info(message: Message):
     """Send message with information about client."""
-    _, name, surname, username, register_date, _ = await postgres_dbms.get_client_info_by_telegramID(message.from_user.id)
+    _, name, surname, username, register_date, _ = await clients_db.get_client_info_by_telegramID(message.from_user.id)
 
     surname_str = ''
     if surname is not None:
@@ -577,8 +577,8 @@ async def account_settings_fsm_start(message: Message, state: FSMContext):
 @user_authorized_mw.nonblank_subscription_only()
 async def account_ref_program_info(message: Message):
     """Send message with information about client's participation in referral program."""
-    who_invited_client = await postgres_dbms.get_invited_by_client_info(message.from_user.id)
-    who_was_invited_by_client = await postgres_dbms.get_invited_clients_list(message.from_user.id)
+    who_invited_client = await promocodes_db.get_invited_by_client_info(message.from_user.id)
+    who_was_invited_by_client = await promocodes_db.get_invited_clients_list(message.from_user.id)
 
     if who_invited_client:
         name, username = who_invited_client
@@ -606,7 +606,7 @@ async def account_ref_program_info(message: Message):
 @user_authorized_mw.nonblank_subscription_only()
 async def account_ref_program_invite(message: Message):
     """Send message with random invite text from messages.py."""
-    ref_promocode = await postgres_dbms.get_referral_promo(message.from_user.id)
+    ref_promocode = await promocodes_db.get_referral_promo(message.from_user.id)
     text: str = random.choice(loc.auth.msgs['ref_program_invites_texts']).format(ref_promocode)
     await message.answer(text)
 
@@ -619,7 +619,7 @@ async def account_ref_program_invite(message: Message):
 @user_authorized_mw.nonblank_subscription_only()
 async def account_ref_program_promocode(message: Message):
     """Send message with client's own referral promocode."""
-    ref_promo_phrase: str = await postgres_dbms.get_referral_promo(message.from_user.id)
+    ref_promo_phrase: str = await promocodes_db.get_referral_promo(message.from_user.id)
     await message.answer(loc.auth.msgs['your_ref_code'].format(ref_promo_phrase))
 
 
@@ -630,7 +630,7 @@ async def account_ref_program_promocode(message: Message):
 @user_authorized_mw.authorized_only()
 async def account_promo_info(message: Message):
     """Send message with information about entered by client promocodes."""
-    ref_promos, global_promos, local_promos = await postgres_dbms.get_client_entered_promos(await postgres_dbms.get_clientID_by_telegramID(message.from_user.id))
+    ref_promos, global_promos, local_promos = await promocodes_db.get_client_entered_promos(await clients_db.get_clientID_by_telegramID(message.from_user.id))
 
     has_entered_promos = False
     ref_promo_str = ''
@@ -669,15 +669,15 @@ async def account_promo_check(message: Message, state: FSMContext):
     If specified promocode is local promocode, it can also change subscription type for client.
     Referral promocodes are accepted within 7 days of registration for clients who haven't used one yet.
     """
-    client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
+    client_id = await clients_db.get_clientID_by_telegramID(message.from_user.id)
 
-    if await postgres_dbms.is_referral_promo(message.text):
+    if await promocodes_db.is_referral_promo(message.text):
         # Referral promos are only accepted within 7 days of registration and only once.
-        if not await postgres_dbms.can_enter_ref_promo_as_authorized(client_id):
+        if not await promocodes_db.can_enter_ref_promo_as_authorized(client_id):
             await message.answer(loc.auth.msgs['error_promo_entered_ref_code'])
             return
 
-        ref_promo_info = await postgres_dbms.get_refferal_promo_info_by_phrase(message.text)
+        ref_promo_info = await promocodes_db.get_refferal_promo_info_by_phrase(message.text)
         if not ref_promo_info:
             await message.answer(loc.auth.msgs['error_promo_not_exist'])
             return
@@ -688,13 +688,13 @@ async def account_promo_check(message: Message, state: FSMContext):
             await message.answer(loc.auth.msgs['error_promo_own_ref_code'])
             return
 
-        await postgres_dbms.apply_ref_promo_to_existing_client(client_id, ref_promo_id, provided_sub_id, bonus_time)
+        await promocodes_db.apply_ref_promo_to_existing_client(client_id, ref_promo_id, provided_sub_id, bonus_time)
         await internal_functions.notify_client_new_referal(client_creator_id, message.from_user.first_name, message.from_user.username)
         await internal_functions.notify_admin_promo_entered(client_id, message.text, 'ref')
         await internal_functions.extend_remnawave_expiry_for_client(client_id)
 
-        creator_name, *_ = await postgres_dbms.get_client_info_by_clientID(client_creator_id)
-        _, title, _, price = await postgres_dbms.get_subscription_info_by_clientID(client_id)
+        creator_name, *_ = await clients_db.get_client_info_by_clientID(client_creator_id)
+        _, title, _, price = await subscriptions_db.get_subscription_info_by_clientID(client_id)
         await message.answer(
             loc.auth.msgs['ref_promo_accepted'].format(creator_name, format_localized_bonus_days(bonus_time), title, price),
             reply_markup=user_authorized_kb.account,
@@ -703,16 +703,16 @@ async def account_promo_check(message: Message, state: FSMContext):
         await state.set_state(user_authorized_fsm.AccountMenu.menu)
         return
 
-    global_promo_info = await postgres_dbms.get_global_promo_info(message.text)
-    local_promo_info = await postgres_dbms.get_local_promo_info(message.text)
+    global_promo_info = await promocodes_db.get_global_promo_info(message.text)
+    local_promo_info = await promocodes_db.get_local_promo_info(message.text)
 
     if global_promo_info:
         global_promo_id, _, _, bonus_time = global_promo_info
 
-        if not await postgres_dbms.is_global_promo_already_entered(client_id, global_promo_id):
-            if await postgres_dbms.is_global_promo_valid(global_promo_id):
-                if await postgres_dbms.is_global_promo_has_remaining_activations(global_promo_id):
-                    await postgres_dbms.insert_client_entered_global_promo(client_id, global_promo_id, bonus_time)
+        if not await promocodes_db.is_global_promo_already_entered(client_id, global_promo_id):
+            if await promocodes_db.is_global_promo_valid(global_promo_id):
+                if await promocodes_db.is_global_promo_has_remaining_activations(global_promo_id):
+                    await promocodes_db.insert_client_entered_global_promo(client_id, global_promo_id, bonus_time)
                     await internal_functions.notify_admin_promo_entered(client_id, message.text, 'global')
                     await internal_functions.extend_remnawave_expiry_for_client(client_id)
                     await message.answer(loc.auth.msgs['global_promo_accepted'].format(format_localized_bonus_days(bonus_time)), reply_markup=user_authorized_kb.account)
@@ -727,17 +727,17 @@ async def account_promo_check(message: Message, state: FSMContext):
     elif local_promo_info:
         local_promo_id, _, bonus_time, provided_sub_id = local_promo_info
 
-        if await postgres_dbms.is_local_promo_accessible(client_id, local_promo_id):
-            if not await postgres_dbms.is_local_promo_already_entered(client_id, local_promo_id):
-                if await postgres_dbms.is_local_promo_valid(local_promo_id):
-                    await postgres_dbms.insert_client_entered_local_promo(client_id, local_promo_id, bonus_time)
+        if await promocodes_db.is_local_promo_accessible(client_id, local_promo_id):
+            if not await promocodes_db.is_local_promo_already_entered(client_id, local_promo_id):
+                if await promocodes_db.is_local_promo_valid(local_promo_id):
+                    await promocodes_db.insert_client_entered_local_promo(client_id, local_promo_id, bonus_time)
                     await internal_functions.notify_admin_promo_entered(client_id, message.text, 'local')
                     await internal_functions.extend_remnawave_expiry_for_client(client_id)
 
                     new_sub_str = ''
                     if provided_sub_id:
-                        await postgres_dbms.update_client_subscription(client_id, provided_sub_id)
-                        _, title, _, price = await postgres_dbms.get_subscription_info_by_subID(provided_sub_id)
+                        await subscriptions_db.update_client_subscription(client_id, provided_sub_id)
+                        _, title, _, price = await subscriptions_db.get_subscription_info_by_subID(provided_sub_id)
                         new_sub_str = loc.auth.msgs['new_sub_str'].format(title, price)
 
                     await message.answer(loc.auth.msgs['loсal_promo_accepted'].format(format_localized_bonus_days(bonus_time), new_sub_str=new_sub_str), reply_markup=user_authorized_kb.account)
@@ -775,7 +775,7 @@ async def account_settings_submenu_fsm_cancel(message: Message, state: FSMContex
 async def account_settings_chatgpt(message: Message, state: FSMContext):
     """Change account settings FSM state and show dynamic account settings ChatGPT mode keyboard."""
     await state.set_state(user_authorized_fsm.SettingsMenu.chatgpt)
-    await message.answer(loc.auth.msgs['go_settings_chatgpt'], reply_markup=await user_authorized_kb.settings_chatgpt(await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)))
+    await message.answer(loc.auth.msgs['go_settings_chatgpt'], reply_markup=await user_authorized_kb.settings_chatgpt(await clients_db.get_clientID_by_telegramID(message.from_user.id)))
     await message.answer(loc.auth.msgs['settings_chatgpt_info'])
 
 
@@ -786,10 +786,10 @@ async def account_settings_chatgpt(message: Message, state: FSMContext):
 @user_authorized_mw.authorized_only()
 async def account_settings_chatgpt_mode(message: Message, state: FSMContext):
     """Turn on/off client's ChatGPT mode for answering unrecognized messages."""
-    chatgpt_mode_status: bool = await postgres_dbms.update_chatgpt_mode(await postgres_dbms.get_clientID_by_telegramID(message.from_user.id))
+    chatgpt_mode_status: bool = await client_settings_db.update_chatgpt_mode(await clients_db.get_clientID_by_telegramID(message.from_user.id))
 
     if await state.get_state() == user_authorized_fsm.SettingsMenu.chatgpt.state:
-        reply_keyboard = await user_authorized_kb.settings_chatgpt(await postgres_dbms.get_clientID_by_telegramID(message.from_user.id))
+        reply_keyboard = await user_authorized_kb.settings_chatgpt(await clients_db.get_clientID_by_telegramID(message.from_user.id))
     else:
         reply_keyboard = None
 
@@ -806,7 +806,7 @@ async def account_settings_chatgpt_mode(message: Message, state: FSMContext):
 @user_authorized_mw.authorized_only()
 async def account_settings_notifications(message: Message, state: FSMContext):
     """Change account settings FSM state and show dynamic account settings notifications keyboard."""
-    client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
+    client_id = await clients_db.get_clientID_by_telegramID(message.from_user.id)
     await state.set_state(user_authorized_fsm.SettingsMenu.notifications)
     await message.answer(loc.auth.msgs['go_settings_notifications'], reply_markup=await user_authorized_kb.settings_notifications(client_id))
     await message.answer(loc.auth.msgs['settings_notifications_info'])
@@ -819,8 +819,8 @@ async def account_settings_notifications(message: Message, state: FSMContext):
 @user_authorized_mw.authorized_only()
 async def account_settings_notifications_1d(message: Message):
     """Turn on/off client's receiving notifications 1 day before subscription expiration."""
-    client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
-    expiration_in_1d_state = await postgres_dbms.update_notifications_1d(client_id)
+    client_id = await clients_db.get_clientID_by_telegramID(message.from_user.id)
+    expiration_in_1d_state = await client_settings_db.update_notifications_1d(client_id)
 
     if expiration_in_1d_state:
         await message.answer(loc.auth.msgs['1d_on'], reply_markup=await user_authorized_kb.settings_notifications(client_id))
@@ -835,8 +835,8 @@ async def account_settings_notifications_1d(message: Message):
 @user_authorized_mw.authorized_only()
 async def account_settings_notifications_3d(message: Message):
     """Turn on/off client's receiving notifications 3 days before subscription expiration."""
-    client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
-    expiration_in_3d_state = await postgres_dbms.update_notifications_3d(client_id)
+    client_id = await clients_db.get_clientID_by_telegramID(message.from_user.id)
+    expiration_in_3d_state = await client_settings_db.update_notifications_3d(client_id)
 
     if expiration_in_3d_state:
         await message.answer(loc.auth.msgs['3d_on'], reply_markup=await user_authorized_kb.settings_notifications(client_id))
@@ -851,8 +851,8 @@ async def account_settings_notifications_3d(message: Message):
 @user_authorized_mw.authorized_only()
 async def account_settings_notifications_7d(message: Message):
     """Turn on/off client's receiving notifications 7 days before subscription expiration."""
-    client_id = await postgres_dbms.get_clientID_by_telegramID(message.from_user.id)
-    expiration_in_7d_state = await postgres_dbms.update_notifications_7d(client_id)
+    client_id = await clients_db.get_clientID_by_telegramID(message.from_user.id)
+    expiration_in_7d_state = await client_settings_db.update_notifications_7d(client_id)
 
     if expiration_in_7d_state:
         await message.answer(loc.auth.msgs['7d_on'], reply_markup=await user_authorized_kb.settings_notifications(client_id))

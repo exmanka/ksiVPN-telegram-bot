@@ -28,7 +28,7 @@ from enum import Enum
 import asyncpg
 
 from src.config import settings
-from src.database import postgres_dbms
+from src.database import connection, subscription_events_db
 from src.runtime import bot
 from src.services import internal_functions, localization as loc
 
@@ -87,10 +87,10 @@ async def _handle_reminder(event: asyncpg.Record) -> EventOutcome:
     settings_column, loc_key = _REMINDERS[event['kind']]
     # A missing settings row (NULL) falls back to the column default, which is TRUE.
     if event[settings_column] is False:
-        await postgres_dbms.claim_subscription_event(event['id'])
+        await subscription_events_db.claim_subscription_event(event['id'])
         return EventOutcome.DONE
 
-    if not await postgres_dbms.claim_subscription_event(event['id']):
+    if not await subscription_events_db.claim_subscription_event(event['id']):
         return EventOutcome.DONE
 
     logger.info('Subscription event %s (%s): notifying client %s',
@@ -101,7 +101,7 @@ async def _handle_reminder(event: asyncpg.Record) -> EventOutcome:
 
 
 async def _handle_expired(event: asyncpg.Record) -> EventOutcome:
-    if not await postgres_dbms.claim_subscription_event(event['id']):
+    if not await subscription_events_db.claim_subscription_event(event['id']):
         return EventOutcome.DONE
 
     logger.info('Subscription event %s (expired): notifying client %s',
@@ -129,18 +129,18 @@ async def process_event(event: asyncpg.Record) -> EventOutcome:
         # (the trigger deletes pending events of the old date).
         logger.info('Subscription event %s (%s) is stale: scheduled for %s, current expiration %s',
                     event['id'], event['kind'], event['for_expiration'], event['expiration_date'])
-        await postgres_dbms.claim_subscription_event(event['id'])
+        await subscription_events_db.claim_subscription_event(event['id'])
         return EventOutcome.DONE
 
     if event['price'] <= 0:
         # Free subscriptions get no expiration notifications.
-        await postgres_dbms.claim_subscription_event(event['id'])
+        await subscription_events_db.claim_subscription_event(event['id'])
         return EventOutcome.DONE
 
     handler = _HANDLERS.get(event['kind'])
     if handler is None:
         logger.error('Subscription event %s has unknown kind %r — skipping', event['id'], event['kind'])
-        await postgres_dbms.claim_subscription_event(event['id'])
+        await subscription_events_db.claim_subscription_event(event['id'])
         return EventOutcome.DONE
 
     return await handler(event)
@@ -193,12 +193,12 @@ class SubscriptionEventsWorker:
         while True:
             try:
                 lost = asyncio.Event()
-                conn = await postgres_dbms.create_listener_connection()
+                conn = await connection.create_listener_connection()
                 self._listener_conn = conn
                 conn.add_termination_listener(lambda _conn: lost.set())
-                await conn.add_listener(postgres_dbms.SUBSCRIPTION_EVENTS_CHANNEL, self._on_notify)
+                await conn.add_listener(subscription_events_db.SUBSCRIPTION_EVENTS_CHANNEL, self._on_notify)
                 logger.info('Listening for subscription events on channel %r',
-                            postgres_dbms.SUBSCRIPTION_EVENTS_CHANNEL)
+                            subscription_events_db.SUBSCRIPTION_EVENTS_CHANNEL)
                 backoff = 1
                 # Notifications sent while we were not listening are lost — recompute the timer.
                 self._wakeup.set()
@@ -221,7 +221,7 @@ class SubscriptionEventsWorker:
 
     async def _drain_due_events(self) -> None:
         while True:
-            events = await postgres_dbms.fetch_due_subscription_events(BATCH_LIMIT)
+            events = await subscription_events_db.fetch_due_subscription_events(BATCH_LIMIT)
             for event in events:
                 try:
                     outcome = await process_event(event)
@@ -231,7 +231,7 @@ class SubscriptionEventsWorker:
                     outcome = EventOutcome.RETRY
                 if outcome is EventOutcome.RETRY:
                     # No-op for an already claimed event (WHERE done_at IS NULL).
-                    await postgres_dbms.postpone_subscription_event(event['id'], RETRY_DELAY_SECONDS)
+                    await subscription_events_db.postpone_subscription_event(event['id'], RETRY_DELAY_SECONDS)
             if len(events) < BATCH_LIMIT:
                 return
 
@@ -242,7 +242,7 @@ class SubscriptionEventsWorker:
         self._wakeup.clear()
         try:
             await self._drain_due_events()
-            delay = await postgres_dbms.get_next_subscription_event_delay()
+            delay = await subscription_events_db.get_next_subscription_event_delay()
         except asyncio.CancelledError:
             raise
         except Exception:
