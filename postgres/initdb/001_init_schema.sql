@@ -45,6 +45,64 @@ INSERT INTO clients_subscriptions(client_id, sub_id, paid_days_counter, expirati
 VALUES(1, 1, 300, TIMESTAMP '2030-01-01 00:00');
 
 
+-- Upcoming expiration events (7d/3d/1d reminders, expiration) per client.
+-- ``for_expiration`` is the expiration_date snapshot an event was computed from.
+CREATE TABLE subscription_events (
+	id BIGSERIAL PRIMARY KEY,
+	client_id INT NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+	kind VARCHAR(16) NOT NULL,
+	fire_at TIMESTAMP NOT NULL,
+	for_expiration TIMESTAMP NOT NULL,
+	attempts SMALLINT NOT NULL DEFAULT 0,
+	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	done_at TIMESTAMP
+);
+
+CREATE INDEX subscription_events_pending_idx
+ON subscription_events(fire_at) WHERE done_at IS NULL;
+
+CREATE INDEX subscription_events_client_pending_idx
+ON subscription_events(client_id) WHERE done_at IS NULL;
+
+
+CREATE OR REPLACE FUNCTION regenerate_subscription_events(p_client_id INT, p_expiration TIMESTAMP) RETURNS void
+AS $$
+BEGIN
+    DELETE FROM subscription_events
+    WHERE client_id = p_client_id
+      AND done_at IS NULL;
+
+    INSERT INTO subscription_events(client_id, kind, fire_at, for_expiration)
+    SELECT p_client_id, e.kind, p_expiration + e.offset_interval, p_expiration
+    FROM (VALUES
+        ('remind_7d', INTERVAL '-7 days'),
+        ('remind_3d', INTERVAL '-3 days'),
+        ('remind_1d', INTERVAL '-1 day'),
+        ('expired',   INTERVAL '0')
+    ) AS e(kind, offset_interval)
+    WHERE p_expiration + e.offset_interval > CURRENT_TIMESTAMP;
+
+    PERFORM pg_notify('subscription_events', p_client_id::text);
+END;
+$$ LANGUAGE PLPGSQL VOLATILE;
+
+
+CREATE OR REPLACE FUNCTION clients_subscriptions_expiration_changed() RETURNS trigger
+AS $$
+BEGIN
+    IF TG_OP = 'UPDATE' AND NEW.expiration_date IS NOT DISTINCT FROM OLD.expiration_date THEN
+        RETURN NULL;
+    END IF;
+    PERFORM regenerate_subscription_events(NEW.client_id, NEW.expiration_date);
+    RETURN NULL;
+END;
+$$ LANGUAGE PLPGSQL VOLATILE;
+
+CREATE TRIGGER clients_subscriptions_expiration_events
+AFTER INSERT OR UPDATE OF expiration_date ON clients_subscriptions
+FOR EACH ROW EXECUTE FUNCTION clients_subscriptions_expiration_changed();
+
+
 CREATE OR REPLACE FUNCTION create_ref_promocode() RETURNS text
 AS $$
 DECLARE

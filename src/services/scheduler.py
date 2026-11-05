@@ -9,7 +9,6 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram.types import FSInputFile
 from src.database import postgres_dbms
 from src.payments.runtime import payment_service
-from src.services import internal_functions, localization as loc
 from src.config import settings
 from src.runtime import bot
 
@@ -22,7 +21,7 @@ async def apscheduler_start():
     """Run apscheduler and add tasks."""
     global scheduler
     scheduler = AsyncIOScheduler(timezone=settings.tz)
-    scheduler.add_job(send_subscription_expiration_notifications, 'cron', minute='0,30')
+    scheduler.add_job(_purge_subscription_events, 'cron', hour=23, minute=30)
     scheduler.add_job(send_database_backup, 'cron', hour=23, minute=00)
     # Payment-reconciler: catches webhooks the bot missed (extended downtime,
     # mis-registered URL). Provider retries cover transient blips; this is the
@@ -47,85 +46,13 @@ async def apscheduler_finish():
     logger.info('Scheduler has been successfully shut down!')
 
 
-async def send_subscription_expiration_notifications():
-    """Send messages to clients with expiring subscription."""
-    logger.info('Messages are being sent to clients with an expiring subscription period')
-    clients_notifications_status = await postgres_dbms.get_notifications_status()
-
-    # for every client in db
-    for telegram_id, is_sub_expiration_now, is_sub_expiration_in_1d, is_sub_expiration_in_3d, is_sub_expiration_in_7d in clients_notifications_status:
-
-        # if client's subscription expires between [CURRENT_TIMESTAMP, CURRENT_TIMESTAMP + INTERVAL '30 minutes')
-        if is_sub_expiration_now:
-            client_id, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
-            logger.info(f'Send message to client: {telegram_id} {name}. Subscription has expired.')
-
-            # send message to client
-            await internal_functions.safe_deliver(
-                lambda: bot.send_message(telegram_id, loc.auth.msgs['sub_expired']),
-                telegram_id=telegram_id,
-            )
-
-            # send simplified notification to admin (Remnawave auto-expires, no config rebroadcast)
-            surname_str = await internal_functions.format_none_string(surname)
-            username_str = await internal_functions.format_none_string(username)
-            subscription_url = await postgres_dbms.get_client_remnawave_subscription_url_by_telegramID(telegram_id) or 'N/A'
-            await bot.send_message(settings.bot.admin_id,
-                                   loc.admn.msgs['sub_expired'].format(client_id, username_str, name, surname_str, telegram_id, subscription_url))
-
-        # if client's subscription expires between [CURRENT_TIMESTAMP + INTERVAL '1 day', CURRENT_TIMESTAMP + INTERVAL '1 day 30 minutes')
-        if is_sub_expiration_in_1d:
-            client_id, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
-            logger.info(f'Send message to client: {telegram_id} {name}. Subscription expires in 1 day.')
-
-            # send message to client
-            await internal_functions.safe_deliver(
-                lambda: bot.send_message(telegram_id, loc.auth.msgs['sub_expires_1d']),
-                telegram_id=telegram_id,
-            )
-
-            # send message to admin
-            # convert surname and username for beautiful formatting
-            surname_str = await internal_functions.format_none_string(surname)
-            username_str = await internal_functions.format_none_string(username)
-            await bot.send_message(settings.bot.admin_id,
-                                   loc.admn.msgs['sub_expires_1d'].format(client_id, username_str, name, surname_str, telegram_id))
-
-        # if client's subscription expires between [CURRENT_TIMESTAMP + INTERVAL '3 days', CURRENT_TIMESTAMP + INTERVAL '3 days 30 minutes')
-        if is_sub_expiration_in_3d:
-            client_id, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
-            logger.info(f'Send message to client: {telegram_id} {name}. Subscription expires in 3 days.')
-
-            # send message to client
-            await internal_functions.safe_deliver(
-                lambda: bot.send_message(telegram_id, loc.auth.msgs['sub_expires_3d']),
-                telegram_id=telegram_id,
-            )
-
-            # send message to admin
-            # convert surname and username for beautiful formatting
-            surname_str = await internal_functions.format_none_string(surname)
-            username_str = await internal_functions.format_none_string(username)
-            await bot.send_message(settings.bot.admin_id,
-                                   loc.admn.msgs['sub_expires_3d'].format(client_id, username_str, name, surname_str, telegram_id))
-
-        # if client's subscription expires between [CURRENT_TIMESTAMP + INTERVAL '7 days', CURRENT_TIMESTAMP + INTERVAL '7 days 30 minutes')
-        if is_sub_expiration_in_7d:
-            client_id, name, surname, username, *_ = await postgres_dbms.get_client_info_by_telegramID(telegram_id)
-            logger.info(f'Send message to client: {telegram_id} {name}. Subscription expires in 7 days.')
-
-            # send message to client
-            await internal_functions.safe_deliver(
-                lambda: bot.send_message(telegram_id, loc.auth.msgs['sub_expires_7d']),
-                telegram_id=telegram_id,
-            )
-
-            # send message to admin
-            # convert surname and username for beautiful formatting
-            surname_str = await internal_functions.format_none_string(surname)
-            username_str = await internal_functions.format_none_string(username)
-            await bot.send_message(settings.bot.admin_id,
-                                   loc.admn.msgs['sub_expires_7d'].format(client_id, username_str, name, surname_str, telegram_id))
+async def _purge_subscription_events() -> None:
+    """Delete processed subscription events older than 90 days."""
+    try:
+        deleted = await postgres_dbms.purge_done_subscription_events(days=90)
+        logger.info('Purged %d processed subscription events', deleted)
+    except Exception:
+        logger.exception('Subscription events purge failed; will retry tomorrow')
 
 
 def _purge_old_backups(directory: Path, keep: int) -> None:
