@@ -4,6 +4,7 @@ Built once at import time from `settings.remnawave.*` and imported by
 services/scripts that need to talk to the panel. Mirrors the `src/runtime.py`
 pattern used for the aiogram Bot/Dispatcher.
 """
+import httpx
 from remnawave import RemnawaveSDK
 
 from src.config import settings
@@ -20,3 +21,13 @@ def build_remnawave_sdk() -> RemnawaveSDK:
 
 
 remnawave_sdk: RemnawaveSDK = build_remnawave_sdk()
+
+# The SDK's own httpx client: base URL with ``/api``, Bearer token, Caddy
+# ``X-Api-Key`` and ``x-forwarded-*`` headers are already set on it.
+# Used for the few calls the SDK can't express: its request DTOs are
+# serialized with ``exclude_none=True``, so e.g. ``externalSquadUuid: null``
+# (remove the user from an external squad) can't be sent through
+# ``users.update_user``. Verified against remnawave/backend 2.7.4.
+_sdk_http_client = remnawave_sdk._client  # pyright: ignore[reportPrivateUsage]
+assert _sdk_http_client is not None  # always built by RemnawaveSDK when no client is passed
+remnawave_http: httpx.AsyncClient = _sdk_http_client

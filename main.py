@@ -26,8 +26,8 @@ from aiohttp import web
 
 from src.middlewares import user_authorized_mw, user_unauthorized_mw, admin_mw, throttling_mw
 from src.handlers import user_authorized, user_unauthorized, admin, other
-from src.database import postgres_dbms
-from src.services import scheduler
+from src.database import connection
+from src.services import scheduler, subscription_events
 from src.runtime import dp, bot
 from src.config import settings
 from src.payments.runtime import payment_service, aclose_all_providers
@@ -38,15 +38,17 @@ logger = logging.getLogger(__name__)
 
 
 async def on_startup() -> None:
-    """Connect to database and run scheduler during bot launch."""
-    await postgres_dbms.asyncpg_run()
+    """Connect to database, run scheduler and subscription events worker during bot launch."""
+    await connection.asyncpg_run()
     await scheduler.apscheduler_start()
+    await subscription_events.worker.start()
     logger.info('Bot has been successfully launched!')
 
 
 async def on_shutdown() -> None:
     """Disconnect from database and finish scheduler during bot shutdown."""
-    await postgres_dbms.asyncpg_close()
+    await subscription_events.worker.stop()
+    await connection.asyncpg_close()
     await scheduler.apscheduler_finish()
     await aclose_all_providers()
     await dp.storage.close()
