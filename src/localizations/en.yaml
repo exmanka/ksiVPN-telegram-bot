@@ -370,7 +370,7 @@ admin:
       <b>Client ID</b>: <code>{0}</code>
       <b>Telegram INFO</b>:{1} <code>{2}{3}</code> <code>{4}</code>
       <b>Subscription URL</b>: {5}
-      <b>Telegram access until</b>: {6}
+      <b>Telegram access</b>: until {6}
     grace_sync_failed: |-
       ⚠️ <b>Failed to move the user to the grace period — the user has no VPN access right now.</b>
 
