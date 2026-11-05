@@ -22,7 +22,9 @@ from the current ``expiration_date`` is stale (the date changed after it was
 scheduled) and is claimed without effect.
 """
 import asyncio
+import html
 import logging
+from datetime import timedelta
 from enum import Enum
 
 import asyncpg
@@ -31,6 +33,8 @@ from src.config import settings
 from src.database import connection, subscription_events_db
 from src.runtime import bot
 from src.services import internal_functions, localization as loc
+from src.services.date_formatting import format_localized_bonus_days, format_localized_datetime
+from src.services.remnawave_service import RemnawaveError
 
 
 logger = logging.getLogger(__name__)
@@ -100,7 +104,51 @@ async def _handle_reminder(event: asyncpg.Record) -> EventOutcome:
     return EventOutcome.DONE
 
 
+async def _enter_grace(event: asyncpg.Record) -> EventOutcome | None:
+    """Move the panel user into the «Telegram-only» grace period.
+
+    Returns None when the client gets no grace after all (not provisioned in the panel, or the
+    event fired after the grace window already closed) so the caller falls back to the regular
+    «subscription expired» flow.
+    """
+    try:
+        result = await internal_functions.sync_panel_user(event['client_id'])
+    except RemnawaveError as exc:
+        # The panel already expired the user at expireAt: no access at all until this succeeds.
+        logger.error('Subscription event %s: failed to start grace for client %s (attempt %s): %s',
+                     event['id'], event['client_id'], event['attempts'] + 1, exc)
+        if event['attempts'] == 0:
+            await _notify_admin(loc.admn.msgs['grace_sync_failed'].format(
+                *await _admin_client_args(event), html.escape(str(exc))))
+        return EventOutcome.RETRY
+
+    if result is not internal_functions.PanelSyncResult.GRACE:
+        return None
+
+    grace_days = settings.remnawave.grace.days
+    grace_until = event['expiration_date'] + timedelta(days=grace_days)
+    # No follow-up event for the end of grace: the panel expires the user at expireAt on its own,
+    # and the client already knows the grace length from this message.
+    if not await subscription_events_db.claim_subscription_event(event['id']):
+        return EventOutcome.DONE
+
+    logger.info('Subscription event %s (expired): client %s is in grace until %s',
+                event['id'], event['telegram_id'], grace_until)
+    await _notify_user(event['telegram_id'], loc.auth.msgs['sub_expired_grace'].format(
+        days=format_localized_bonus_days(timedelta(days=grace_days)),
+    ))
+    subscription_url = event['remnawave_subscription_url'] or 'N/A'
+    await _notify_admin(loc.admn.msgs['sub_expired_grace'].format(
+        *await _admin_client_args(event), subscription_url, format_localized_datetime(grace_until)))
+    return EventOutcome.DONE
+
+
 async def _handle_expired(event: asyncpg.Record) -> EventOutcome:
+    if settings.remnawave.grace.enabled:
+        outcome = await _enter_grace(event)
+        if outcome is not None:
+            return outcome
+
     if not await subscription_events_db.claim_subscription_event(event['id']):
         return EventOutcome.DONE
 

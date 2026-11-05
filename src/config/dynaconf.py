@@ -115,6 +115,17 @@ dynaconf_settings = Dynaconf(
         Validator("remnawave.token", must_exist=True, is_type_of=str, len_min=10),
         Validator("remnawave.caddy_token", default=None),
         Validator("remnawave.webhook_secret", default=None),
+        Validator("remnawave.grace.enabled", default=False, is_type_of=bool),
+        Validator("remnawave.grace.days", default=3, is_type_of=int, gte=1, lte=30),
+        Validator(
+            "remnawave.grace.squad_uuid",
+            must_exist=True,
+            condition=lambda v: isinstance(v, str) and v != "",
+            messages={"condition": "remnawave.grace.squad_uuid is required when remnawave.grace.enabled=true"},
+            when=Validator("remnawave.grace.enabled", eq=True),
+        ),
+        Validator("remnawave.grace.squad_uuid", default=None),
+        Validator("remnawave.grace.external_squad_uuid", default=None),
     ],
 )
 

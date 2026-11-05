@@ -250,3 +250,70 @@ async def test_notify_cuts_sleep_short(db):
     task.cancel()
     with pytest.raises(asyncio.CancelledError):
         await task
+
+
+# --- grace period ---------------------------------------------------------------
+
+@pytest.fixture
+def grace_on(monkeypatch, db):
+    """Enable a 3-day grace period; mock the panel sync."""
+    from src.config.schema import GraceSettings
+    monkeypatch.setattr(se.settings.remnawave, 'grace', GraceSettings(
+        enabled=True, days=3, squad_uuid='11111111-1111-1111-1111-111111111111'))
+    sync = AsyncMock(return_value=se.internal_functions.PanelSyncResult.GRACE)
+    monkeypatch.setattr(se.internal_functions, 'sync_panel_user', sync)
+    return sync
+
+
+async def test_expired_with_grace_enters_grace(db, sent, grace_on):
+    assert await se.process_event(_event(kind='expired')) is se.EventOutcome.DONE
+
+    grace_on.assert_awaited_once_with(100)
+    db['claim_subscription_event'].assert_awaited_once_with(1)
+    assert sent[0][0] == 555 and 'Telegram' in sent[0][1]
+    assert sent[0][1] != loc.auth.msgs['sub_expired']
+    assert sent[1][1] == loc.admn.msgs['sub_expired_grace'].format(
+        100, ' ivan', 'Ivan', '', 555, 'https://sub.example/abc', se.format_localized_datetime(EXPIRATION + se.timedelta(days=3)))
+
+
+async def test_expired_with_grace_message_uses_configured_days(db, sent, grace_on, monkeypatch):
+    from src.config.schema import GraceSettings
+    monkeypatch.setattr(se.settings.remnawave, 'grace', GraceSettings(
+        enabled=True, days=1, squad_uuid='11111111-1111-1111-1111-111111111111'))
+
+    await se.process_event(_event(kind='expired'))
+
+    expected = loc.auth.msgs['sub_expired_grace'].format(
+        days=se.format_localized_bonus_days(se.timedelta(days=1)))
+    assert sent[0][1] == expected
+
+
+async def test_expired_grace_panel_failure_retries_and_alerts_admin_once(db, sent, grace_on):
+    grace_on.side_effect = se.RemnawaveError('panel down')
+
+    assert await se.process_event(_event(kind='expired', attempts=0)) is se.EventOutcome.RETRY
+    db['claim_subscription_event'].assert_not_awaited()
+    assert [tid for tid, _ in sent] == [se.settings.bot.admin_id]
+
+    sent.clear()
+    assert await se.process_event(_event(kind='expired', attempts=3)) is se.EventOutcome.RETRY
+    assert sent == []  # no repeated admin alerts on later attempts
+
+
+@pytest.mark.parametrize('result', ['REGULAR', 'NO_RECORD'])
+async def test_expired_without_grace_result_falls_back_to_regular_message(db, sent, grace_on, result):
+    grace_on.return_value = getattr(se.internal_functions.PanelSyncResult, result)
+
+    await se.process_event(_event(kind='expired'))
+
+    assert sent[0] == (555, loc.auth.msgs['sub_expired'])
+
+
+async def test_expired_grace_disabled_does_not_touch_panel(db, sent, monkeypatch):
+    sync = AsyncMock()
+    monkeypatch.setattr(se.internal_functions, 'sync_panel_user', sync)
+
+    await se.process_event(_event(kind='expired'))
+
+    sync.assert_not_awaited()
+    assert sent[0] == (555, loc.auth.msgs['sub_expired'])

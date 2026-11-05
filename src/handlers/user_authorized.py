@@ -691,7 +691,7 @@ async def account_promo_check(message: Message, state: FSMContext):
         await promocodes_db.apply_ref_promo_to_existing_client(client_id, ref_promo_id, provided_sub_id, bonus_time)
         await internal_functions.notify_client_new_referal(client_creator_id, message.from_user.first_name, message.from_user.username)
         await internal_functions.notify_admin_promo_entered(client_id, message.text, 'ref')
-        await internal_functions.extend_remnawave_expiry_for_client(client_id)
+        await internal_functions.sync_panel_user_safely(client_id)
 
         creator_name, *_ = await clients_db.get_client_info_by_clientID(client_creator_id)
         _, title, _, price = await subscriptions_db.get_subscription_info_by_clientID(client_id)
@@ -714,7 +714,7 @@ async def account_promo_check(message: Message, state: FSMContext):
                 if await promocodes_db.is_global_promo_has_remaining_activations(global_promo_id):
                     await promocodes_db.insert_client_entered_global_promo(client_id, global_promo_id, bonus_time)
                     await internal_functions.notify_admin_promo_entered(client_id, message.text, 'global')
-                    await internal_functions.extend_remnawave_expiry_for_client(client_id)
+                    await internal_functions.sync_panel_user_safely(client_id)
                     await message.answer(loc.auth.msgs['global_promo_accepted'].format(format_localized_bonus_days(bonus_time)), reply_markup=user_authorized_kb.account)
                     await state.set_state(user_authorized_fsm.AccountMenu.menu)
                 else:
@@ -732,7 +732,7 @@ async def account_promo_check(message: Message, state: FSMContext):
                 if await promocodes_db.is_local_promo_valid(local_promo_id):
                     await promocodes_db.insert_client_entered_local_promo(client_id, local_promo_id, bonus_time)
                     await internal_functions.notify_admin_promo_entered(client_id, message.text, 'local')
-                    await internal_functions.extend_remnawave_expiry_for_client(client_id)
+                    await internal_functions.sync_panel_user_safely(client_id)
 
                     new_sub_str = ''
                     if provided_sub_id:

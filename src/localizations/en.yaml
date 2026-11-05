@@ -46,8 +46,10 @@ user_authorized:
     subscription_info_status_free: active forever 🔥
     subscription_info_status_active: active 🔥
     subscription_info_status_inactive: deactivated 💔
+    subscription_info_status_grace: expired, only Telegram works ⏳
     subscription_info_expiry_line_active: "\n<b>Expires</b>: {0}"
     subscription_info_expiry_line_inactive: "\n<b>Expired</b>: {0}"
+    subscription_info_expiry_line_grace: "\n<b>Expired</b>: {0}\n<b>Telegram available until</b>: {1}"
     subscription_info_url_pending: being set up
     subscription_info_url_blank: available after subscription renewal
     how_to_connect_subscription: |-
@@ -223,6 +225,12 @@ user_authorized:
       👾 <b>Oh, oh! The subscription has expired, the VPN will have to be disabled</b>
 
       We hope that this is temporary, and you will definitely come back to us! ♥️
+    sub_expired_grace: |-
+      👾 <b>Oh, oh! The subscription has expired — only Telegram works now</b>
+
+      For {days} we've kept your Telegram access through a special location: «🇸🇴 Telegram Only — for subscription renewal». The rest of the traffic through the VPN won't be available.
+
+      We hope that this is temporary, and you will definitely come back to us! ♥️
     sub_expires_1d: |-
       👾 <b>Notifying: the subscription expires in 1 day</b>
 
@@ -356,6 +364,21 @@ admin:
       <b>Client ID</b>: <code>{0}</code>
       <b>Telegram INFO</b>:{1} <code>{2}{3}</code> <code>{4}</code>
       <b>Subscription URL</b>: {5}
+    sub_expired_grace: |-
+      👾 <b>The user's subscription has expired.</b>
+
+      <b>Client ID</b>: <code>{0}</code>
+      <b>Telegram INFO</b>:{1} <code>{2}{3}</code> <code>{4}</code>
+      <b>Subscription URL</b>: {5}
+      <b>Telegram access until</b>: {6}
+    grace_sync_failed: |-
+      ⚠️ <b>Failed to move the user to the grace period — the user has no VPN access right now.</b>
+
+      The bot retries every minute.
+
+      <b>Client ID</b>: <code>{0}</code>
+      <b>Telegram INFO</b>:{1} <code>{2}{3}</code> <code>{4}</code>
+      <b>Error</b>: <code>{5}</code>
     sub_expires_1d: |-
       👾 <b>The user's subscription expires in 1 day.</b>
 

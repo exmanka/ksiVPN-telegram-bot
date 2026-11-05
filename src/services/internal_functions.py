@@ -1,8 +1,12 @@
+import asyncio
 import logging
 import html
-from datetime import datetime
+import uuid
+from collections import defaultdict
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import Awaitable, Callable
+from zoneinfo import ZoneInfo
 from aiogram.types import Message, ReplyKeyboardMarkup, InlineKeyboardMarkup
 from aiogram.fsm.context import FSMContext
 from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
@@ -13,8 +17,16 @@ from src.states import user_authorized_fsm
 from src.database import clients_db, payments_db, promocodes_db, remnawave_db, subscriptions_db
 from src.services import localization as loc
 from src.services.date_formatting import format_localized_bonus_days, format_localized_datetime
-from src.services.remnawave_service import RemnawaveError, create_panel_user, extend_panel_user_expiry, get_user_hwid_devices
+from src.services.remnawave_service import (
+    UNSET,
+    RemnawaveError,
+    create_panel_user,
+    get_panel_user_squads,
+    get_user_hwid_devices,
+    update_panel_user,
+)
 from src.config import settings
+from src.config.schema import GraceSettings
 from src.runtime import bot
 
 
@@ -364,7 +376,7 @@ async def check_referral_reward(ref_client_id: int):
         # add subscription bonus time (30 days) for old client
         _, client_creator_id, *_ = await promocodes_db.get_refferal_promo_info_by_promoID(used_ref_promo_id)
         await subscriptions_db.add_subscription_period(client_creator_id, days=30)
-        await extend_remnawave_expiry_for_client(client_creator_id)
+        await sync_panel_user_safely(client_creator_id)
 
         # notify old client about new bonus
         # if client's username exists (add whitespace for good string formatting)
@@ -427,30 +439,132 @@ async def authorization_complete(from_user: User, state: FSMContext) -> None:
     await state.clear()
 
 
-async def extend_remnawave_expiry_for_client(client_id: int) -> None:
-    """Sync the client's subscription expiry to Remnawave Panel after a payment or promo code.
+class PanelSyncResult(Enum):
+    """What :func:`sync_panel_user` left the panel user in."""
+    NO_RECORD = 'no_record'  # client isn't provisioned in Remnawave (no clients_remnawave row)
+    REGULAR = 'regular'      # expireAt = real expiration date, regular squads
+    GRACE = 'grace'          # «Telegram-only» grace period
 
-    Silently skips clients not yet provisioned in Remnawave (warns admin).
-    Logs error and notifies admin on panel API failures without propagating.
+
+def is_in_grace_window(expiration: datetime, price, now: datetime, grace: GraceSettings) -> bool:
+    """Whether the client must be in the «Telegram-only» grace period right now.
+
+    Only paid subscriptions get grace; the window is ``[expiration, expiration + grace.days)``.
     """
-    remnawave_uuid = await remnawave_db.get_client_remnawave_uuid_by_clientID(client_id)
-    if remnawave_uuid is None:
-        logger.warning("Client %s has no Remnawave record — skipping expiry sync", client_id)
-        await safe_deliver(
-            lambda: bot.send_message(settings.bot.admin_id, loc.internal.msgs['remnawave_expiry_sync_no_record'].format(client_id)),
-            telegram_id=settings.bot.admin_id,
-        )
-        return
+    return (grace.enabled
+            and price > 0
+            and expiration <= now < expiration + timedelta(days=grace.days))
 
-    new_expire_at = await subscriptions_db.get_subscription_expiration_date_by_clientID(client_id)
+
+# One lock per client: payment webhooks, the reconciler, promo handlers and the
+# subscription events worker all run in this single event loop and may sync the
+# same panel user concurrently.
+_panel_sync_locks: defaultdict[int, asyncio.Lock] = defaultdict(asyncio.Lock)
+
+
+async def _pre_grace_internal_squads_fallback(grace: GraceSettings) -> list[uuid.UUID]:
+    """Squads to restore when nothing usable was captured: a random assignable squad + the reserve grace squad."""
+    squads: list[uuid.UUID] = []
+    if base := await remnawave_db.get_random_active_remnawave_squad_uuid():
+        squads.append(base)
+    if grace.squad_uuid and grace.squad_uuid not in squads:
+        squads.append(grace.squad_uuid)
+    return squads
+
+
+async def sync_panel_user(client_id: int) -> PanelSyncResult:
+    """Bring the client's Remnawave user in line with the bot DB (the source of truth).
+
+    The single place that writes expireAt/squads to the panel for an existing user:
+
+    * outside grace — ``expireAt`` = real ``expiration_date`` (the VPN app shows the same date as the bot);
+    * entering grace — capture the user's current internal/external squads from the panel into
+      ``clients_remnawave``, then ``expireAt`` = expiration + grace.days, internal squads = [grace squad],
+      external squad = grace external squad (only if configured);
+    * still in grace — re-apply the grace state (idempotent, e.g. after a failed attempt);
+    * leaving grace (payment, promo code, grace disabled) — restore the captured squads, then forget them.
+
+    Raises RemnawaveError on panel failures; the DB grace state is written so that a retry converges.
+    """
+    async with _panel_sync_locks[client_id]:
+        state = await remnawave_db.get_client_panel_state(client_id)
+        if state is None:
+            return PanelSyncResult.NO_RECORD
+
+        grace = settings.remnawave.grace
+        remnawave_uuid = state['remnawave_uuid']
+        expiration = state['expiration_date']
+
+        if is_in_grace_window(expiration, state['price'], state['now'], grace):
+            if state['grace_started_at'] is None:
+                internal, external = await get_panel_user_squads(remnawave_uuid)
+                # A user that somehow already has only the grace squad has nothing worth restoring.
+                pre_internal = internal if any(s != grace.squad_uuid for s in internal) else None
+                pre_external = external if external != grace.external_squad_uuid else None
+                await remnawave_db.start_client_grace(client_id, pre_internal, pre_external)
+                logger.info("Client %s enters grace: pre-grace internal=%s external=%s",
+                            client_id, pre_internal, pre_external)
+
+            await update_panel_user(
+                remnawave_uuid,
+                expire_at=expiration + timedelta(days=grace.days),
+                internal_squads=[grace.squad_uuid] if grace.squad_uuid else UNSET,
+                external_squad=grace.external_squad_uuid if grace.external_squad_uuid else UNSET,
+            )
+            return PanelSyncResult.GRACE
+
+        if state['grace_started_at'] is not None:
+            internal = state['pre_grace_internal_squads']
+            if not internal:
+                logger.warning("Client %s leaves grace without captured squads — assigning fallback squads", client_id)
+                internal = await _pre_grace_internal_squads_fallback(grace)
+            pre_external = state['pre_grace_external_squad_uuid']
+            # Touch the external squad only if grace could have changed it.
+            external = pre_external if (grace.external_squad_uuid or pre_external) else UNSET
+
+            await update_panel_user(remnawave_uuid, expire_at=expiration,
+                                    internal_squads=internal, external_squad=external)
+            await remnawave_db.clear_client_grace(client_id)
+            logger.info("Client %s leaves grace: restored internal=%s external=%s", client_id, internal, pre_external)
+            return PanelSyncResult.REGULAR
+
+        await update_panel_user(remnawave_uuid, expire_at=expiration)
+        return PanelSyncResult.REGULAR
+
+
+async def sync_panel_user_safely(client_id: int) -> None:
+    """:func:`sync_panel_user` for payment / promo code paths: never raises, alerts the admin instead.
+
+    A client without a Remnawave record is skipped with a warning (and an admin alert).
+    """
     try:
-        await extend_panel_user_expiry(remnawave_uuid, new_expire_at)
+        result = await sync_panel_user(client_id)
     except RemnawaveError as exc:
-        logger.error("Failed to sync expiry for client_id=%s remnawave_uuid=%s: %s", client_id, remnawave_uuid, exc)
+        logger.error("Failed to sync Remnawave user of client_id=%s: %s", client_id, exc)
         await safe_deliver(
             lambda: bot.send_message(settings.bot.admin_id, loc.internal.msgs['remnawave_expiry_sync_error'].format(client_id, html.escape(str(exc)))),
             telegram_id=settings.bot.admin_id,
         )
+        return
+
+    if result is PanelSyncResult.NO_RECORD:
+        logger.warning("Client %s has no Remnawave record — skipping panel sync", client_id)
+        await safe_deliver(
+            lambda: bot.send_message(settings.bot.admin_id, loc.internal.msgs['remnawave_expiry_sync_no_record'].format(client_id)),
+            telegram_id=settings.bot.admin_id,
+        )
+
+
+async def _get_grace_until(telegram_id: int) -> datetime | None:
+    """Return when the client's current «Telegram-only» grace period ends, or None if not in grace."""
+    if await remnawave_db.get_client_grace_started_at_by_telegramID(telegram_id) is None:
+        return None
+    expiration_date = await subscriptions_db.get_subscription_expiration_date(telegram_id)
+    if expiration_date is None:
+        return None
+    grace_until = expiration_date + timedelta(days=settings.remnawave.grace.days)
+    now = datetime.now(ZoneInfo(settings.tz)).replace(tzinfo=None)  # DB timestamps are naive, in settings.tz
+    return grace_until if now < grace_until else None
 
 
 async def build_subscription_card(telegram_id: int) -> str:
@@ -480,6 +594,11 @@ async def build_subscription_card(telegram_id: int) -> str:
         expiration_date = await subscriptions_db.get_subscription_expiration_date(telegram_id)
         expiry = loc.auth.msgs['subscription_info_expiry_line_active'].format(
             format_localized_datetime(expiration_date)) if expiration_date else ''
+    elif grace_until := await _get_grace_until(telegram_id):
+        status = loc.auth.msgs['subscription_info_status_grace']
+        expiration_date = await subscriptions_db.get_subscription_expiration_date(telegram_id)
+        expiry = loc.auth.msgs['subscription_info_expiry_line_grace'].format(
+            format_localized_datetime(expiration_date), format_localized_datetime(grace_until))
     else:
         status = loc.auth.msgs['subscription_info_status_inactive']
         expiration_date = await subscriptions_db.get_subscription_expiration_date(telegram_id)
@@ -566,10 +685,10 @@ async def finalize_successful_payment(
     and manual user re-checks all end up here through the same path.
     """
     try:
-        await extend_remnawave_expiry_for_client(client_id)
+        await sync_panel_user_safely(client_id)
     except Exception:
         logger.exception(
-            "extend_remnawave_expiry_for_client failed for client_id=%s after payment_id=%s",
+            "sync_panel_user_safely failed for client_id=%s after payment_id=%s",
             client_id, payment_id,
         )
 

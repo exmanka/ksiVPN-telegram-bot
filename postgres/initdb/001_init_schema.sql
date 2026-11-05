@@ -210,6 +210,9 @@ CREATE TABLE clients_remnawave (
 	client_id INT UNIQUE NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
 	remnawave_uuid UUID UNIQUE NOT NULL,
 	remnawave_subscription_url TEXT NOT NULL,
+	grace_started_at TIMESTAMP,
+	pre_grace_internal_squads UUID[],
+	pre_grace_external_squad_uuid UUID,
 	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
