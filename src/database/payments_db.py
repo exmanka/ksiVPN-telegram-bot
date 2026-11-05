@@ -119,18 +119,6 @@ async def get_payment_telegram_message_id(payment_id: int) -> int | None:
             payment_id)
 
 
-async def get_payment_days_number(payment_id: int) -> int | None:
-    """Return paid number of days for specified payment_id."""
-    async with acquire() as conn:
-        return await conn.fetchval(
-            '''
-            SELECT days_number
-            FROM payments
-            WHERE id = $1;
-            ''',
-            payment_id)
-
-
 async def get_payment_last_message_id(client_id: int) -> asyncpg.Record | None:
     """Return telegram message id for last created payment."""
     async with acquire() as conn:
@@ -276,47 +264,6 @@ async def get_payment_finalize_context(payment_id: int) -> asyncpg.Record | None
             WHERE p.id = $1;
             ''',
             payment_id)
-
-
-async def update_payment_successful(payment_id: int, client_id: int, paid_days: int) -> None:
-    """Change status of payment specified by payment_id to successful and change subscription data.
-
-    Writes both legacy ``is_successful`` flag and the new ``status``/``paid_at``/``updated_at``
-    columns so legacy and new read paths stay consistent until the legacy column is dropped.
-
-    .. note::
-        This function is non-idempotent — calling twice doubles the subscription extension.
-        New code paths should use :func:`claim_payment_finalize` instead.
-    """
-    async with acquire() as conn:
-        async with conn.transaction():
-            await conn.execute(
-                '''
-                UPDATE payments
-                SET is_successful = TRUE,
-                    status        = 'succeeded',
-                    paid_at       = CURRENT_TIMESTAMP,
-                    updated_at    = CURRENT_TIMESTAMP
-                WHERE id = $1;
-                ''',
-                payment_id)
-
-            await conn.execute(
-                '''
-                UPDATE clients_subscriptions
-                SET paid_days_counter = paid_days_counter + $1,
-                expiration_date =
-                CASE
-                    -- Blank (EPOCH) or expired: count from now
-                    WHEN expiration_date <= CURRENT_TIMESTAMP
-                    THEN CURRENT_TIMESTAMP + make_interval(days => $1)
-
-                    -- Active: extend from current expiry
-                    ELSE expiration_date + make_interval(days => $1)
-                END
-                WHERE client_id = $2;
-                ''',
-                paid_days, client_id)
 
 
 async def update_payment_telegram_message_id(payment_id: int, telegram_message_id: int) -> None:

@@ -4,12 +4,6 @@ import asyncpg
 from src.database.connection import acquire
 
 
-# ---------------------------------------------------------------------------
-# Subscription events — the schedule is owned by the clients_subscriptions
-# trigger (postgres/migrations/013_subscription_events.sql); Python only
-# consumes it. Never insert reminder/expiration events from here.
-# ---------------------------------------------------------------------------
-
 SUBSCRIPTION_EVENTS_CHANNEL = 'subscription_events'
 
 

@@ -29,18 +29,6 @@ async def get_clientID_by_telegramID(telegram_id: int) -> int | None:
             telegram_id)
 
 
-async def get_clientID_by_username(username: str) -> int | None:
-    """Return client_id by specified @username."""
-    async with acquire() as conn:
-        return await conn.fetchval(
-            '''
-            SELECT id
-            FROM clients
-            WHERE username = $1;
-            ''',
-            username)
-
-
 async def get_telegramID_by_clientID(client_id: str) -> int | None:
     """Return telegram_id by specified client_id."""
     async with acquire() as conn:

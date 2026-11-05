@@ -1,5 +1,4 @@
 """``clients_remnawave`` and ``remnawave_internal_squads``: panel provisioning state."""
-import asyncpg
 import uuid
 
 from src.database.connection import acquire
@@ -39,18 +38,6 @@ async def update_client_remnawave_subscription_url(remnawave_uuid: uuid.UUID,
             remnawave_uuid, subscription_url) is not None
 
 
-async def has_remnawave_record(client_id: int) -> bool:
-    """Return True if client already has a Remnawave panel record."""
-    async with acquire() as conn:
-        return bool(await conn.fetchval(
-            '''
-            SELECT EXISTS(
-                SELECT 1 FROM clients_remnawave WHERE client_id = $1
-            );
-            ''',
-            client_id))
-
-
 async def get_client_remnawave_uuid_by_clientID(client_id: int) -> uuid.UUID | None:
     """Return remnawave_uuid for client_id, or None if not provisioned."""
     async with acquire() as conn:
@@ -85,19 +72,6 @@ async def get_client_remnawave_subscription_url_by_telegramID(telegram_id: int) 
             WHERE c.telegram_id = $1;
             ''',
             telegram_id)
-
-
-async def get_clients_without_remnawave_record() -> list[asyncpg.Record]:
-    """Return all clients that have no Remnawave panel record yet (for migration script)."""
-    async with acquire() as conn:
-        return await conn.fetch(
-            '''
-            SELECT c.id, c.telegram_id, c.username, cs.expiration_date
-            FROM clients AS c
-            JOIN clients_subscriptions AS cs ON cs.client_id = c.id
-            LEFT JOIN clients_remnawave AS cr ON cr.client_id = c.id
-            WHERE cr.client_id IS NULL;
-            ''')
 
 
 # ---------------------------------------------------------------------------

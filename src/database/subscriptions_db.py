@@ -20,24 +20,6 @@ async def is_subscription_active(telegram_id: int) -> bool | None:
             telegram_id)
 
 
-async def is_subscription_not_started(telegram_id: int) -> bool | None:
-    """Check admin hasn't send first client's configuration to activate subscription.
-
-    Actually check subscription's expiration date before 1980 year (peculiarity of implementation of database architecture).
-    """
-    async with acquire() as conn:
-        return await conn.fetchval(
-            '''
-            SELECT TRUE
-            FROM clients_subscriptions AS cs
-            JOIN clients AS c
-            ON cs.client_id = c.id
-            WHERE c.telegram_id = $1
-            AND cs.expiration_date < TIMESTAMP 'EPOCH' + INTERVAL '10 years';
-            ''',
-            telegram_id)
-
-
 async def is_subscription_blank(telegram_id: int) -> bool | None:
     """Check subscription was never paid or renewed.
     
@@ -90,23 +72,6 @@ async def get_subscription_info_by_clientID(client_id: int) -> asyncpg.Record | 
             JOIN subscriptions AS sub
             ON sub.id = clients_sub.sub_id
             WHERE clients_sub.client_id = $1;
-            ''',
-            client_id)
-
-
-async def get_clients_subscriptions_info_by_clientID(client_id: int) -> asyncpg.Record | None:
-    """Return information about subscription's expiration date of client specified by client_id.
-
-    :param client_id:
-    :return: asyncgp.Record object having (sub_id, paid_days_counter, expiration_date)
-    :rtype: asyncpg.Record | None
-    """
-    async with acquire() as conn:
-        return await conn.fetchrow(
-            '''
-            SELECT sub_id, paid_days_counter, expiration_date
-            FROM clients_subscriptions
-            WHERE client_id = $1;
             ''',
             client_id)
 
