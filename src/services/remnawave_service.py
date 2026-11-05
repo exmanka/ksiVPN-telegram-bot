@@ -131,11 +131,6 @@ async def create_panel_user(telegram_id: int,
         logger.warning("No active Remnawave squads in DB — creating user without squad assignment")
 
     squads = [squad_uuid] if squad_uuid else []
-    # The Telegram-only grace squad is kept on every user as a permanent "reserve" server,
-    # so the app already has its config when the grace period starts.
-    grace = settings.remnawave.grace
-    if grace.enabled and grace.internal_squad_uuid and grace.internal_squad_uuid not in squads:
-        squads.append(grace.internal_squad_uuid)
 
     try:
         dto = CreateUserRequestDto(

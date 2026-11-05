@@ -216,8 +216,8 @@ class GraceSettings(BaseModel):
     """
     enabled: bool = False
     days: int = Field(default=3, ge=1, le=30)
-    # Internal squad with the Telegram-only inbound; also kept on every user
-    # as a permanent "reserve" server. Required when enabled.
+    # Internal squad with only the Telegram-only inbound; replaces the user's
+    # regular squads for the grace period. Required when enabled.
     internal_squad_uuid: UUID | None = None
     # Optional external squad applied for the grace period only.
     external_squad_uuid: UUID | None = None

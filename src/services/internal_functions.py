@@ -462,14 +462,10 @@ def is_in_grace_window(expiration: datetime, price, now: datetime, grace: GraceS
 _panel_sync_locks: defaultdict[int, asyncio.Lock] = defaultdict(asyncio.Lock)
 
 
-async def _pre_grace_internal_squads_fallback(grace: GraceSettings) -> list[uuid.UUID]:
-    """Squads to restore when nothing usable was captured: a random assignable squad + the reserve grace squad."""
-    squads: list[uuid.UUID] = []
-    if base := await remnawave_db.get_random_active_remnawave_squad_uuid():
-        squads.append(base)
-    if grace.internal_squad_uuid and grace.internal_squad_uuid not in squads:
-        squads.append(grace.internal_squad_uuid)
-    return squads
+async def _pre_grace_internal_squads_fallback() -> list[uuid.UUID]:
+    """Squads to restore when nothing usable was captured: a random assignable squad."""
+    base = await remnawave_db.get_random_active_remnawave_squad_uuid()
+    return [base] if base else []
 
 
 async def sync_panel_user(client_id: int) -> PanelSyncResult:
@@ -479,8 +475,8 @@ async def sync_panel_user(client_id: int) -> PanelSyncResult:
 
     * outside grace — ``expireAt`` = real ``expiration_date`` (the VPN app shows the same date as the bot);
     * entering grace — capture the user's current internal/external squads from the panel into
-      ``clients_remnawave``, then ``expireAt`` = expiration + grace.days, internal squads = [grace squad],
-      external squad = grace external squad (only if configured);
+      ``clients_remnawave``, then ``expireAt`` = expiration + grace.days, internal squads = [grace squad]
+      (instead of the regular ones), external squad = grace external squad (only if configured);
     * still in grace — re-apply the grace state (idempotent, e.g. after a failed attempt);
     * leaving grace (payment, promo code, grace disabled) — restore the captured squads, then forget them.
 
@@ -517,7 +513,7 @@ async def sync_panel_user(client_id: int) -> PanelSyncResult:
             internal = state['pre_grace_internal_squads']
             if not internal:
                 logger.warning("Client %s leaves grace without captured squads — assigning fallback squads", client_id)
-                internal = await _pre_grace_internal_squads_fallback(grace)
+                internal = await _pre_grace_internal_squads_fallback()
             pre_external = state['pre_grace_external_squad_uuid']
             # Touch the external squad only if grace could have changed it.
             external = pre_external if (grace.external_squad_uuid or pre_external) else UNSET

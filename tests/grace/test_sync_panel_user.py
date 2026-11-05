@@ -4,8 +4,8 @@ Covers every transition of the «Telegram-only» grace period with the DB layer 
 the panel calls mocked:
 
 - outside grace: expireAt = real expiration, squads untouched;
-- entering grace: pre-grace squads captured from the panel, then [grace squad] +
-  grace external squad (only if configured) + expireAt = expiration + days;
+- entering grace: pre-grace squads captured from the panel as they are, then
+  [grace squad] + grace external squad (only if configured) + expireAt = expiration + days;
 - re-entering after a failed attempt: captured state is not overwritten;
 - leaving grace: captured internal squads and external squad restored (external
   squad cleared with null when the user had none), grace state forgotten;
@@ -61,7 +61,7 @@ def grace(monkeypatch):
 def panel(monkeypatch):
     mocks = {
         'update_panel_user': AsyncMock(),
-        'get_panel_user_squads': AsyncMock(return_value=([BASE, TG], PROMO_EXT)),
+        'get_panel_user_squads': AsyncMock(return_value=([BASE], PROMO_EXT)),
     }
     for name, mock in mocks.items():
         monkeypatch.setattr(inf, name, mock)
@@ -127,10 +127,20 @@ async def test_entering_grace_captures_and_applies_grace_state(db, panel, grace)
 
     assert await inf.sync_panel_user(1) is inf.PanelSyncResult.GRACE
 
-    db['start_client_grace'].assert_awaited_once_with(1, [BASE, TG], PROMO_EXT)
+    db['start_client_grace'].assert_awaited_once_with(1, [BASE], PROMO_EXT)
     panel['update_panel_user'].assert_awaited_once_with(
         RW_USER, expire_at=EXPIRATION + timedelta(days=3), internal_squads=[TG], external_squad=GRACE_EXT,
     )
+
+
+async def test_entering_grace_captures_admin_made_squad_mix_as_is(db, panel, grace):
+    # An admin deliberately gave the user the grace squad next to a regular one.
+    panel['get_panel_user_squads'].return_value = ([BASE, TG], None)
+    db['get_client_panel_state'].return_value = _state(now=EXPIRATION + timedelta(seconds=1))
+
+    await inf.sync_panel_user(1)
+
+    db['start_client_grace'].assert_awaited_once_with(1, [BASE, TG], None)
 
 
 async def test_entering_grace_uses_configured_days(db, panel, grace):
@@ -154,7 +164,7 @@ async def test_entering_grace_without_external_squad_leaves_it_untouched(db, pan
 async def test_retry_in_grace_does_not_recapture(db, panel, grace):
     db['get_client_panel_state'].return_value = _state(
         now=EXPIRATION + timedelta(minutes=1),
-        grace_started_at=EXPIRATION, pre_grace_internal_squads=[BASE, TG], pre_grace_external_squad_uuid=PROMO_EXT,
+        grace_started_at=EXPIRATION, pre_grace_internal_squads=[BASE], pre_grace_external_squad_uuid=PROMO_EXT,
     )
 
     assert await inf.sync_panel_user(1) is inf.PanelSyncResult.GRACE
@@ -176,21 +186,32 @@ async def test_leaving_grace_restores_squads_and_external(db, panel, grace):
     new_expiration = EXPIRATION + timedelta(days=31)
     db['get_client_panel_state'].return_value = _state(
         now=EXPIRATION + timedelta(days=1), expiration_date=new_expiration,
-        grace_started_at=EXPIRATION, pre_grace_internal_squads=[BASE, TG], pre_grace_external_squad_uuid=PROMO_EXT,
+        grace_started_at=EXPIRATION, pre_grace_internal_squads=[BASE], pre_grace_external_squad_uuid=PROMO_EXT,
     )
 
     assert await inf.sync_panel_user(1) is inf.PanelSyncResult.REGULAR
 
     panel['update_panel_user'].assert_awaited_once_with(
-        RW_USER, expire_at=new_expiration, internal_squads=[BASE, TG], external_squad=PROMO_EXT,
+        RW_USER, expire_at=new_expiration, internal_squads=[BASE], external_squad=PROMO_EXT,
     )
     db['clear_client_grace'].assert_awaited_once_with(1)
+
+
+async def test_leaving_grace_restores_admin_made_squad_mix_as_is(db, panel, grace):
+    db['get_client_panel_state'].return_value = _state(
+        now=EXPIRATION + timedelta(days=1), expiration_date=EXPIRATION + timedelta(days=31),
+        grace_started_at=EXPIRATION, pre_grace_internal_squads=[BASE, TG],
+    )
+
+    await inf.sync_panel_user(1)
+
+    assert panel['update_panel_user'].await_args.kwargs['internal_squads'] == [BASE, TG]
 
 
 async def test_leaving_grace_clears_external_squad_when_user_had_none(db, panel, grace):
     db['get_client_panel_state'].return_value = _state(
         now=EXPIRATION + timedelta(days=1), expiration_date=EXPIRATION + timedelta(days=31),
-        grace_started_at=EXPIRATION, pre_grace_internal_squads=[BASE, TG], pre_grace_external_squad_uuid=None,
+        grace_started_at=EXPIRATION, pre_grace_internal_squads=[BASE], pre_grace_external_squad_uuid=None,
     )
 
     await inf.sync_panel_user(1)
@@ -202,7 +223,7 @@ async def test_leaving_grace_without_external_config_leaves_it_untouched(db, pan
     grace(external_squad_uuid=None)
     db['get_client_panel_state'].return_value = _state(
         now=EXPIRATION + timedelta(days=1), expiration_date=EXPIRATION + timedelta(days=31),
-        grace_started_at=EXPIRATION, pre_grace_internal_squads=[BASE, TG], pre_grace_external_squad_uuid=None,
+        grace_started_at=EXPIRATION, pre_grace_internal_squads=[BASE], pre_grace_external_squad_uuid=None,
     )
 
     await inf.sync_panel_user(1)
@@ -218,7 +239,7 @@ async def test_leaving_grace_without_captured_squads_uses_fallback(db, panel, gr
 
     await inf.sync_panel_user(1)
 
-    assert panel['update_panel_user'].await_args.kwargs['internal_squads'] == [BASE, TG]
+    assert panel['update_panel_user'].await_args.kwargs['internal_squads'] == [BASE]
     db['clear_client_grace'].assert_awaited_once_with(1)
 
 
@@ -226,7 +247,7 @@ async def test_panel_failure_on_leave_keeps_grace_state_for_retry(db, panel, gra
     panel['update_panel_user'].side_effect = inf.RemnawaveError('panel down')
     db['get_client_panel_state'].return_value = _state(
         now=EXPIRATION + timedelta(days=1), expiration_date=EXPIRATION + timedelta(days=31),
-        grace_started_at=EXPIRATION, pre_grace_internal_squads=[BASE, TG],
+        grace_started_at=EXPIRATION, pre_grace_internal_squads=[BASE],
     )
 
     with pytest.raises(inf.RemnawaveError):
@@ -238,11 +259,11 @@ async def test_grace_disabled_mid_grace_restores(db, panel, grace):
     grace(enabled=False)
     db['get_client_panel_state'].return_value = _state(
         now=EXPIRATION + timedelta(hours=1),
-        grace_started_at=EXPIRATION, pre_grace_internal_squads=[BASE, TG], pre_grace_external_squad_uuid=PROMO_EXT,
+        grace_started_at=EXPIRATION, pre_grace_internal_squads=[BASE], pre_grace_external_squad_uuid=PROMO_EXT,
     )
 
     assert await inf.sync_panel_user(1) is inf.PanelSyncResult.REGULAR
-    assert panel['update_panel_user'].await_args.kwargs['internal_squads'] == [BASE, TG]
+    assert panel['update_panel_user'].await_args.kwargs['internal_squads'] == [BASE]
 
 
 async def test_free_subscription_never_enters_grace(db, panel, grace):

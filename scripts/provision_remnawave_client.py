@@ -41,9 +41,6 @@
 
 Прочее:
     BOT_TZ  — таймзона, в которой бот хранит даты (по умолчанию 'Europe/Moscow')
-    GRACE_INTERNAL_SQUAD_UUID — необязательно: internal squad «только Telegram»; если задан,
-                       добавляется пользователю как постоянный резерв (как делает бот
-                       при TGBOT_REMNAWAVE__GRACE__ENABLED=true)
 
 Использование:
     # Dry-run (посмотреть что будет сделано):
@@ -87,9 +84,6 @@ REMNAWAVE_CADDY_TOKEN = os.getenv('REMNAWAVE_CADDY_TOKEN')
 # Timezone in which the bot DB stores naive datetimes.
 # Must match TGBOT_TZ / TZ set in docker-compose / .env.
 BOT_TZ = ZoneInfo(os.getenv('BOT_TZ', 'Europe/Moscow'))
-
-# Telegram-only grace squad kept on every user as a "reserve" server (optional).
-GRACE_INTERNAL_SQUAD_UUID = uuid.UUID(os.environ['GRACE_INTERNAL_SQUAD_UUID']) if os.getenv('GRACE_INTERNAL_SQUAD_UUID') else None
 
 # Same rule as src/services/remnawave_service.py:_sanitize_username
 _USERNAME_RE = re.compile(r'^[a-zA-Z0-9_-]{3,36}$')
@@ -235,10 +229,7 @@ async def main(client_id: int, apply: bool) -> None:
         squad_uuid = await _get_random_active_squad_uuid(conn)
         if squad_uuid is None:
             logger.warning("No active assignable Remnawave squads in DB — user will be created without a squad")
-        squads = [squad_uuid] if squad_uuid else []
-        if GRACE_INTERNAL_SQUAD_UUID and GRACE_INTERNAL_SQUAD_UUID not in squads:
-            squads.append(GRACE_INTERNAL_SQUAD_UUID)
-        logger.info("Will create panel user: username=%s squads=%s expire_at=%s", username, squads, expire_at_utc)
+        logger.info("Will create panel user: username=%s squad=%s expire_at=%s", username, squad_uuid, expire_at_utc)
 
         if not apply:
             logger.info("Dry-run mode — no changes written. Re-run with --apply to apply.")
@@ -248,7 +239,7 @@ async def main(client_id: int, apply: bool) -> None:
             username=username,
             expire_at=expire_at_utc,
             telegram_id=telegram_id,
-            active_internal_squads=squads or None,
+            active_internal_squads=[squad_uuid] if squad_uuid else None,
         ))
         logger.info("Created Remnawave user %s", response.uuid)
         await _insert_client_remnawave(conn, client_id, response.uuid, response.subscription_url)

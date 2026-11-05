@@ -189,15 +189,15 @@ POSTGRES_HOST=127.0.0.1 POSTGRES_PORT=54320 \
 ### 8. (Optional) Enable the «Telegram only» grace period
 After a paid subscription expires, the client keeps Telegram access for `DOTENV_TGBOT_REMNAWAVE_GRACE_DAYS` days to reach the bot and renew. Until the subscription expires the panel keeps the real expiration date, so the VPN app shows the same date as the bot.
 
-1. In the panel: create an inbound with sniffing enabled whose routing sends `geoip:telegram` / `geosite:telegram` to `DIRECT` and blocks everything else; a host for it; an internal squad containing only this inbound. Optionally create an external squad.
-2. Apply migration `postgres/migrations/014_clients_remnawave_grace.sql`, deploy with `DOTENV_TGBOT_REMNAWAVE_GRACE_ENABLED=false`.
-3. Add the reserve squad to existing users (dry run first, then `--apply`):
-```bash
-POSTGRES_HOST=127.0.0.1 POSTGRES_PORT=54320 \
-  POSTGRES_USER=ksivpn-tgbot POSTGRES_PASSWORD=<password> POSTGRES_DB=ksivpn-tgbot \
-  REMNAWAVE_BASE_URL=https://panel.example.com REMNAWAVE_TOKEN=<token> GRACE_INTERNAL_SQUAD_UUID=<squad-uuid> \
-  .venv/bin/python scripts/rollout_grace_period.py
+1. In the panel:
+   - create an inbound with sniffing enabled whose routing sends `geoip:telegram` / `geosite:telegram` to `DIRECT` and blocks everything else, and a host for it;
+   - create an internal squad containing only this inbound — for the grace period the bot replaces the user's regular squads with it and restores them after a renewal;
+   - optionally create an external squad for the grace period.
+2. Sync the squads (step 7) and exclude the grace squad from random assignment to new users:
+```sql
+UPDATE remnawave_internal_squads SET is_assignable = FALSE WHERE squad_uuid = '<grace-squad-uuid>';
 ```
+3. Apply migration `postgres/migrations/014_clients_remnawave_grace.sql`.
 4. Set `DOTENV_TGBOT_REMNAWAVE_GRACE_ENABLED=true`, `DOTENV_TGBOT_REMNAWAVE_GRACE_INTERNAL_SQUAD_UUID` (and optionally `..._EXTERNAL_SQUAD_UUID`) and restart the bot.
 
 ### 9. Configure subscriptions and promo codes
@@ -229,7 +229,7 @@ All variables are set in `.env` (defaults) or `.env.local` (your secrets and ove
 | `DOTENV_TGBOT_REMNAWAVE_WEBHOOK_SECRET` | `""` | No | HMAC-SHA256 secret for inbound panel webhooks; empty = `/webhook/remnawave` route disabled |
 | `DOTENV_TGBOT_REMNAWAVE_GRACE_ENABLED` | `"false"` | No | «Telegram only» grace period after a paid subscription expires |
 | `DOTENV_TGBOT_REMNAWAVE_GRACE_DAYS` | `"3"` | No | Grace period length in days (1–30) |
-| `DOTENV_TGBOT_REMNAWAVE_GRACE_INTERNAL_SQUAD_UUID` | `""` | When grace enabled | Internal squad with the Telegram-only inbound; kept on every user as a reserve server |
+| `DOTENV_TGBOT_REMNAWAVE_GRACE_INTERNAL_SQUAD_UUID` | `""` | When grace enabled | Internal squad with only the Telegram-only inbound; replaces the user's regular squads for the grace period |
 | `DOTENV_TGBOT_REMNAWAVE_GRACE_EXTERNAL_SQUAD_UUID` | `""` | No | External squad applied for the grace period only (Happ announce / profile title) |
 
 ### Database (PostgreSQL & Redis)
