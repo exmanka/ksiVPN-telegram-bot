@@ -209,7 +209,7 @@ class GraceSettings(BaseModel):
 
     While the subscription is active the panel's ``expireAt`` equals the real
     expiration date. At the moment it expires the bot moves the panel user to
-    ``squad_uuid`` only (a Telegram-only inbound), optionally to the
+    ``internal_squad_uuid`` only (a Telegram-only inbound), optionally to the
     ``external_squad_uuid`` external squad (Happ announce / profile title), and
     extends ``expireAt`` by ``days``. A payment or promo code restores the
     squads the user had before the grace period.
@@ -218,11 +218,11 @@ class GraceSettings(BaseModel):
     days: int = Field(default=3, ge=1, le=30)
     # Internal squad with the Telegram-only inbound; also kept on every user
     # as a permanent "reserve" server. Required when enabled.
-    squad_uuid: UUID | None = None
+    internal_squad_uuid: UUID | None = None
     # Optional external squad applied for the grace period only.
     external_squad_uuid: UUID | None = None
 
-    @field_validator('squad_uuid', 'external_squad_uuid', mode='before')
+    @field_validator('internal_squad_uuid', 'external_squad_uuid', mode='before')
     @classmethod
     def _empty_string_to_none(cls, value):
         # docker compose passes unset DOTENV_* variables as empty strings.
@@ -230,8 +230,8 @@ class GraceSettings(BaseModel):
 
     @model_validator(mode='after')
     def _validate_squad_when_enabled(self) -> "GraceSettings":
-        if self.enabled and self.squad_uuid is None:
-            raise ValueError('remnawave.grace.squad_uuid is required when remnawave.grace.enabled=True')
+        if self.enabled and self.internal_squad_uuid is None:
+            raise ValueError('remnawave.grace.internal_squad_uuid is required when remnawave.grace.enabled=True')
         return self
 
 

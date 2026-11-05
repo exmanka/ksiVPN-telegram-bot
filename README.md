@@ -195,10 +195,10 @@ After a paid subscription expires, the client keeps Telegram access for `DOTENV_
 ```bash
 POSTGRES_HOST=127.0.0.1 POSTGRES_PORT=54320 \
   POSTGRES_USER=ksivpn-tgbot POSTGRES_PASSWORD=<password> POSTGRES_DB=ksivpn-tgbot \
-  REMNAWAVE_BASE_URL=https://panel.example.com REMNAWAVE_TOKEN=<token> GRACE_SQUAD_UUID=<squad-uuid> \
+  REMNAWAVE_BASE_URL=https://panel.example.com REMNAWAVE_TOKEN=<token> GRACE_INTERNAL_SQUAD_UUID=<squad-uuid> \
   .venv/bin/python scripts/rollout_grace_period.py
 ```
-4. Set `DOTENV_TGBOT_REMNAWAVE_GRACE_ENABLED=true`, `DOTENV_TGBOT_REMNAWAVE_GRACE_SQUAD_UUID` (and optionally `..._EXTERNAL_SQUAD_UUID`) and restart the bot.
+4. Set `DOTENV_TGBOT_REMNAWAVE_GRACE_ENABLED=true`, `DOTENV_TGBOT_REMNAWAVE_GRACE_INTERNAL_SQUAD_UUID` (and optionally `..._EXTERNAL_SQUAD_UUID`) and restart the bot.
 
 ### 9. Configure subscriptions and promo codes
 Edit subscription plans, promo codes and referral settings directly in PostgreSQL. The schema is initialized from [`postgres/initdb/001_init_schema.sql`](postgres/initdb/001_init_schema.sql) with example rows — update the `subscriptions` table to match your pricing.
@@ -229,7 +229,7 @@ All variables are set in `.env` (defaults) or `.env.local` (your secrets and ove
 | `DOTENV_TGBOT_REMNAWAVE_WEBHOOK_SECRET` | `""` | No | HMAC-SHA256 secret for inbound panel webhooks; empty = `/webhook/remnawave` route disabled |
 | `DOTENV_TGBOT_REMNAWAVE_GRACE_ENABLED` | `"false"` | No | «Telegram only» grace period after a paid subscription expires |
 | `DOTENV_TGBOT_REMNAWAVE_GRACE_DAYS` | `"3"` | No | Grace period length in days (1–30) |
-| `DOTENV_TGBOT_REMNAWAVE_GRACE_SQUAD_UUID` | `""` | When grace enabled | Internal squad with the Telegram-only inbound; kept on every user as a reserve server |
+| `DOTENV_TGBOT_REMNAWAVE_GRACE_INTERNAL_SQUAD_UUID` | `""` | When grace enabled | Internal squad with the Telegram-only inbound; kept on every user as a reserve server |
 | `DOTENV_TGBOT_REMNAWAVE_GRACE_EXTERNAL_SQUAD_UUID` | `""` | No | External squad applied for the grace period only (Happ announce / profile title) |
 
 ### Database (PostgreSQL & Redis)

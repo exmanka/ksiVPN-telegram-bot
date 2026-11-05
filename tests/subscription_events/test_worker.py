@@ -259,7 +259,7 @@ def grace_on(monkeypatch, db):
     """Enable a 3-day grace period; mock the panel sync."""
     from src.config.schema import GraceSettings
     monkeypatch.setattr(se.settings.remnawave, 'grace', GraceSettings(
-        enabled=True, days=3, squad_uuid='11111111-1111-1111-1111-111111111111'))
+        enabled=True, days=3, internal_squad_uuid='11111111-1111-1111-1111-111111111111'))
     sync = AsyncMock(return_value=se.internal_functions.PanelSyncResult.GRACE)
     monkeypatch.setattr(se.internal_functions, 'sync_panel_user', sync)
     return sync
@@ -279,7 +279,7 @@ async def test_expired_with_grace_enters_grace(db, sent, grace_on):
 async def test_expired_with_grace_message_uses_configured_days(db, sent, grace_on, monkeypatch):
     from src.config.schema import GraceSettings
     monkeypatch.setattr(se.settings.remnawave, 'grace', GraceSettings(
-        enabled=True, days=1, squad_uuid='11111111-1111-1111-1111-111111111111'))
+        enabled=True, days=1, internal_squad_uuid='11111111-1111-1111-1111-111111111111'))
 
     await se.process_event(_event(kind='expired'))
 

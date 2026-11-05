@@ -41,7 +41,7 @@
 
 Прочее:
     BOT_TZ  — таймзона, в которой бот хранит даты (по умолчанию 'Europe/Moscow')
-    GRACE_SQUAD_UUID — необязательно: internal squad «только Telegram»; если задан,
+    GRACE_INTERNAL_SQUAD_UUID — необязательно: internal squad «только Telegram»; если задан,
                        добавляется пользователю как постоянный резерв (как делает бот
                        при TGBOT_REMNAWAVE__GRACE__ENABLED=true)
 
@@ -89,7 +89,7 @@ REMNAWAVE_CADDY_TOKEN = os.getenv('REMNAWAVE_CADDY_TOKEN')
 BOT_TZ = ZoneInfo(os.getenv('BOT_TZ', 'Europe/Moscow'))
 
 # Telegram-only grace squad kept on every user as a "reserve" server (optional).
-GRACE_SQUAD_UUID = uuid.UUID(os.environ['GRACE_SQUAD_UUID']) if os.getenv('GRACE_SQUAD_UUID') else None
+GRACE_INTERNAL_SQUAD_UUID = uuid.UUID(os.environ['GRACE_INTERNAL_SQUAD_UUID']) if os.getenv('GRACE_INTERNAL_SQUAD_UUID') else None
 
 # Same rule as src/services/remnawave_service.py:_sanitize_username
 _USERNAME_RE = re.compile(r'^[a-zA-Z0-9_-]{3,36}$')
@@ -236,8 +236,8 @@ async def main(client_id: int, apply: bool) -> None:
         if squad_uuid is None:
             logger.warning("No active assignable Remnawave squads in DB — user will be created without a squad")
         squads = [squad_uuid] if squad_uuid else []
-        if GRACE_SQUAD_UUID and GRACE_SQUAD_UUID not in squads:
-            squads.append(GRACE_SQUAD_UUID)
+        if GRACE_INTERNAL_SQUAD_UUID and GRACE_INTERNAL_SQUAD_UUID not in squads:
+            squads.append(GRACE_INTERNAL_SQUAD_UUID)
         logger.info("Will create panel user: username=%s squads=%s expire_at=%s", username, squads, expire_at_utc)
 
         if not apply:

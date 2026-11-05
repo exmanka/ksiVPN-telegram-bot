@@ -467,8 +467,8 @@ async def _pre_grace_internal_squads_fallback(grace: GraceSettings) -> list[uuid
     squads: list[uuid.UUID] = []
     if base := await remnawave_db.get_random_active_remnawave_squad_uuid():
         squads.append(base)
-    if grace.squad_uuid and grace.squad_uuid not in squads:
-        squads.append(grace.squad_uuid)
+    if grace.internal_squad_uuid and grace.internal_squad_uuid not in squads:
+        squads.append(grace.internal_squad_uuid)
     return squads
 
 
@@ -499,7 +499,7 @@ async def sync_panel_user(client_id: int) -> PanelSyncResult:
             if state['grace_started_at'] is None:
                 internal, external = await get_panel_user_squads(remnawave_uuid)
                 # A user that somehow already has only the grace squad has nothing worth restoring.
-                pre_internal = internal if any(s != grace.squad_uuid for s in internal) else None
+                pre_internal = internal if any(s != grace.internal_squad_uuid for s in internal) else None
                 pre_external = external if external != grace.external_squad_uuid else None
                 await remnawave_db.start_client_grace(client_id, pre_internal, pre_external)
                 logger.info("Client %s enters grace: pre-grace internal=%s external=%s",
@@ -508,7 +508,7 @@ async def sync_panel_user(client_id: int) -> PanelSyncResult:
             await update_panel_user(
                 remnawave_uuid,
                 expire_at=expiration + timedelta(days=grace.days),
-                internal_squads=[grace.squad_uuid] if grace.squad_uuid else UNSET,
+                internal_squads=[grace.internal_squad_uuid] if grace.internal_squad_uuid else UNSET,
                 external_squad=grace.external_squad_uuid if grace.external_squad_uuid else UNSET,
             )
             return PanelSyncResult.GRACE

@@ -39,8 +39,8 @@ Grace-период (TGBOT_REMNAWAVE__GRACE__*) держит internal squad «т�
     REMNAWAVE_CADDY_TOKEN — необязательно, если панель за Caddy с токен-авторизацией
 
 Прочее:
-    GRACE_SQUAD_UUID — UUID internal squad «только Telegram» (то же значение,
-                       что TGBOT_REMNAWAVE__GRACE__SQUAD_UUID)
+    GRACE_INTERNAL_SQUAD_UUID — UUID internal squad «только Telegram» (то же значение,
+                                что TGBOT_REMNAWAVE__GRACE__INTERNAL_SQUAD_UUID)
 
 Использование:
     # Dry-run (посмотреть что изменится):
@@ -77,7 +77,7 @@ REMNAWAVE_BASE_URL = os.getenv('REMNAWAVE_BASE_URL', '')
 REMNAWAVE_TOKEN = os.getenv('REMNAWAVE_TOKEN', '')
 REMNAWAVE_CADDY_TOKEN = os.getenv('REMNAWAVE_CADDY_TOKEN')
 
-GRACE_SQUAD_UUID = os.getenv('GRACE_SQUAD_UUID', '')
+GRACE_INTERNAL_SQUAD_UUID = os.getenv('GRACE_INTERNAL_SQUAD_UUID', '')
 
 
 def _build_sdk() -> RemnawaveSDK:
@@ -109,9 +109,9 @@ async def _get_provisioned_clients(conn: asyncpg.Connection) -> list[asyncpg.Rec
 # ---------------------------------------------------------------------------
 
 async def main(apply: bool) -> None:
-    if not GRACE_SQUAD_UUID:
-        raise SystemExit("GRACE_SQUAD_UUID is not set")
-    grace_squad = uuid.UUID(GRACE_SQUAD_UUID)
+    if not GRACE_INTERNAL_SQUAD_UUID:
+        raise SystemExit("GRACE_INTERNAL_SQUAD_UUID is not set")
+    grace_squad = uuid.UUID(GRACE_INTERNAL_SQUAD_UUID)
     sdk = _build_sdk()
 
     for req_var, name in [(POSTGRES_DB, 'POSTGRES_DB'),

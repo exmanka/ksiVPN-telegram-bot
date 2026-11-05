@@ -50,7 +50,7 @@ def _state(now, **overrides) -> dict:
 def grace(monkeypatch):
     """Enable grace (3 days, with external squad) for the module under test; return a setter."""
     def configure(**kwargs):
-        params = dict(enabled=True, days=3, squad_uuid=TG, external_squad_uuid=GRACE_EXT)
+        params = dict(enabled=True, days=3, internal_squad_uuid=TG, external_squad_uuid=GRACE_EXT)
         params.update(kwargs)
         monkeypatch.setattr(inf.settings.remnawave, 'grace', GraceSettings(**params))
     configure()
@@ -91,7 +91,7 @@ def db(monkeypatch):
     (EXPIRATION + timedelta(hours=1), 0, False),               # free subscription
 ])
 def test_grace_window(now, price, expected):
-    grace = GraceSettings(enabled=True, days=3, squad_uuid=TG)
+    grace = GraceSettings(enabled=True, days=3, internal_squad_uuid=TG)
     assert inf.is_in_grace_window(EXPIRATION, price, now, grace) is expected
 
 
@@ -101,7 +101,7 @@ def test_grace_window_disabled():
 
 
 def test_grace_window_respects_configured_days():
-    grace = GraceSettings(enabled=True, days=1, squad_uuid=TG)
+    grace = GraceSettings(enabled=True, days=1, internal_squad_uuid=TG)
     assert inf.is_in_grace_window(EXPIRATION, 199, EXPIRATION + timedelta(hours=25), grace) is False
 
 

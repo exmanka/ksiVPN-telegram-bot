@@ -228,7 +228,7 @@ user_authorized:
     sub_expired_grace: |-
       👾 <b>Oh, oh! The subscription has expired — only Telegram works now</b>
 
-      For {days} we've kept your Telegram access through a special location: «🇸🇴 Telegram Only — for subscription renewal». The rest of the traffic through the VPN won't be available.
+      For {days} we've kept your Telegram access through a special location: «🇸🇴 Telegram — for subscription renewal». The rest of the traffic through the VPN won't be available.
 
       We hope that this is temporary, and you will definitely come back to us! ♥️
     sub_expires_1d: |-

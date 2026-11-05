@@ -1,6 +1,6 @@
 """Grace-period configuration and the raw ``PATCH /api/users`` body.
 
-- ``GraceSettings``: ``days`` bounds, ``squad_uuid`` required only when enabled,
+- ``GraceSettings``: ``days`` bounds, ``internal_squad_uuid`` required only when enabled,
   ``external_squad_uuid`` optional, empty strings from docker compose become None.
 - ``build_update_user_payload``: ``UNSET`` fields are omitted, ``None`` external
   squad is sent as JSON null (the SDK can't do that), dates are UTC with ``Z``.
@@ -26,17 +26,17 @@ USER = uuid.UUID('33333333-3333-3333-3333-333333333333')
 
 def test_defaults_are_disabled_three_days():
     grace = GraceSettings()
-    assert (grace.enabled, grace.days, grace.squad_uuid, grace.external_squad_uuid) == (False, 3, None, None)
+    assert (grace.enabled, grace.days, grace.internal_squad_uuid, grace.external_squad_uuid) == (False, 3, None, None)
 
 
 def test_enabled_requires_squad():
-    with pytest.raises(ValidationError, match='squad_uuid is required'):
+    with pytest.raises(ValidationError, match='internal_squad_uuid is required'):
         GraceSettings(enabled=True)
 
 
 def test_enabled_without_external_squad_is_valid():
-    grace = GraceSettings(enabled=True, squad_uuid=str(SQUAD))
-    assert grace.squad_uuid == SQUAD
+    grace = GraceSettings(enabled=True, internal_squad_uuid=str(SQUAD))
+    assert grace.internal_squad_uuid == SQUAD
     assert grace.external_squad_uuid is None
 
 
@@ -52,11 +52,11 @@ def test_days_is_configurable():
 
 
 def test_empty_strings_from_compose_become_none():
-    grace = GraceSettings(enabled=False, squad_uuid='', external_squad_uuid='')
-    assert grace.squad_uuid is None and grace.external_squad_uuid is None
+    grace = GraceSettings(enabled=False, internal_squad_uuid='', external_squad_uuid='')
+    assert grace.internal_squad_uuid is None and grace.external_squad_uuid is None
 
-    with pytest.raises(ValidationError, match='squad_uuid is required'):
-        GraceSettings(enabled=True, squad_uuid='')
+    with pytest.raises(ValidationError, match='internal_squad_uuid is required'):
+        GraceSettings(enabled=True, internal_squad_uuid='')
 
 
 # --- build_update_user_payload --------------------------------------------------
