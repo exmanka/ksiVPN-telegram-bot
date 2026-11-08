@@ -27,7 +27,7 @@ remnawave_sdk: RemnawaveSDK = build_remnawave_sdk()
 # Used for the few calls the SDK can't express: its request DTOs are
 # serialized with ``exclude_none=True``, so e.g. ``externalSquadUuid: null``
 # (remove the user from an external squad) can't be sent through
-# ``users.update_user``. Verified against remnawave/backend 2.7.4.
+# ``users.update_user``. Verified against remnawave/backend 2.7.4 and 2.8.1.
 _sdk_http_client = remnawave_sdk._client  # pyright: ignore[reportPrivateUsage]
 assert _sdk_http_client is not None  # always built by RemnawaveSDK when no client is passed
 remnawave_http: httpx.AsyncClient = _sdk_http_client

@@ -7,7 +7,7 @@
 [![docker-info](https://img.shields.io/badge/Deploy_with-Docker-royalblue?style=flat-square)](https://docs.docker.com/compose/release-notes/)
 [![python-version](https://img.shields.io/badge/python-3.12-royalblue?style=flat-square)](https://github.com/exmanka/ksiVPN-telegram-bot/releases)
 [![aiogram-version](https://img.shields.io/badge/aiogram-3.27.0-royalblue?style=flat-square)](https://pypi.org/project/aiogram/)
-[![remnawave-version](https://img.shields.io/badge/remnawave-2.7.4-royalblue?style=flat-square)](https://pypi.org/project/remnawave/)
+[![remnawave-version](https://img.shields.io/badge/remnawave-2.8.1-royalblue?style=flat-square)](https://pypi.org/project/remnawave-api/)
 [![asyncpg-version](https://img.shields.io/badge/asyncpg-0.31.0-blue?style=flat-square)](https://pypi.org/project/asyncpg/)
 [![apscheduler-version](https://img.shields.io/badge/apscheduler-3.11.2-blue?style=flat-square)](https://pypi.org/project/APScheduler/)
 [![gpt4free-version](https://img.shields.io/badge/g4f-0.3.0-blue?style=flat-square)](https://pypi.org/project/g4f/)
@@ -58,7 +58,7 @@ Use Case diagram can be found [here](https://github.com/exmanka/ksiVPN-telegram-
 ### Prerequisites
 1. [Docker Engine](https://docs.docker.com/engine/install/) with the Compose plugin is installed
 2. [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) is installed
-3. A running [Remnawave Panel](https://github.com/remnawave/panel) instance (≥ 2.7.0) with API token
+3. A running [Remnawave Panel](https://github.com/remnawave/panel) instance (≥ 2.8.0) with API token
 4. Telegram bot token from [BotFather](https://t.me/BotFather) and your Telegram user ID
 5. At least one payment provider account — [YooMoney](https://yoomoney.ru) or [YooKassa](https://yookassa.ru)
 
@@ -171,7 +171,7 @@ docker compose --env-file .env --env-file .env.local --profile with-reverse-prox
 Populate the `remnawave_internal_squads` table from your Remnawave Panel before users start registering:
 ```bash
 # Requires Python 3.12
-python3.12 -m venv .venv && .venv/bin/pip install asyncpg remnawave
+python3.12 -m venv .venv && .venv/bin/pip install asyncpg remnawave-api==2.8.1
 
 # Dry run — review what would be synced
 POSTGRES_HOST=127.0.0.1 POSTGRES_PORT=54320 \

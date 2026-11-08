@@ -20,7 +20,7 @@ dependencies = [
     "redis (>=7.4.0,<8.0.0)",
     "aiohttp-socks (>=0.11.0,<0.12)",
     "babel (>=2.16,<3.0)",
-    "remnawave (>=2.7.0,<3.0)",
+    "remnawave-api (==2.8.1)",
     "yookassa (>=3.5.0,<4.0)",
     "nalogo (>=1.0.0,<2.0)",
 ]
