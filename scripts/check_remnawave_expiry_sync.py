@@ -10,7 +10,7 @@
 Требования
 ----------
   Python 3.12 (.venv):
-      .venv/bin/pip install asyncpg remnawave
+      .venv/bin/pip install asyncpg remnawave-api==2.8.1
 
 Переменные окружения (БД):
     POSTGRES_HOST     — хост БД (по умолчанию 'ksivpn-tgbot-postgres')
