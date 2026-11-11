@@ -34,11 +34,9 @@ from datetime import timedelta
 from enum import Enum
 
 import asyncpg
-from aiogram.types import InlineKeyboardMarkup
 
 from src.config import settings
 from src.database import connection, subscription_events_db
-from src.keyboards import user_authorized_kb
 from src.runtime import bot
 from src.services import internal_functions, localization as loc
 from src.services.date_formatting import format_localized_bonus_days, format_localized_datetime
@@ -80,9 +78,9 @@ async def _admin_client_args(event: asyncpg.Record) -> tuple:
     )
 
 
-async def _notify_user(telegram_id: int, text: str, reply_markup: InlineKeyboardMarkup | None = None) -> None:
+async def _notify_user(telegram_id: int, text: str) -> None:
     await internal_functions.safe_deliver(
-        lambda: bot.send_message(telegram_id, text, reply_markup=reply_markup),
+        lambda: bot.send_message(telegram_id, text),
         telegram_id=telegram_id,
     )
 
@@ -210,9 +208,7 @@ async def _handle_first_connect(event: asyncpg.Record) -> EventOutcome:
 
     logger.info('Subscription event %s (first_connect): reminding client %s to connect',
                 event['id'], event['telegram_id'])
-    await _notify_user(event['telegram_id'],
-                       loc.auth.msgs['first_connect_reminder'].format(url=subscription_url),
-                       reply_markup=user_authorized_kb.my_subscription_inline)
+    await _notify_user(event['telegram_id'], loc.auth.msgs['first_connect_reminder'].format(url=subscription_url))
     await _notify_admin(loc.admn.msgs['first_connect_reminder'].format(
         *await _admin_client_args(event), subscription_url))
     return EventOutcome.DONE

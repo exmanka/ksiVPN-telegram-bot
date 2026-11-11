@@ -75,7 +75,7 @@ def sent(monkeypatch):
     """Capture (telegram_id, text) of every delivered message."""
     messages: list[tuple[int, str]] = []
 
-    async def fake_notify_user(telegram_id, text, reply_markup=None):
+    async def fake_notify_user(telegram_id, text):
         messages.append((telegram_id, text))
 
     async def fake_notify_admin(text):
@@ -349,16 +349,6 @@ async def test_first_connect_reminds_client_and_admin(db, sent, panel):
     assert sent[0] == (555, loc.auth.msgs['first_connect_reminder'].format(url='https://sub.example/abc'))
     assert sent[1] == (se.settings.bot.admin_id, loc.admn.msgs['first_connect_reminder'].format(
         100, ' ivan', 'Ivan', '', 555, 'https://sub.example/abc'))
-
-
-async def test_first_connect_attaches_subscription_keyboard(db, panel, monkeypatch):
-    notify_user = AsyncMock()
-    monkeypatch.setattr(se, '_notify_user', notify_user)
-    monkeypatch.setattr(se, '_notify_admin', AsyncMock())
-
-    await se.process_event(_first_connect())
-
-    assert notify_user.await_args.kwargs['reply_markup'] is se.user_authorized_kb.my_subscription_inline
 
 
 async def test_first_connect_already_connected_is_claimed_silently(db, sent, panel):

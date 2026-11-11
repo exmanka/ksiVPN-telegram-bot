@@ -382,7 +382,7 @@ admin:
       <code>{0}</code>
     error_no_file_for_file_id: Файл не был прикреплен вместе с вызовом команды /fileid!
     first_connect_reminder: |-
-      👾 <b>Пользователю отправлено напоминание о первом подключении.</b>
+      👾 <b>Пользователю отправлено напоминание о первом подключении</b>
 
       <b>Client ID</b>: <code>{0}</code>
       <b>Telegram INFO</b>:{1} <code>{2}{3}</code> <code>{4}</code>
