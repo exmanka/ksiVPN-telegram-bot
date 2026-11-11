@@ -257,4 +257,4 @@ CREATE TABLE remnawave_internal_squads (
 	updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 INSERT INTO remnawave_internal_squads(squad_uuid, name)
-VALUES('62965f73-f945-4c49-8803-8db86ff69fe8', 'basic');
+VALUES('702dc3fc-2bd9-4d50-8637-2383fd7194ee', 'basic-01');
