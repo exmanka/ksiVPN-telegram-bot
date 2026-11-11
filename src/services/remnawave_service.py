@@ -223,6 +223,24 @@ async def get_panel_user_squads(remnawave_uuid: uuid.UUID) -> tuple[list[uuid.UU
     return [squad.uuid for squad in user.active_internal_squads], user.external_squad_uuid
 
 
+async def get_panel_user_first_connected_at(remnawave_uuid: uuid.UUID) -> datetime | None:
+    """Return when the panel user first connected to a node, or None if they never have.
+
+    Raises RemnawaveError on any API failure.
+    """
+    try:
+        user = await _call_with_http_retry(
+            lambda: remnawave_sdk.users.get_user_by_uuid(str(remnawave_uuid)),
+            label="get_panel_user_first_connected_at",
+        )
+    except RemnawaveError:
+        raise
+    except Exception as exc:
+        raise RemnawaveError(f"Unexpected error while fetching panel user: {exc}") from exc
+
+    return user.user_traffic.first_connected_at
+
+
 async def get_user_hwid_devices(remnawave_uuid: uuid.UUID) -> list[HwidDeviceDto]:
     """Return HWID devices registered in Remnawave Panel for the user.
 

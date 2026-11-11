@@ -1,3 +1,4 @@
+import re
 from decimal import Decimal
 from uuid import UUID
 
@@ -235,6 +236,66 @@ class GraceSettings(BaseModel):
         return self
 
 
+_DELAY_TOKEN_RE = re.compile(r'^(\d+)([dhm])$')
+_DELAY_UNIT_MINUTES = {'d': 24 * 60, 'h': 60, 'm': 1}
+
+
+def parse_delay(text: str) -> int:
+    """Parse a delay like ``"3d 5h"``, ``"1h 3m"`` or ``"5m"`` into minutes.
+
+    Whitespace-separated ``<int><unit>`` tokens with units ``d`` / ``h`` / ``m``, each unit at most once.
+    Raises ValueError on a malformed or zero delay.
+    """
+    tokens = text.split()
+    if not tokens:
+        raise ValueError(f'empty delay {text!r}')
+
+    total = 0
+    seen_units: set[str] = set()
+    for token in tokens:
+        match = _DELAY_TOKEN_RE.match(token)
+        if match is None:
+            raise ValueError(f'malformed delay {text!r}: expected tokens like "3d", "5h", "10m"')
+        value, unit = match.groups()
+        if unit in seen_units:
+            raise ValueError(f'malformed delay {text!r}: unit {unit!r} is repeated')
+        seen_units.add(unit)
+        total += int(value) * _DELAY_UNIT_MINUTES[unit]
+
+    if total <= 0:
+        raise ValueError(f'delay {text!r} must be positive')
+    return total
+
+
+class FirstConnectionReminderSettings(BaseModel):
+    """Reminders to a new client who activated a subscription but never connected to the VPN.
+
+    One reminder per ``delay`` item, each counted from the subscription activation and sent only
+    while Remnawave has seen no connection of the client. Delays are pushed to the DB on startup
+    (``subscription_events_settings``) and apply to activations after that.
+    """
+    enabled: bool = True
+    # E.g. ["3d 5h", "1h 3m", "5m"]; minute precision.
+    delay: list[str] = Field(default_factory=lambda: ['2d'], min_length=1)
+
+    @field_validator('delay')
+    @classmethod
+    def _validate_delay(cls, value: list[str]) -> list[str]:
+        for item in value:
+            parse_delay(item)
+        return value
+
+    @property
+    def delay_minutes(self) -> list[int]:
+        """Delays in minutes, ascending, without duplicates."""
+        return sorted({parse_delay(item) for item in self.delay})
+
+
+class ReminderSettings(BaseModel):
+    """Client reminders (expiration reminders are planned to move here as well)."""
+    first_connection: FirstConnectionReminderSettings = FirstConnectionReminderSettings()
+
+
 class RemnawaveSettings(BaseModel):
     base_url: str
     token: SecretStr
@@ -243,6 +304,7 @@ class RemnawaveSettings(BaseModel):
     # the /webhook/remnawave route is not registered.
     webhook_secret: SecretStr | None = None
     grace: GraceSettings = GraceSettings()
+    reminder: ReminderSettings = ReminderSettings()
 
 
 class Settings(BaseModel):

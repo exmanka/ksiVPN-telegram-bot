@@ -26,7 +26,7 @@ from aiohttp import web
 
 from src.middlewares import user_authorized_mw, user_unauthorized_mw, admin_mw, throttling_mw
 from src.handlers import user_authorized, user_unauthorized, admin, other
-from src.database import connection
+from src.database import connection, subscription_events_db
 from src.services import scheduler, subscription_events
 from src.runtime import dp, bot
 from src.config import settings
@@ -40,6 +40,10 @@ logger = logging.getLogger(__name__)
 async def on_startup() -> None:
     """Connect to database, run scheduler and subscription events worker during bot launch."""
     await connection.asyncpg_run()
+    reminder = settings.remnawave.reminder.first_connection
+    first_connect_delays = reminder.delay_minutes if reminder.enabled else []
+    await subscription_events_db.set_first_connect_delays(first_connect_delays)
+    logger.info('First connection reminder delays (minutes): %s', first_connect_delays or 'disabled')
     await scheduler.apscheduler_start()
     await subscription_events.worker.start()
     logger.info('Bot has been successfully launched!')

@@ -221,6 +221,14 @@ user_authorized:
       {0}. <code>{1}</code> for {2} of subscription.
       LED {3}.
     no_promo_entered: You have not entered any promo codes yet. Follow the news! 🚀
+    first_connect_reminder: |-
+      🚀 <b>A quick reminder: your VPN is ready and waiting to be connected</b>
+
+      We noticed you haven't connected since your subscription was activated. Setting up the VPN with the instructions takes just a couple of minutes, we promise!
+
+      Everything you need is here: {url}
+
+      🫶 If something doesn't work, use the /help and /faq commands. Or message our support @ksivpn, we'll help!
     sub_expired: |-
       👾 <b>Oh, oh! The subscription has expired, the VPN will have to be disabled</b>
 
@@ -358,6 +366,12 @@ admin:
       
       <code>{0}</code>
     error_no_file_for_file_id: The file was not attached along with the /fileid command call!
+    first_connect_reminder: |-
+      👾 <b>The user was reminded to make the first connection.</b>
+
+      <b>Client ID</b>: <code>{0}</code>
+      <b>Telegram INFO</b>:{1} <code>{2}{3}</code> <code>{4}</code>
+      <b>Subscription URL</b>: {5}
     sub_expired: |-
       👾 <b>The user's subscription has expired.</b>
 

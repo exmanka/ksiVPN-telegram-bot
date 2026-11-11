@@ -231,6 +231,8 @@ All variables are set in `.env` (defaults) or `.env.local` (your secrets and ove
 | `DOTENV_TGBOT_REMNAWAVE_GRACE_DAYS` | `"3"` | No | Grace period length in days (1–30) |
 | `DOTENV_TGBOT_REMNAWAVE_GRACE_INTERNAL_SQUAD_UUID` | `""` | When grace enabled | Internal squad with only the Telegram-only inbound; replaces the user's regular squads for the grace period |
 | `DOTENV_TGBOT_REMNAWAVE_GRACE_EXTERNAL_SQUAD_UUID` | `""` | No | External squad applied for the grace period only (Happ announce / profile title) |
+| `DOTENV_TGBOT_REMNAWAVE_REMINDER_FIRST_CONNECTION_ENABLED` | `"true"` | No | Remind new clients who activated a subscription but never connected to the VPN |
+| `DOTENV_TGBOT_REMNAWAVE_REMINDER_FIRST_CONNECTION_DELAY` | `'["2d"]'` | No | One reminder per item, each counted from subscription activation; `d`/`h`/`m` tokens, e.g. `'["3d 5h", "1h 3m", "5m"]'`. Applies to activations after a restart |
 
 ### Database (PostgreSQL & Redis)
 | Environment variable | Default value | Required | Purpose |

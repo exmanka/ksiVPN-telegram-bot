@@ -8,6 +8,9 @@ What we DO test:
 - Reminders honour the client's notification toggles and are delivered at most
   once (claim before send).
 - ``expired`` notifies the client and the admin (with the subscription URL).
+- ``first_connect`` skips the stale/free checks; it is sent only while the
+  subscription is active, the client has a panel subscription link and
+  Remnawave has seen no connection yet; an inactive subscription drops the event.
 - Handler failure → event postponed (RETRY); the loop keeps going.
 - Sleep timeout: clamped to ``[0, SAFETY_CAP]``; a wake-up (NOTIFY) cuts the sleep short.
 """
@@ -15,6 +18,7 @@ What we DO test:
 import asyncio
 from datetime import datetime
 from unittest.mock import AsyncMock
+from uuid import UUID
 
 import pytest
 
@@ -23,6 +27,7 @@ from src.services import subscription_events as se
 
 
 EXPIRATION = datetime(2026, 11, 10, 12, 0)
+REMNAWAVE_UUID = UUID('22222222-2222-2222-2222-222222222222')
 
 
 def _event(**overrides) -> dict:
@@ -34,6 +39,7 @@ def _event(**overrides) -> dict:
         'for_expiration': EXPIRATION,
         'attempts': 0,
         'expiration_date': EXPIRATION,
+        'subscription_active': True,
         'telegram_id': 555,
         'name': 'Ivan',
         'surname': None,
@@ -42,6 +48,7 @@ def _event(**overrides) -> dict:
         'sub_expiration_in_3d': True,
         'sub_expiration_in_7d': True,
         'price': 199,
+        'remnawave_uuid': REMNAWAVE_UUID,
         'remnawave_subscription_url': 'https://sub.example/abc',
     }
     event.update(overrides)
@@ -54,6 +61,7 @@ def db(monkeypatch):
     mocks = {
         'claim_subscription_event': AsyncMock(return_value=True),
         'postpone_subscription_event': AsyncMock(),
+        'delete_pending_subscription_event': AsyncMock(return_value=True),
         'fetch_due_subscription_events': AsyncMock(return_value=[]),
         'get_next_subscription_event_delay': AsyncMock(return_value=None),
     }
@@ -67,7 +75,7 @@ def sent(monkeypatch):
     """Capture (telegram_id, text) of every delivered message."""
     messages: list[tuple[int, str]] = []
 
-    async def fake_notify_user(telegram_id, text):
+    async def fake_notify_user(telegram_id, text, reply_markup=None):
         messages.append((telegram_id, text))
 
     async def fake_notify_admin(text):
@@ -317,3 +325,105 @@ async def test_expired_grace_disabled_does_not_touch_panel(db, sent, monkeypatch
 
     sync.assert_not_awaited()
     assert sent[0] == (555, loc.auth.msgs['sub_expired'])
+
+
+# --- first connection reminder ------------------------------------------------------
+
+@pytest.fixture
+def panel(monkeypatch):
+    """Mock the panel lookup of the first connection; the client has never connected by default."""
+    mock = AsyncMock(return_value=None)
+    monkeypatch.setattr(se, 'get_panel_user_first_connected_at', mock)
+    return mock
+
+
+def _first_connect(**overrides) -> dict:
+    return _event(kind='first_connect', fire_at=datetime(2026, 10, 3, 12, 0), **overrides)
+
+
+async def test_first_connect_reminds_client_and_admin(db, sent, panel):
+    assert await se.process_event(_first_connect()) is se.EventOutcome.DONE
+
+    panel.assert_awaited_once_with(REMNAWAVE_UUID)
+    db['claim_subscription_event'].assert_awaited_once_with(1)
+    assert sent[0] == (555, loc.auth.msgs['first_connect_reminder'].format(url='https://sub.example/abc'))
+    assert sent[1] == (se.settings.bot.admin_id, loc.admn.msgs['first_connect_reminder'].format(
+        100, ' ivan', 'Ivan', '', 555, 'https://sub.example/abc'))
+
+
+async def test_first_connect_attaches_subscription_keyboard(db, panel, monkeypatch):
+    notify_user = AsyncMock()
+    monkeypatch.setattr(se, '_notify_user', notify_user)
+    monkeypatch.setattr(se, '_notify_admin', AsyncMock())
+
+    await se.process_event(_first_connect())
+
+    assert notify_user.await_args.kwargs['reply_markup'] is se.user_authorized_kb.my_subscription_inline
+
+
+async def test_first_connect_already_connected_is_claimed_silently(db, sent, panel):
+    panel.return_value = datetime(2026, 10, 2, 9, 0)
+
+    assert await se.process_event(_first_connect()) is se.EventOutcome.DONE
+
+    db['claim_subscription_event'].assert_awaited_once_with(1)
+    assert sent == []
+
+
+async def test_first_connect_inactive_subscription_is_dropped(db, sent, panel):
+    assert await se.process_event(_first_connect(subscription_active=False)) is se.EventOutcome.DONE
+
+    db['delete_pending_subscription_event'].assert_awaited_once_with(1)
+    db['claim_subscription_event'].assert_not_awaited()
+    panel.assert_not_awaited()
+    assert sent == []
+
+
+@pytest.mark.parametrize('overrides', [
+    {'remnawave_uuid': None, 'remnawave_subscription_url': None},  # no clients_remnawave row
+    {'remnawave_subscription_url': ''},
+])
+async def test_first_connect_without_panel_subscription_is_skipped_and_logged(db, sent, panel, caplog, overrides):
+    with caplog.at_level('WARNING', logger=se.logger.name):
+        assert await se.process_event(_first_connect(**overrides)) is se.EventOutcome.DONE
+
+    db['claim_subscription_event'].assert_awaited_once_with(1)
+    panel.assert_not_awaited()
+    assert sent == []  # neither the client nor the admin
+    assert any('no Remnawave subscription' in r.getMessage() for r in caplog.records)
+
+
+async def test_first_connect_panel_failure_retries(db, sent, panel):
+    panel.side_effect = se.RemnawaveError('panel down')
+
+    assert await se.process_event(_first_connect()) is se.EventOutcome.RETRY
+
+    db['claim_subscription_event'].assert_not_awaited()
+    assert sent == []
+
+
+async def test_first_connect_disabled_is_claimed_without_panel_call(db, sent, panel, monkeypatch):
+    monkeypatch.setattr(se.settings.remnawave.reminder.first_connection, 'enabled', False)
+
+    assert await se.process_event(_first_connect()) is se.EventOutcome.DONE
+
+    db['claim_subscription_event'].assert_awaited_once_with(1)
+    panel.assert_not_awaited()
+    assert sent == []
+
+
+@pytest.mark.parametrize('overrides', [
+    {'price': 0},                                          # free subscription
+    {'expiration_date': datetime(2026, 12, 10, 12, 0)},  # renewed since scheduling
+])
+async def test_first_connect_ignores_free_and_stale_checks(db, sent, panel, overrides):
+    await se.process_event(_first_connect(**overrides))
+
+    assert sent[0][0] == 555
+
+
+async def test_first_connect_already_claimed_is_not_sent_again(db, sent, panel):
+    db['claim_subscription_event'].return_value = False
+
+    assert await se.process_event(_first_connect()) is se.EventOutcome.DONE
+    assert sent == []

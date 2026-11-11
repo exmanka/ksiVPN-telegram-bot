@@ -20,6 +20,12 @@ Events are claimed (``done_at``) before user-visible side effects, so a message
 is delivered at most once. An event whose ``for_expiration`` snapshot differs
 from the current ``expiration_date`` is stale (the date changed after it was
 scheduled) and is claimed without effect.
+
+``first_connect`` events («first connection» reminders, scheduled by the same
+trigger when a new client's subscription is activated) are not tied to the
+expiration date: they skip the staleness and free-subscription checks and are
+sent only while the subscription is active and Remnawave has seen no
+connection of the client yet.
 """
 import asyncio
 import html
@@ -28,13 +34,15 @@ from datetime import timedelta
 from enum import Enum
 
 import asyncpg
+from aiogram.types import InlineKeyboardMarkup
 
 from src.config import settings
 from src.database import connection, subscription_events_db
+from src.keyboards import user_authorized_kb
 from src.runtime import bot
 from src.services import internal_functions, localization as loc
 from src.services.date_formatting import format_localized_bonus_days, format_localized_datetime
-from src.services.remnawave_service import RemnawaveError
+from src.services.remnawave_service import RemnawaveError, get_panel_user_first_connected_at
 
 
 logger = logging.getLogger(__name__)
@@ -72,9 +80,9 @@ async def _admin_client_args(event: asyncpg.Record) -> tuple:
     )
 
 
-async def _notify_user(telegram_id: int, text: str) -> None:
+async def _notify_user(telegram_id: int, text: str, reply_markup: InlineKeyboardMarkup | None = None) -> None:
     await internal_functions.safe_deliver(
-        lambda: bot.send_message(telegram_id, text),
+        lambda: bot.send_message(telegram_id, text, reply_markup=reply_markup),
         telegram_id=telegram_id,
     )
 
@@ -161,6 +169,55 @@ async def _handle_expired(event: asyncpg.Record) -> EventOutcome:
     return EventOutcome.DONE
 
 
+async def _handle_first_connect(event: asyncpg.Record) -> EventOutcome:
+    """Remind a new client who hasn't connected yet that their subscription works."""
+    if not settings.remnawave.reminder.first_connection.enabled:
+        # Scheduled before the feature was disabled.
+        await subscription_events_db.claim_subscription_event(event['id'])
+        return EventOutcome.DONE
+
+    if not event['subscription_active']:
+        # Deleted rather than claimed: if this was the client's last reminder row,
+        # the next activation schedules a fresh set.
+        await subscription_events_db.delete_pending_subscription_event(event['id'])
+        logger.info('Subscription event %s (first_connect): subscription of client %s is not active — dropped',
+                    event['id'], event['client_id'])
+        return EventOutcome.DONE
+
+    subscription_url = event['remnawave_subscription_url']
+    if event['remnawave_uuid'] is None or not subscription_url:
+        # A reminder without the link is useless; the admin already got an alert when panel provisioning failed.
+        await subscription_events_db.claim_subscription_event(event['id'])
+        logger.warning('Subscription event %s (first_connect): client %s (tg_id=%s) has no Remnawave '
+                       'subscription — reminder skipped', event['id'], event['client_id'], event['telegram_id'])
+        return EventOutcome.DONE
+
+    try:
+        first_connected_at = await get_panel_user_first_connected_at(event['remnawave_uuid'])
+    except RemnawaveError as exc:
+        logger.warning('Subscription event %s (first_connect): failed to fetch panel user of client %s '
+                       '(attempt %s): %s', event['id'], event['client_id'], event['attempts'] + 1, exc)
+        return EventOutcome.RETRY
+
+    if first_connected_at is not None:
+        await subscription_events_db.claim_subscription_event(event['id'])
+        logger.info('Subscription event %s (first_connect): client %s first connected at %s — no reminder',
+                    event['id'], event['client_id'], first_connected_at)
+        return EventOutcome.DONE
+
+    if not await subscription_events_db.claim_subscription_event(event['id']):
+        return EventOutcome.DONE
+
+    logger.info('Subscription event %s (first_connect): reminding client %s to connect',
+                event['id'], event['telegram_id'])
+    await _notify_user(event['telegram_id'],
+                       loc.auth.msgs['first_connect_reminder'].format(url=subscription_url),
+                       reply_markup=user_authorized_kb.my_subscription_inline)
+    await _notify_admin(loc.admn.msgs['first_connect_reminder'].format(
+        *await _admin_client_args(event), subscription_url))
+    return EventOutcome.DONE
+
+
 _HANDLERS = {
     'remind_7d': _handle_reminder,
     'remind_3d': _handle_reminder,
@@ -171,6 +228,10 @@ _HANDLERS = {
 
 async def process_event(event: asyncpg.Record) -> EventOutcome:
     """Validate a due event against the current subscription state and dispatch it to its handler."""
+    if event['kind'] == subscription_events_db.FIRST_CONNECT_KIND:
+        # Not tied to the expiration date and sent for free subscriptions too.
+        return await _handle_first_connect(event)
+
     if event['for_expiration'] != event['expiration_date']:
         # The date changed after this event was scheduled; the trigger has already
         # scheduled fresh events for the new date. Possible only in a narrow race
