@@ -45,8 +45,11 @@ INSERT INTO clients_subscriptions(client_id, sub_id, paid_days_counter, expirati
 VALUES(1, 1, 300, TIMESTAMP '2030-01-01 00:00');
 
 
--- Upcoming expiration events (7d/3d/1d reminders, expiration) per client.
+-- Upcoming expiration events (7d/3d/1d reminders, expiration) and «first connection»
+-- reminders (``first_connect``) per client.
 -- ``for_expiration`` is the expiration_date snapshot an event was computed from.
+-- ``first_connect`` rows are never deleted by the bot: their presence marks a client
+-- whose reminder set has already been scheduled.
 CREATE TABLE subscription_events (
 	id BIGSERIAL PRIMARY KEY,
 	client_id INT NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
@@ -64,13 +67,26 @@ ON subscription_events(fire_at) WHERE done_at IS NULL;
 CREATE INDEX subscription_events_client_pending_idx
 ON subscription_events(client_id) WHERE done_at IS NULL;
 
+CREATE INDEX subscription_events_first_connect_idx
+ON subscription_events(client_id) WHERE kind = 'first_connect';
+
+
+-- One-row table filled by the bot on startup from settings.remnawave.reminder.first_connection:
+-- delays of the «first connection» reminders, counted from subscription activation.
+CREATE TABLE subscription_events_settings (
+	id BOOLEAN PRIMARY KEY DEFAULT TRUE CHECK (id),
+	first_connect_delays INTERVAL[] NOT NULL DEFAULT ARRAY[INTERVAL '48 hours']
+);
+INSERT INTO subscription_events_settings DEFAULT VALUES;
+
 
 CREATE OR REPLACE FUNCTION regenerate_subscription_events(p_client_id INT, p_expiration TIMESTAMP) RETURNS void
 AS $$
 BEGIN
     DELETE FROM subscription_events
     WHERE client_id = p_client_id
-      AND done_at IS NULL;
+      AND done_at IS NULL
+      AND kind <> 'first_connect';
 
     INSERT INTO subscription_events(client_id, kind, fire_at, for_expiration)
     SELECT p_client_id, e.kind, p_expiration + e.offset_interval, p_expiration
@@ -94,6 +110,16 @@ BEGIN
         RETURN NULL;
     END IF;
     PERFORM regenerate_subscription_events(NEW.client_id, NEW.expiration_date);
+
+    -- Activation of a new client: schedule the «first connection» reminders.
+    IF NEW.expiration_date > CURRENT_TIMESTAMP
+       AND (TG_OP = 'INSERT' OR OLD.expiration_date <= CURRENT_TIMESTAMP)
+       AND NOT EXISTS (SELECT 1 FROM subscription_events
+                       WHERE client_id = NEW.client_id AND kind = 'first_connect') THEN
+        INSERT INTO subscription_events(client_id, kind, fire_at, for_expiration)
+        SELECT NEW.client_id, 'first_connect', CURRENT_TIMESTAMP + d, NEW.expiration_date
+        FROM subscription_events_settings, unnest(first_connect_delays) AS d;
+    END IF;
     RETURN NULL;
 END;
 $$ LANGUAGE PLPGSQL VOLATILE;
@@ -231,4 +257,4 @@ CREATE TABLE remnawave_internal_squads (
 	updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 INSERT INTO remnawave_internal_squads(squad_uuid, name)
-VALUES('62965f73-f945-4c49-8803-8db86ff69fe8', 'basic');
+VALUES('702dc3fc-2bd9-4d50-8637-2383fd7194ee', 'basic-01');

@@ -126,6 +126,8 @@ dynaconf_settings = Dynaconf(
         ),
         Validator("remnawave.grace.internal_squad_uuid", default=None),
         Validator("remnawave.grace.external_squad_uuid", default=None),
+        Validator("remnawave.reminder.first_connection.enabled", default=True, is_type_of=bool),
+        Validator("remnawave.reminder.first_connection.delay", default=["2d"], is_type_of=list),
     ],
 )
 
